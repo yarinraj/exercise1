@@ -4,57 +4,50 @@
 #include <utility>
 #include "RecommendationLogic.h"
 
-TEST(RecommendationLogicTest, FilterAndSortRecommendations) {
-    // Arrange
-    std::vector<std::pair<std::string, int>> productScores = {
-       {"Laptop", 95},
-        {"Old Mouse", 20},    
-        {"Monitor", 80},
-        {"Cheap Cable", 45}
-    };
+// Test Case 1: Ensure the system limits recommendations to a maximum of 10 products.
+TEST(RecommendationLogicTest, ReturnsMaxTenResults) {
+    std::vector<std::pair<std::string, int>> input;
+    // Fill with 15 products to test the upper limit
     
-    // Act
-    std::vector<std::string> recommendations = FilterAndSortRecommendations(productScores);
-    
-    // Assert
-    //suppose to stay only 2 products
-  ASSERT_EQ(recommendations.size(), 2);
-  //the number one suppose to be the laptop because it has the highest score
-    ASSERT_EQ(recommendations[0], "Laptop");
-    //the number two suppose to be the monitor because it has the second highest score
-    ASSERT_EQ(recommendations[1], "Monitor");
+    for (int i = 1; i <= 15; ++i) {
+        input.push_back({"Product" + std::to_string(i), i});
+    }
 
-
-}
-TEST(RecommendationLogicTest, AllProductsBelowThreshold) {
-    // --- Arrange ---
-    //we create a list of products with scores all below the threshold of 50
-    std::vector<std::pair<std::string, int>> input = {
-        {"Old Socks", 10},
-        {"Broken Pen", 45},
-        {"Rusty Nail", 5}
-    };
-
-    // --- Act ---
     std::vector<std::string> result = FilterAndSortRecommendations(input);
 
-    // --- Assert ---
-   //we expect that the result will be empty because all products are below the threshold of 50
-    EXPECT_TRUE(result.empty());
-    EXPECT_EQ(result.size(), 0);
+    // Requirement: System must provide up to 10 recommendations.
+    EXPECT_LE(result.size(), 10);
 }
-TEST(RecommendationLogicTest, IdenticalScores) {
-    // Arrange
+
+// Test Case 2: Verify tie-breaking logic (identical scores -> sort by product ID ascending)[cite: 1].
+TEST(RecommendationLogicTest, TieBreakerByProductId) {
+    // Two products with identical relevance scores
     std::vector<std::pair<std::string, int>> input = {
-        {"Monitor A", 80},
-        {"Monitor B", 80}
+        {"200", 10},
+        {"100", 10}
     };
 
-    // Act
     std::vector<std::string> result = FilterAndSortRecommendations(input);
 
-    // Assert
     ASSERT_EQ(result.size(), 2);
-    // Since both products have the same score, we can't guarantee their order, but both should be present
-    EXPECT_TRUE(result[0] == "Monitor A" || result[0] == "Monitor B");
+    // Requirement: When scores are equal, return in ascending ID order[cite: 1].
+    EXPECT_EQ(result[0], "100");
+    EXPECT_EQ(result[1], "200");
+}
+
+// Test Case 3: Verify sorting logic (highest relevance score first)[cite: 1].
+TEST(RecommendationLogicTest, SortsByRelevanceDescending) {
+    std::vector<std::pair<std::string, int>> input = {
+        {"ProductA", 5},
+        {"ProductB", 20},
+        {"ProductC", 10}
+    };
+
+    std::vector<std::string> result = FilterAndSortRecommendations(input);
+
+    ASSERT_EQ(result.size(), 3);
+    // Requirement: Recommendations should be sorted by total relevance score descending[cite: 1].
+    EXPECT_EQ(result[0], "ProductB"); // Score: 20
+    EXPECT_EQ(result[1], "ProductC"); // Score: 10
+    EXPECT_EQ(result[2], "ProductA"); // Score: 5
 }

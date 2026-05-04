@@ -10,4 +10,5 @@ FetchContent_Declare(googletest URL https://github.com/google/googletest/archive
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 add_executable(tests.out tests/RecommendationTests.cpp src/RecommendationLogic.cpp )
+target_include_directories(tests.out PUBLIC include)
 target_link_libraries(tests.out gtest gtest_main)
