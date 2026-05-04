@@ -1,6 +1,7 @@
 #ifndef RECOMMENDATION_LOGIC_H
 #define RECOMMENDATION_LOGIC_H
-
+#include <set>
+#include <map>
 #include <vector>
 #include <string>
 #include <utility>
