@@ -4,6 +4,7 @@
 #include "RecommendationLogic.h"
 #include <iostream>
 
+#include "AddCommand.h"
 
 void parseCommand(const std::string& line, DataManager& dataManager) {
     std::istringstream iss(line);
@@ -13,31 +14,7 @@ void parseCommand(const std::string& line, DataManager& dataManager) {
     iss >> command;
     
     if (command == "add") {
-        std::string userId;
-        std::string productId;
-
-        //If The words sepreated by "," than its elegal command, so we'll ignore it.
-        if (line.find(',') != std::string::npos) {
-        return; 
-    }
-        
-        //An attempt to read the userID and the productID . If there are missing parameters we ignore the input and waits for the next command
-        if (!(iss >> userId >> productId)) {
-            return; 
-        }
-        
-        std::vector<std::string> products;
-        products.push_back(productId);
-        
-        //Reading the rest of the products , if there are . 
-        while (iss >> productId) {
-            products.push_back(productId);
-        }
-        
-        dataManager.addProducts(userId, products);
-        
-        // TODO: קריאה לפונקציה האמיתית שלך שמוסיפה את הנתונים
-        
+        executeAddCommand(line, iss, dataManager);
     } 
     else if (command == "recommend") {
         std::string userId;
