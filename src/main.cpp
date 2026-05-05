@@ -4,6 +4,7 @@
 #include "DataManager.h"
 
 int main() {
+
     DataManager dataManager("../data/database.txt");
     std::string line;
     

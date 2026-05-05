@@ -2,6 +2,7 @@
 #include <sstream>
 #include <vector>
 #include <iostream>
+#include "HelpCommand.h"
 
 void parseCommand(const std::string& line, DataManager& dataManager) {
 
@@ -50,9 +51,10 @@ void parseCommand(const std::string& line, DataManager& dataManager) {
         // TODO: קריאה לפונקציה שמחשבת המלצות ומדפיסה
     } 
     else if (command == "help") {
-        std::cout << "add [userid] [productid1] [productid2] ...\n";
-        std::cout << "recommend [userid] [productid]\n";
-        std::cout << "help\n";
+        executeAddCommand();
+        // std::cout << "add [userid] [productid1] [productid2] ...\n";
+        // std::cout << "recommend [userid] [productid]\n";
+        // std::cout << "help\n";
     } 
     else {
         //The user entered an unfamiliar command. So the program ignores the command and waits for the next .
