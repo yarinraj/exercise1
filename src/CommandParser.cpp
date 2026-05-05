@@ -1,8 +1,10 @@
 #include "DataManager.h"
 #include <sstream>
 #include <vector>
+#include <iostream>
 
 void parseCommand(const std::string& line, DataManager& dataManager) {
+
     std::istringstream iss(line);
     std::string command;
     
@@ -48,7 +50,9 @@ void parseCommand(const std::string& line, DataManager& dataManager) {
         // TODO: קריאה לפונקציה שמחשבת המלצות ומדפיסה
     } 
     else if (command == "help") {
-        // TODO: הדפסת תפריט העזרה
+        std::cout << "add [userid] [productid1] [productid2] ...\n";
+        std::cout << "recommend [userid] [productid]\n";
+        std::cout << "help\n";
     } 
     else {
         //The user entered an unfamiliar command. So the program ignores the command and waits for the next .
