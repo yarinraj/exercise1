@@ -5,8 +5,10 @@
 #include <iostream>
 
 #include "AddCommand.h"
+#include "HelpCommand.h"
 
 void parseCommand(const std::string& line, DataManager& dataManager) {
+
     std::istringstream iss(line);
     std::string command;
     
@@ -37,7 +39,7 @@ void parseCommand(const std::string& line, DataManager& dataManager) {
 
     } 
     else if (command == "help") {
-        // TODO: הדפסת תפריט העזרה
+        executeAddCommand();
     } 
     else {
         //The user entered an unfamiliar command. So the program ignores the command and waits for the next .
