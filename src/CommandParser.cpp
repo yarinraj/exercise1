@@ -1,6 +1,9 @@
 #include "DataManager.h"
 #include <sstream>
 #include <vector>
+#include "RecommendationLogic.h"
+#include <iostream>
+
 #include "AddCommand.h"
 
 void parseCommand(const std::string& line, DataManager& dataManager) {
@@ -16,13 +19,22 @@ void parseCommand(const std::string& line, DataManager& dataManager) {
     else if (command == "recommend") {
         std::string userId;
         std::string productId;
-        
+       
+
         //The recommend command has to include 2 parameters. Therefore , if there are less than we ignore the command . 
         if (!(iss >> userId >> productId)) {
             return; 
         }
-        
-        // TODO: קריאה לפונקציה שמחשבת המלצות ומדפיסה
+        //making the recommendations
+         auto allUserData = dataManager.getFormattedData();
+        auto scores = GenerateProductScore(userId,productId,allUserData);
+        auto recommendations = FilterAndSortRecommendations(scores);
+        for(size_t i = 0; i<recommendations.size();i++){
+            std:: cout<<recommendations[i]<<(i == recommendations.size()-1 ? "" : " ");
+        }
+        std::cout<<std::endl;
+       
+
     } 
     else if (command == "help") {
         // TODO: הדפסת תפריט העזרה

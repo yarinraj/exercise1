@@ -2,10 +2,22 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <set>
+#include <map>
 
 //Constructor that loads the data from the data file 
 DataManager::DataManager(const std::string& file) : filename(file) {
     loadFromFile();
+}
+//get function
+
+std::map<std::string, std::set<std::string>> DataManager::getFormattedData() const {
+    std::map<std::string, std::set<std::string>> formatted;
+
+    for (const auto& [user, products] : usersProducts){
+        formatted[user]=std::set<std::string>(products.begin(),products.end());
+    }
+    return formatted;
 }
 
 //Add function
