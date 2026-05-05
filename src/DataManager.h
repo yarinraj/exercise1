@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include<set>
 
 class DataManager {
 private:
@@ -23,6 +24,8 @@ public:
     //Aoutomatic saving data to file and pulling it
     void saveToFile() const;
     void loadFromFile();
+    // get func
+    std::map<std::string, std::set<std::string>> getFormattedData() const;
 };
 
 #endif
