@@ -28,7 +28,7 @@ void parseCommand(const std::string& line, DataManager& dataManager) {
             return; 
         }
         //making the recommendations
-         auto allUserData = dataManager.getFormattedData();
+        auto allUserData = dataManager.getFormattedData();
         auto scores = GenerateProductScore(userId,productId,allUserData);
         auto recommendations = FilterAndSortRecommendations(scores);
         for(size_t i = 0; i<recommendations.size();i++){
@@ -39,7 +39,7 @@ void parseCommand(const std::string& line, DataManager& dataManager) {
 
     } 
     else if (command == "help") {
-        executeAddCommand();
+        executeHelpCommand();
     } 
     else {
         //The user entered an unfamiliar command. So the program ignores the command and waits for the next .
