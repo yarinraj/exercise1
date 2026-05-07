@@ -4,7 +4,8 @@
 #include "DataManager.h"
 
 int main() {
-    DataManager dataManager("../data/database.txt");
+    DataManager dataManager("data/database.txt");
+    // DataManager dataManager("../data/database.txt");
     std::string line;
     
     //a loop that runs forever , wating for an input line
