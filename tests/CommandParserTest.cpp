@@ -2,8 +2,8 @@
 #include <fstream>
 #include <string>
 #include <cassert>
-#include "../src/CommandParser.h"
-#include "../src/DataManager.h"
+#include "CommandParser.h"
+#include "DataManager.h"
 
 // Test 1: Verify the parser correctly routes the "add" command
 void testParserRoutesToAdd() {

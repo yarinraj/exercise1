@@ -3,8 +3,8 @@
 #include <string>
 #include <sstream>
 #include <cassert>
-#include "../src/AddCommand.h"
-#include "../src/DataManager.h"
+#include "AddCommand.h"
+#include "DataManager.h"
 
 // Test 1: Valid add command logic
 void testAddCommandValid() {

@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <cassert>
-#include "../src/DataManager.h"
+#include "DataManager.h"
 
 void testDataManagerNoDuplicates() {
     //Create a clean test file

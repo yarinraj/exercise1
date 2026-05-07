@@ -2,8 +2,8 @@
 #include <sstream>
 #include <string>
 #include <cassert>
-#include "../src/HelpCommand.h"
-#include "../src/DataManager.h"
+#include "HelpCommand.h"
+#include "DataManager.h"
 
 void testHelpCommand() {
     //Save the original cout buffer and redirect output to our stringstream buffer
