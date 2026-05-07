@@ -29,7 +29,8 @@ The project directory is organized as follows:
 To compile the project manually from the root directory, use the following `g++` command:
 
 ```bash
-g++ src/main.cpp src/AddCommand.cpp src/CommandParser.cpp src/DataManager.cpp src/HelpCommand.cpp -o my_program.exe
+g++ -std=c++17 -I include src/*.cpp -o my_program.exe
+./my_program.exe
 To run the compiled application:
 
 Bash
