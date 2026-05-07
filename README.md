@@ -24,7 +24,7 @@ The project directory is organized as follows:
 * `Dockerfile` - Instructions for running the application inside a Docker container.
 * `README.md` - Project documentation.
 
-## 🚀 Building and Running (Local)
+##  Building and Running (Local)
 
 To compile the project manually from the root directory, use the following `g++` command:
 
