@@ -31,7 +31,7 @@ To compile the project manually from the root directory, use the following `g++`
 ```bash
 g++ -std=c++17 -I include src/*.cpp -o my_program.exe
 ./my_program.exe
-![Usage Example](proof/1.png.png)
+![Usage Example](./proof/1.png.png)
 To run the compiled application:
 
 Bash
@@ -69,8 +69,8 @@ Persistence: Data is automatically saved to the data/ directory. If the program 
 
 3. Recommend Command
 Provides up to 10 product recommendations for a specific user based on a target product. Recommendations are calculated using a similarity-weight algorithm matching users with common viewing histories.
-![Usage Example](proof/2.png.png)
-![Usage Example](proof/3.png.png)
+![Usage Example](./proof/2.png.png)
+![Usage Example](./proof/3.png.png)
 Plaintext
 > recommend 1 104
 Authors
