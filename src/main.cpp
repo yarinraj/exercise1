@@ -31,7 +31,32 @@ int main(int argc, char*argv[]) {
     //socket
     std::cout<<"server starting om port: "<<port << std::endl;
     DataManager dataManager("data/database.txt");
-
+    //creating the socket!(AF_INET = IPv4, SOCK_STREAM = TCP)
+    int server_fd=socket(AF_INET, SOCK_STREAM,0);
+    if(server_fd<0){
+        perror ("socket creation faild");
+        return 1;
+    }
+    //Set up the address structure
+    struct sockaddr_in address;
+    address.sin_family=AF_INET;
+    // Accept connections from any IP
+    address.sin_addr.s_addr=INADDR_ANY;
+    // Use the port we got from argv
+    address.sin_port = htons(port); 
+    //bind the socket to the port
+    if(bind(server_fd,(struct sockaddr *)&address,sizeof(address))<0){
+        perror("bind failed");
+        close(server_fd);
+        return 1;
+    } 
+    //Listen for incoming connections (Queue size = 1)
+    if (listen(server_fd, 1) < 0) {
+        perror("listen failed");
+        close(server_fd);
+        return 1;
+    }  
+    std::cout << "Server is listening on port " << port << "..." << std::endl;   
      return 0;
  }
     
