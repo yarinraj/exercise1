@@ -29,7 +29,7 @@ int main(int argc, char*argv[]) {
     return 1;
     }
     //socket
-    std::cout<<"server starting om port: "<<port << std::endl;
+    std::cout<<"server starting on port: "<<port << std::endl;
     DataManager dataManager("data/database.txt");
     //creating the socket!(AF_INET = IPv4, SOCK_STREAM = TCP)
     int server_fd=socket(AF_INET, SOCK_STREAM,0);
