@@ -56,7 +56,43 @@ int main(int argc, char*argv[]) {
         close(server_fd);
         return 1;
     }  
-    std::cout << "Server is listening on port " << port << "..." << std::endl;   
+    std::cout << "Server is listening on port " << port << "..." << std::endl; 
+    //accept the connection
+    struct sockaddr_in client_addr;
+    socklen_t client_len= sizeof(client_addr);
+    //program stop and wait for the client
+    int client_fd=accept(server_fd,(struct sockaddr *)&client_addr,&client_len);
+    //checking if connection didnt work
+    if(client_fd<0){
+        perror("accept failed!");
+        close(server_fd);
+        return 1;
+    }
+    std::cout<< "Client connected! Waiting for message... "<<std::endl;
+    //creating var for the client message
+    std::string client_message="";
+    char c;
+    //opening loop to get bytes(chars)of the message untill get "\n" or if we get 0 bytes
+    while(true){
+        ssize_t bytes_received=recv(client_fd, &c,1,0);
+        if(bytes_received<=0){
+            break;   
+        }
+        if(c=='\n'){
+            break;
+        }
+        //adding the message to the var we created byte by byte
+        client_message+=c;
+
+    }
+    //print 
+    std::cout<<"Message received from client : "<<client_message+"\n";
+    std::string response="Message received: "+client_message+ "\n";
+    //the server send the "response" to the client
+    send(client_fd, response.c_str(),response.length(),0);
+//close the connection to the client and the server
+    close(client_fd);
+    close(server_fd);
      return 0;
  }
     
