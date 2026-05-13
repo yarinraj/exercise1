@@ -67,3 +67,7 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+# Exercise 2 Additions
+server        # The compiled C++ binary
+__pycache__/  # Python cache files
+.vscode/      # Personal IDE settings
