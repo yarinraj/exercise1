@@ -82,3 +82,9 @@ void DataManager::saveToFile() const {
     
     outFile.close();
 }
+
+//Helper function to check if a user exists
+bool DataManager::userExists(const std::string& userId) const {
+    // Check if the userId exists in the usersProducts map
+    return usersProducts.find(userId) != usersProducts.end();
+}
