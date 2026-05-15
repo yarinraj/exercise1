@@ -6,6 +6,7 @@
 
 #include "AddCommand.h"
 #include "HelpCommand.h"
+#include "PatchCommand.h"
 
 void parseCommand(const std::string& line, DataManager& dataManager) {
 
@@ -41,6 +42,10 @@ void parseCommand(const std::string& line, DataManager& dataManager) {
     else if (command == "help") {
         executeHelpCommand();
     } 
+    else if (command == "PATCH") {
+        std::string response = executePatchCommand(line, iss, dataManager);
+        std::cout << response << std::endl;
+    }
     else {
         //The user entered an unfamiliar command. So the program ignores the command and waits for the next .
         return; 
