@@ -26,6 +26,9 @@ public:
     void loadFromFile();
     // get func
     std::map<std::string, std::set<std::string>> getFormattedData() const;
+
+    //Helper function to check if a user exists
+    bool userExists(const std::string& userId) const;
 };
 
 #endif
