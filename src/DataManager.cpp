@@ -79,6 +79,14 @@ void DataManager::saveToFile() const {
         }
         outFile << "\n";
     }
+   
     
     outFile.close();
+}
+//now its going to bring back an empty string to fail the test
+std::string DataManager::getProductScore(const std::string& userId, const std::string& productId) {
+    return ""; 
+}
+//empty data base to fail delete test
+void DataManager::deleteProducts(const std::string& userId, const std::vector<std::string>& productIds) {
 }

@@ -26,6 +26,9 @@ public:
     void loadFromFile();
     // get func
     std::map<std::string, std::set<std::string>> getFormattedData() const;
+    //getproducts func
+    std::string getProductScore(const std::string& userId, const std::string& productId);
+    void deleteProducts(const std::string& userId, const std::vector<std::string>& productIds);
 };
 
 #endif
