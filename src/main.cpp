@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include<unistd.h>
+#include <sstream> // Required for capturing std::cout stream buffers into string representation
 
 
 
@@ -69,13 +70,20 @@ int main(int argc, char*argv[]) {
         return 1;
     }
     std::cout<< "Client connected! Waiting for message... "<<std::endl;
+    while (true){
     //creating var for the client message
     std::string client_message="";
     char c;
+    
+    // Boolean flag to trace if the client closed connection or met an error
+    bool client_disconnected = false;
+
     //opening loop to get bytes(chars)of the message untill get "\n" or if we get 0 bytes
     while(true){
         ssize_t bytes_received=recv(client_fd, &c,1,0);
         if(bytes_received<=0){
+            // Set disconnect tracker to true before skipping out of the inner stream loop
+            client_disconnected = true;
             break;   
         }
         if(c=='\n'){
@@ -85,15 +93,45 @@ int main(int argc, char*argv[]) {
         client_message+=c;
 
     }
+    
+    // Break the outer persistent loop if the client terminated the network session
+    if (client_disconnected) {
+        std::cout << "Client disconnected. Cleaning up resources..." << std::endl;
+        break;
+    }
+
     //print 
     std::cout<<"Message received from client : "<<client_message+"\n";
-    std::string response="Message received: "+client_message+ "\n";
+    
+    // Optional utility condition to exit the session manually if client sends exit/quit
+    if (client_message == "exit" || client_message == "quit") {
+        break;
+    }
+
+    // Redirect standard console output stream (std::cout) to capture the parsed response internally
+    std::stringstream buffer;
+    std::streambuf* old_cout = std::cout.rdbuf(buffer.rdbuf());
+
+    // Call the application business logic using the defined CommandParser engine
+    parseCommand(client_message, dataManager);
+
+    // Revert std::cout back to its native console behavior
+    std::cout.rdbuf(old_cout);
+
+    // Extract the execution output string collected inside the stringstream buffer
+    std::string response = buffer.str();
+
+    // Ensure the response string complies with the output framing rule (\n termination)
+    if (response.empty() || response.back() != '\n') {
+        response += "\n";
+    }
+
     //the server send the "response" to the client
     send(client_fd, response.c_str(),response.length(),0);
+ }
+ 
 //close the connection to the client and the server
     close(client_fd);
     close(server_fd);
      return 0;
- }
-    
-   
+}
