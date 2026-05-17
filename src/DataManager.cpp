@@ -83,10 +83,26 @@ void DataManager::saveToFile() const {
     
     outFile.close();
 }
-//now its going to bring back an empty string to fail the test
+
+//yarin my expensive brother thats the place you need to write get func
 std::string DataManager::getProductScore(const std::string& userId, const std::string& productId) {
-    return ""; 
+    
 }
-//empty data base to fail delete test
+//func to delete a product
 void DataManager::deleteProducts(const std::string& userId, const std::vector<std::string>& productIds) {
+    //searching the user of the product
+    auto it = usersProducts.find(userId);
+    //if found will deal with his product
+    if (it!=usersProducts.end()){
+        //link to his products
+        auto& userProducts=it->second;
+        //going threw the all of the products we got in the erased list.
+        for(const auto& productId:productIds){
+            userProducts.erase(std::remove(userProducts.begin(),userProducts.end(),productId),userProducts.end());
+
+        }
+        saveToFile();
+    }
+
+
 }
