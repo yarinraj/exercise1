@@ -71,3 +71,10 @@ Testing/
 server        # The compiled C++ binary
 __pycache__/  # Python cache files
 .vscode/      # Personal IDE settings
+# Executables
+test_runner
+delete_runner
+
+# Temporary test files and local data
+test_dm_*.txt
+database.txt
