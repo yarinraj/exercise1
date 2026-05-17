@@ -7,9 +7,8 @@
 #include<unistd.h>
 #include <sstream> // Required for capturing std::cout stream buffers into string representation
 
-
-
 int main(int argc, char*argv[]) {
+
     //making sure the user wrote the port in the command line
     if(argc<2){
         std::cerr << "Usage: "<< argv[0]<<" <port>" << std::endl;

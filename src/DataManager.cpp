@@ -86,7 +86,7 @@ void DataManager::saveToFile() const {
 
 //yarin my expensive brother thats the place you need to write get func
 std::string DataManager::getProductScore(const std::string& userId, const std::string& productId) {
-    
+    return "";
 }
 //func to delete a product
 void DataManager::deleteProducts(const std::string& userId, const std::vector<std::string>& productIds) {
@@ -104,5 +104,10 @@ void DataManager::deleteProducts(const std::string& userId, const std::vector<st
         saveToFile();
     }
 
+}
 
+//Helper function to check if a user exists
+bool DataManager::userExists(const std::string& userId) const {
+    // Check if the userId exists in the usersProducts map
+    return usersProducts.find(userId) != usersProducts.end();
 }
