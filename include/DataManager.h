@@ -28,7 +28,8 @@ public:
     std::map<std::string, std::set<std::string>> getFormattedData() const;
     //getproducts func
     std::string getProductScore(const std::string& userId, const std::string& productId);
-    void deleteProducts(const std::string& userId, const std::vector<std::string>& productIds);
+   // Helper function to remove a single product from the private map
+void removeSingleProduct(const std::string& userId, const std::string& productId);
 
     //Helper function to check if a user exists
     bool userExists(const std::string& userId) const;
