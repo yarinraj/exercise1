@@ -8,6 +8,8 @@
 #include "HelpCommand.h"
 #include "PostCommand.h"
 #include "RecommendCommand.h"
+#include "PatchCommand.h"
+
 void parseCommand(const std::string& line, DataManager& dataManager) {
 
     std::istringstream iss(line);
@@ -30,6 +32,10 @@ void parseCommand(const std::string& line, DataManager& dataManager) {
         executePostCommand(iss, dataManager);
     }
 
+    else if (command == "PATCH") {
+        std::string response = executePatchCommand(line, iss, dataManager);
+        std::cout << response << std::endl;
+    }
     else {
         //The user entered an unfamiliar command. So the program ignores the command and waits for the next .
         return; 
