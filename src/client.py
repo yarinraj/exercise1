@@ -36,13 +36,14 @@ def main():
             while True:
                 chunk = client_socket.recv(1024).decode('utf-8')
                 if not chunk:
-                    return
+                    break
                 response += chunk
                 if response.endswith("\n"):
                     break
             
             # Printing the output from the server 
-            print(response.rstrip("\n"))
+            if response:
+                print(response.strip())
             
     except KeyboardInterrupt:
         pass
