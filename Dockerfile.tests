@@ -1,0 +1,25 @@
+FROM gcc:latest
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y libgtest-dev cmake && \
+    cd /usr/src/gtest && \
+    cmake CMakeLists.txt && \
+    make && \
+    cp lib/*.a /usr/lib
+
+COPY src/ ./src/
+COPY include/ ./include/
+COPY data/ ./data/
+COPY tests/ ./tests/
+
+RUN cp include/*.h src/
+RUN rm src/main.cpp
+
+RUN g++ -I include -I src -pthread \
+    src/*.cpp \
+    tests/*.cpp \
+    -lgtest_main -lgtest \
+    -o run_tests.exe
+
+CMD ["./run_tests.exe"]

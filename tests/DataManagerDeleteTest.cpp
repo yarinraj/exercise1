@@ -33,7 +33,3 @@ while (std::getline(inFile, line)) {
     std::cout<<"DataManager DELETE test passed!\n";
 
 }
-int main() {
-    DataManagerDeleteTest();
-    return 0;
-}

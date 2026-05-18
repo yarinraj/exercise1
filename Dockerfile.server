@@ -1,0 +1,33 @@
+# Stage 1: Build the C++ Server
+FROM gcc:latest AS builder
+
+WORKDIR /app
+
+COPY src/ ./src/
+COPY include/ ./include/
+COPY data/ ./data/
+
+RUN g++ -I include \
+    src/main.cpp \
+    src/DataManager.cpp \
+    src/CommandParser.cpp \
+    src/PatchCommand.cpp \
+    src/PostCommand.cpp \
+    src/AddCommand.cpp \
+    src/HelpCommand.cpp \
+    src/RecommendationLogic.cpp \
+    src/RecommendCommand.cpp \
+    -o my_program.exe
+
+# Stage 2: Minimal runtime image
+FROM ubuntu:latest
+
+WORKDIR /app
+
+COPY --from=builder /app/my_program.exe .
+COPY --from=builder /app/data/ ./data/
+
+EXPOSE 8000
+
+ENTRYPOINT ["./my_program.exe"]
+CMD ["8000"]

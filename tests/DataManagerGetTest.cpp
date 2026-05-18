@@ -27,7 +27,3 @@ void DataManagerGetTest(){
     
 
 }
-int main() {
-    DataManagerGetTest();
-    return 0;
-}
