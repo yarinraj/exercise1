@@ -14,9 +14,7 @@ void executeRecommendCommand(std::istringstream &iss, DataManager& dataManager){
             return; 
         }
         //making the recommendations
-        auto allUserData = dataManager.getFormattedData();
-        auto scores = GenerateProductScore(userId,productId,allUserData);
-        auto recommendations = FilterAndSortRecommendations(scores);
+        auto recommendations = RecommendationLogic::getRecommendations(userId, productId, dataManager.getFormattedData());
         for(size_t i = 0; i<recommendations.size();i++){
             std:: cout<<recommendations[i]<<(i == recommendations.size()-1 ? "" : " ");
         }
