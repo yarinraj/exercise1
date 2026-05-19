@@ -84,26 +84,20 @@ void DataManager::saveToFile() const {
     outFile.close();
 }
 
-//yarin my expensive brother thats the place you need to write get func
-std::string DataManager::getProductScore(const std::string& userId, const std::string& productId) {
-    return "";
-}
 //func to delete a product
-void DataManager::deleteProducts(const std::string& userId, const std::vector<std::string>& productIds) {
-    //searching the user of the product
+void DataManager::removeSingleProduct(const std::string& userId, const std::string& productId) {
+    // Find the user in the private map
     auto it = usersProducts.find(userId);
-    //if found will deal with his product
-    if (it!=usersProducts.end()){
-        //link to his products
-        auto& userProducts=it->second;
-        //going threw the all of the products we got in the erased list.
-        for(const auto& productId:productIds){
-            userProducts.erase(std::remove(userProducts.begin(),userProducts.end(),productId),userProducts.end());
-
-        }
-        saveToFile();
+    
+    if (it != usersProducts.end()) {
+        auto& userProducts = it->second;
+        
+        // Remove the specific product from the user's vector
+        userProducts.erase(std::remove(userProducts.begin(), userProducts.end(), productId), userProducts.end());
+        
+        // Save the changes to the physical text file immediately
+        saveToFile(); 
     }
-
 }
 
 //Helper function to check if a user exists
