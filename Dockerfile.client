@@ -4,6 +4,4 @@ WORKDIR /app
 
 COPY src/client.py ./src/
 
-# Run the client script. It expects <server_ip> and <server_port> as arguments
-ENTRYPOINT ["python3", "src/client.py"]
-CMD ["localhost", "8000"]
+CMD ["python3", "src/client.py", "server", "8000"]

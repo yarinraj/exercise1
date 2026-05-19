@@ -7,17 +7,7 @@ COPY src/ ./src/
 COPY include/ ./include/
 COPY data/ ./data/
 
-RUN g++ -I include \
-    src/main.cpp \
-    src/DataManager.cpp \
-    src/CommandParser.cpp \
-    src/PatchCommand.cpp \
-    src/PostCommand.cpp \
-    src/AddCommand.cpp \
-    src/HelpCommand.cpp \
-    src/RecommendationLogic.cpp \
-    src/RecommendCommand.cpp \
-    -o my_program.exe
+RUN g++ -std=c++17 -I include -pthread src/*.cpp -o my_program.exe
 
 # Stage 2: Minimal runtime image
 FROM ubuntu:latest
