@@ -84,10 +84,6 @@ void DataManager::saveToFile() const {
     outFile.close();
 }
 
-//yarin my expensive brother thats the place you need to write get func
-std::string DataManager::getProductScore(const std::string& userId, const std::string& productId) {
-    return "";
-}
 //func to delete a product
 void DataManager::removeSingleProduct(const std::string& userId, const std::string& productId) {
     // Find the user in the private map
