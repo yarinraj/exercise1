@@ -17,6 +17,13 @@ void executeGetCommand(std::istringstream& iss, DataManager& dataManager) {
         return;
     }
 
+    //check if the user already has the product in the list.
+    const auto& allUserData = dataManager.getFormattedData();
+    if (allUserData.at(userId).count(productId) > 0) {
+        std::cout << "404 Not Found" << std::endl;
+        return;
+    }
+
     // using the recommendation logic to get the recommendations for the user
     auto recommendations = RecommendationLogic::getRecommendations(userId, productId, dataManager.getFormattedData());
     // printing in the required format
