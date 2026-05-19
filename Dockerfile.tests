@@ -2,24 +2,21 @@ FROM gcc:latest
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y libgtest-dev cmake && \
-    cd /usr/src/gtest && \
-    cmake CMakeLists.txt && \
-    make && \
-    cp lib/*.a /usr/lib
-
+# 1. העתקת התיקיות
 COPY src/ ./src/
 COPY include/ ./include/
 COPY data/ ./data/
 COPY tests/ ./tests/
+COPY *.txt ./
 
-RUN cp include/*.h src/
-RUN rm src/main.cpp
+# 2. הטריק המבריק של נועם שחזר למקומו!
+RUN cp include/*.h src/ 
 
-RUN g++ -I include -I src -pthread \
-    src/*.cpp \
-    tests/*.cpp \
-    -lgtest_main -lgtest \
-    -o run_tests.exe
+# 3. מחיקת ה-main של השרת כדי שלא יתנגש
+RUN rm -f src/main.cpp
 
+# 4. שורת הקימפול (עם שתי כוכביות!!)
+RUN g++ -std=c++17 -Iinclude -Isrc src/*.cpp tests/*.cpp -o run_tests.exe
+
+# 5. הרצת קובץ הטסטים
 CMD ["./run_tests.exe"]
