@@ -1,12 +1,9 @@
 #include <iostream>
 
-// הצהרה על הפונקציות שלכם (כדי שהקומפיילר יכיר אותן)
 void testAddCommandValid();
 void testAddCommandInvalid();
 void testParserRoutesToAdd();
 void testParserUnknownCommand();
-void DataManagerDeleteTest();
-void DataManagerGetTest();
 void testDataManagerLoadFromFile();
 void testDataManagerNoDuplicates();
 void testHelpCommand();
@@ -19,26 +16,38 @@ void testPostUserAlreadyExists();
 void testPostMissingArguments();
 void testPostExtraSpaces();
 void testPostSpecialCharactersId();
-
 void testReturnsMaxTenResults();
-
-
+void testTieBreakerByProductId();
+void testSortsByRelevanceDescending();
+void runDeleteTests();
+void runGetTests();
 
 int main() {
     std::cout << "=================================" << std::endl;
     std::cout << "    STARTING ALL UNIT TESTS      " << std::endl;
     std::cout << "=================================" << std::endl;
 
-    // הפעלת הפונקציות שלכם אחת אחת
-    std::cout << "Running AddCommand Tests..." << std::endl;
     testAddCommandValid();
     testAddCommandInvalid();
-
-    std::cout << "Running Parser Tests..." << std::endl;
     testParserRoutesToAdd();
-
-    std::cout << "Running DataManager Tests..." << std::endl;
+    testParserUnknownCommand();
+    testDataManagerLoadFromFile();
     testDataManagerNoDuplicates();
+    testHelpCommand();
+    testPatchExistingUserSuccess();
+    testPatchUserDoesNotExist();
+    testPatchMissingProducts();
+    testPatchIllegalComma();
+    testPostNewUserSuccess();
+    testPostUserAlreadyExists();
+    testPostMissingArguments();
+    testPostExtraSpaces();
+    testPostSpecialCharactersId();
+    testReturnsMaxTenResults();
+    testTieBreakerByProductId();
+    testSortsByRelevanceDescending();
+    runDeleteTests();
+    runGetTests();
 
     std::cout << "=================================" << std::endl;
     std::cout << "    ALL TESTS COMPLETED!         " << std::endl;
