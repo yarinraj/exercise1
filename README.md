@@ -19,16 +19,23 @@ The project directory is organized as follows:
 * `Dockerfile` - Instructions for running the application inside a Docker container.
 * `README.md` - Project documentation.
 
-## Docker
+## How To Run The Project:
+### Step 1: Create the Shared Docker Network (Required Once)
+``bash
+docker network create my-network
+### Step 2: Build and Run the Server
 ## Server Docker
 build: docker build -f Dockerfile.server -t cpp-server .
 run: docker run -p 8000:8000 -v "$(pwd)/data:/app/data" cpp-server
+### Step 3: Build and Run the Client
 ## Client Docker
 build: docker build -f Dockerfile.client -t python-client .
 run: docker run -it python-client host.docker.internal 8000
+
+## How To Run The Unit Tests:
 ## Tests Docker
 build: docker build -f Dockerfile.tests -t unit-tests .
-run: docker run --rm unit-tests
+run: docker run -it test_env
 
 ##  Building and Running (Local)
 

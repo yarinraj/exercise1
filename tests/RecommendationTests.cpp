@@ -15,7 +15,7 @@ void testReturnsMaxTenResults() {
         input.push_back({"Product" + std::to_string(i), i});
     }
 
-    std::vector<std::string> result = FilterAndSortRecommendations(input);
+    std::vector<std::string> result = RecommendationLogic::FilterAndSortRecommendations(input);
 
     // Requirement: System must provide up to 10 recommendations[cite: 38].
     assert(result.size() <= 10);
@@ -32,7 +32,7 @@ void testTieBreakerByProductId() {
         {"100", 10}
     };
 
-    std::vector<std::string> result = FilterAndSortRecommendations(input);
+    std::vector<std::string> result = RecommendationLogic::FilterAndSortRecommendations(input);
 
     assert(result.size() == 2);
     // Requirement: When scores are equal, return in ascending ID order[cite: 124].
@@ -51,7 +51,7 @@ void testSortsByRelevanceDescending() {
         {"ProductC", 10}
     };
 
-    std::vector<std::string> result = FilterAndSortRecommendations(input);
+    std::vector<std::string> result = RecommendationLogic::FilterAndSortRecommendations(input);
 
     assert(result.size() == 3);
     // Requirement: Recommendations should be sorted by total relevance score descending[cite: 123, 124].
