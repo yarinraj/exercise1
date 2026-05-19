@@ -5,19 +5,6 @@
 #include <fstream>
 #include "../include/DataManager.h" 
 #include "CommandParser.h"
-// Test cases for POST command
-// Each test case will create a new instance of DataManager with a test database file to ensure isolation between tests.
-
-// to compile: g++ -std=c++17 -I include \
-tests/PostCommandTest.cpp \
-src/DataManager.cpp \
-src/CommandParser.cpp \
-src/AddCommand.cpp \
-src/HelpCommand.cpp \
-src/RecommendationLogic.cpp \
--o post_tests
-
-//to run: ./post_tests
 
 // Test case 1: Successfully adding a new user with valid ID and products
 void testPostNewUserSuccess() {
@@ -93,19 +80,4 @@ void testPostSpecialCharactersId() {
 
     assert(dm.userExists("user_abc!") == true);
     std::cout << "testPostSpecialCharactersId PASSED!" << std::endl;
-}
-// Main function to run all tests
-int main() {
-    try {
-        testPostNewUserSuccess();
-        testPostUserAlreadyExists();
-        testPostMissingArguments();
-        testPostExtraSpaces();
-        testPostSpecialCharactersId();
-        std::cout << "\nALL TESTS PASSED!" << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "Test failed with error: " << e.what() << std::endl;
-        return 1;
-    }
-    return 0;
 }

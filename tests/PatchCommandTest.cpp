@@ -129,20 +129,3 @@ void testPatchIllegalComma() {
     
     std::cout << "testPatchIllegalComma PASSED!\n" << std::endl;
 }
-
-// int main() {
-//     std::cout << "--- Starting PATCH Command Tests ---\n" << std::endl;
-//     try {
-//         testPatchExistingUserSuccess();
-//         testPatchUserDoesNotExist();
-//         testPatchMissingProducts();
-//         testPatchMissingIdAndProducts();
-//         testPatchIllegalComma();
-        
-//         std::cout << "=== ALL PATCH TESTS PASSED SUCCESSFULLY! ===" << std::endl;
-//     } catch (const std::exception& e) {
-//         std::cerr << "Test failed with error: " << e.what() << std::endl;
-//         return 1;
-//     }
-//     return 0;
-// }

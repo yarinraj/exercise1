@@ -1,13 +1,11 @@
 #include "DataManager.h"
-#include "RecommendationLogic.h" // The file where handleGetCommand is implemented
+#include "GetCommand.h"
+#include "RecommendationLogic.h"
 #include <iostream>
 #include <cassert>
 #include <fstream>
 #include <vector>
 #include <string>
-
-// Declaration of the external GET command function (if not already in RecommendationLogic.h)
-// std::string handleGetCommand(const std::string& userId, const std::string& productId, DataManager& dm);
 
 void DataManagerGetTest() {
 
@@ -37,32 +35,32 @@ void DataManagerGetTest() {
     dm.addProducts("5", {"100", "400"});
 
 
-    // 2. ACT: Executing the GET command
+    // 2. ACT: Executing the recommendation logic directly
   
-    // We pass the DataManager reference to the external handler function
-    std::string recommendations = executeGetCommand("3", "100", dm);
+    // We pass the parameters directly to the algorithm
+    std::vector<std::string> recommendations = RecommendationLogic::getRecommendations("3", "100", dm.getFormattedData());
 
    
     // 3. ASSERT: Checking the expected outcome
 
     // The algorithm should filter and sort from highest score to lowest. 
-    // Product "300" (score 2) must appear before product "400" (score 1).
-    assert(recommendations == "300 400");
+    // We expect 2 products: "300" first, then "400".
+    assert(recommendations.size() == 2);
+    assert(recommendations[0] == "300");
+    assert(recommendations[1] == "400");
 
-    // TDD Edge Cases (Expected to trigger 404 Not Found in the parser)
+    // TDD Edge Cases (Testing data validation)
   
-    
     // Edge Case 1: Target user does not exist in the system
-    std::string missingUser = executeGetCommand("999", "100", dm);
-    assert(missingUser.empty());
+    assert(dm.userExists("999") == false);
 
     // Edge Case 2: Target product does not exist for the target user
-    std::string missingProduct = executeGetCommand("3", "999", dm);
+    std::vector<std::string> missingProduct = RecommendationLogic::getRecommendations("3", "999", dm.getFormattedData());
     assert(missingProduct.empty());
 
     std::cout << "DataManager GET (Recommendation Logic) test passed!\n";
 }
 
-int main() {
+void runGetTests() {
     DataManagerGetTest();
-    return 0;
+}

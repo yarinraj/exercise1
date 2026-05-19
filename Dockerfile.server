@@ -1,0 +1,23 @@
+# Stage 1: Build the C++ Server
+FROM gcc:latest AS builder
+
+WORKDIR /app
+
+COPY src/ ./src/
+COPY include/ ./include/
+COPY data/ ./data/
+
+RUN g++ -std=c++17 -I include -pthread src/*.cpp -o my_program.exe
+
+# Stage 2: Minimal runtime image
+FROM ubuntu:latest
+
+WORKDIR /app
+
+COPY --from=builder /app/my_program.exe .
+COPY --from=builder /app/data/ ./data/
+
+EXPOSE 8000
+
+ENTRYPOINT ["./my_program.exe"]
+CMD ["8000"]

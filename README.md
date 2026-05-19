@@ -1,8 +1,3 @@
-# exercise1
-Advanced Programming 1st exercise
-Scrum Master: Yarin Raj
-# Product Recommendation System - Exercise 1
-
 ## Overview
 This project is a C++ Command-Line Interface (CLI) application that functions as a product recommendation system. The system allows users to associate viewed products with specific user IDs and generates recommendations based on the viewing history of other users with similar tastes.
 
@@ -23,6 +18,24 @@ The project directory is organized as follows:
 * `data/` - Contains the persistent data files automatically saved and loaded by the application.
 * `Dockerfile` - Instructions for running the application inside a Docker container.
 * `README.md` - Project documentation.
+
+## How To Run The Project:
+### Step 1: Create the Shared Docker Network (Required Once)
+``bash
+docker network create my-network
+### Step 2: Build and Run the Server
+## Server Docker
+build: docker build -f Dockerfile.server -t cpp-server .
+run: docker run -p 8000:8000 -v "$(pwd)/data:/app/data" cpp-server
+### Step 3: Build and Run the Client
+## Client Docker
+build: docker build -f Dockerfile.client -t python-client .
+run: docker run -it python-client host.docker.internal 8000
+
+## How To Run The Unit Tests:
+## Tests Docker
+build: docker build -f Dockerfile.tests -t unit-tests .
+run: docker run -it test_env
 
 ##  Building and Running (Local)
 

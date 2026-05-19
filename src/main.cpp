@@ -100,7 +100,7 @@ int main(int argc, char*argv[]) {
     }
 
     //print 
-    std::cout<<"Message received from client : "<<client_message+"\n";
+    std::cout<<"Message received from client : "<<client_message+"\n"<< std::endl;;
     
     // Optional utility condition to exit the session manually if client sends exit/quit
     if (client_message == "exit" || client_message == "quit") {

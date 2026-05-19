@@ -58,7 +58,6 @@ void DeleteLogicTest() {
     std::cout << "DELETE command logic test passed!\n";
 }
 
-int main() {
+void runDeleteTests() {
     DeleteLogicTest();
-    return 0;
 }
