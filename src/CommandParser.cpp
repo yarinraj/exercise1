@@ -51,21 +51,28 @@ void parseCommand(const std::string& line, DataManager& dataManager) {
    else if (command == "delete") {
         // FIX 2: Extracting userId from the existing 'iss' stream
         std::string userId;
-        iss >> userId;
-
+        // If we failed to read the userId, it means the command is missing parameters. We return a 400 Bad Request.
+        if (!(iss >> userId)) {
+        std::cout << "400 Bad Request" << std::endl;
+        return;
+        }
         // FIX 3: Extracting all product IDs left in the stream
         std::string prodId;
         std::vector<std::string> productIds;
         while (iss >> prodId) {
             productIds.push_back(prodId);
         }
-
+        // If there are no product IDs, it means the command is missing parameters. We return a 400 Bad Request.
+        if (productIds.empty()) {
+        std::cout << "400 Bad Request" << std::endl;
+        return; 
+        }
         // FIX 4: Call our decoupled logic using the correct variable name (dataManager)
         bool success = handleDeleteCommand(userId, productIds, dataManager);
 
         // FIX 5: Using std::cout because main.cpp captures this stream and sends it to the client!
         if (success) {
-            std::cout << "200 OK" << std::endl;
+            std::cout << "204 No Content" << std::endl;
         } else {
             std::cout << "404 Not Found" << std::endl;
         }

@@ -14,7 +14,7 @@ void executePostCommand(std::istringstream &iss, DataManager& dataManager) {
     }
     // If the user already exists, we return a 400 Bad Request response. Otherwise, we add the user and their products to the data manager and return a 201 Created response.
     if (dataManager.userExists(userId)) {
-        std::cout << "400 Bad Request" << std::endl;
+        std::cout << "404 Not Found" << std::endl;
     } else {
         std::vector<std::string> products;
         std::string product;
