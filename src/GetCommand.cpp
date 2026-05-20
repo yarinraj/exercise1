@@ -10,7 +10,13 @@ void executeGetCommand(std::istringstream& iss, DataManager& dataManager) {
         std::cout << "400 Bad Request" << std::endl;
         return;
     }
-
+    // check for extra parameters (command responsibility)
+    std::string extra;
+    if (iss >> extra) { 
+    // too many arguments, we expect only 2 (command is responsible for parsing and validating the parameters)
+    std::cout << "400 Bad Request" << std::endl;
+    return;
+    }
     // data validation 
     if (!dataManager.userExists(userId)) {
         std::cout << "404 Not Found" << std::endl;
