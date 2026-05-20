@@ -29,14 +29,16 @@ int main(int argc, char*argv[]) {
     return 1;
     }
     //socket
-    std::cout<<"server starting on port: "<<port << std::endl;
+   // std::cout<<"server starting on port: "<<port << std::endl;
     DataManager dataManager("data/database.txt");
     //creating the socket!(AF_INET = IPv4, SOCK_STREAM = TCP)
     int server_fd=socket(AF_INET, SOCK_STREAM,0);
-    if(server_fd<0){
-        perror ("socket creation faild");
-        return 1;
-    }
+    if(server_fd < 0){
+    perror ("socket creation failed");
+    return 1;
+}
+
+    
     //Set up the address structure
     struct sockaddr_in address;
     address.sin_family=AF_INET;
@@ -56,19 +58,21 @@ int main(int argc, char*argv[]) {
         close(server_fd);
         return 1;
     }  
-    std::cout << "Server is listening on port " << port << "..." << std::endl; 
+   // std::cout << "Server is listening on port " << port << "..." << std::endl; 
     //accept the connection
     struct sockaddr_in client_addr;
     socklen_t client_len= sizeof(client_addr);
     //program stop and wait for the client
+    while(true){
     int client_fd=accept(server_fd,(struct sockaddr *)&client_addr,&client_len);
+
     //checking if connection didnt work
     if(client_fd<0){
         perror("accept failed!");
-        close(server_fd);
-        return 1;
+        continue;
     }
-    std::cout<< "Client connected! Waiting for message... "<<std::endl;
+ //   std::cout<< "Client connected! Waiting for message... "<<std::endl;
+ //infite loop the server never stops
     while (true){
     //creating var for the client message
     std::string client_message="";
@@ -95,12 +99,12 @@ int main(int argc, char*argv[]) {
     
     // Break the outer persistent loop if the client terminated the network session
     if (client_disconnected) {
-        std::cout << "Client disconnected. Cleaning up resources..." << std::endl;
+      //  std::cout << "Client disconnected. Cleaning up resources..." << std::endl;
         break;
     }
 
     //print 
-    std::cout<<"Message received from client : "<<client_message+"\n"<< std::endl;;
+  //  std::cout<<"Message received from client : "<<client_message+"\n"<< std::endl;;
     
     // Optional utility condition to exit the session manually if client sends exit/quit
     if (client_message == "exit" || client_message == "quit") {
@@ -131,6 +135,7 @@ int main(int argc, char*argv[]) {
  
 //close the connection to the client and the server
     close(client_fd);
+}
     close(server_fd);
      return 0;
 }
