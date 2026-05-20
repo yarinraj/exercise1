@@ -2,21 +2,17 @@ FROM gcc:latest
 
 WORKDIR /app
 
-# 1. העתקת התיקיות
 COPY src/ ./src/
 COPY include/ ./include/
 COPY data/ ./data/
 COPY tests/ ./tests/
 COPY *.txt ./
 
-# 2. הטריק המבריק של נועם שחזר למקומו!
 RUN cp include/*.h src/ 
 
-# 3. מחיקת ה-main של השרת כדי שלא יתנגש
+# Deleting the main of the server so that won't be a collision
 RUN rm -f src/main.cpp
 
-# 4. שורת הקימפול (עם שתי כוכביות!!)
 RUN g++ -std=c++17 -Iinclude -Isrc src/*.cpp tests/*.cpp -o run_tests.exe
 
-# 5. הרצת קובץ הטסטים
 CMD ["./run_tests.exe"]

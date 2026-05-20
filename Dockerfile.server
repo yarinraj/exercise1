@@ -9,7 +9,7 @@ COPY data/ ./data/
 
 RUN g++ -std=c++17 -I include -pthread src/*.cpp -o my_program.exe
 
-# Stage 2: Minimal runtime image
+# Stage 2: runtime image
 FROM ubuntu:latest
 
 WORKDIR /app
