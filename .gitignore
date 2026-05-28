@@ -78,3 +78,5 @@ delete_runner
 # Temporary test files and local data
 test_dm_*.txt
 database.txt
+
+node_modules/
