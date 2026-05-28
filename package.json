@@ -6,10 +6,10 @@
   "directories": {
     "test": "tests"
   },
- "scripts": {
-  "start": "node app.js",
-  "dev": "nodemon app.js"
-},
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yarinraj/exercise1.git"
@@ -23,7 +23,7 @@
   "homepage": "https://github.com/yarinraj/exercise1#readme",
   "dependencies": {
     "express": "^5.2.1",
-    "uuid": "^14.0.0"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
