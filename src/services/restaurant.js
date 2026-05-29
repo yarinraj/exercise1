@@ -19,7 +19,40 @@ const createRestaurant = (restaurantData) => {
     return Restaurant.create(restaurantData);
 };
 
+// getting a resturant by ID
+const getRestaurantById = (id) => {
+    const restaurant = Restaurant.getById(id);
+    if (!restaurant) {
+        throw new Error("Not Found");
+    }
+    return restaurant;
+};
+
+// updating restaurant
+const updateRestaurant = (id, updatedData) => {
+    if (!updatedData) {
+        throw new Error("Invalid data");
+    }
+    const restaurant = Restaurant.update(id, updatedData);
+    if (!restaurant) {
+        throw new Error("Not Found");
+    }
+    return restaurant;
+};
+
+// deleting restaurant
+const deleteRestaurant = (id) => {
+    const isDeleted = Restaurant.remove(id);
+    if (!isDeleted) {
+        throw new Error("Not Found");
+    }
+    return true;
+};
+
 module.exports = {
     getAllRestaurants,
-    createRestaurant
+    createRestaurant,
+    getRestaurantById,
+    updateRestaurant,
+    deleteRestaurant
 };
