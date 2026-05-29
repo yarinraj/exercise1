@@ -1,0 +1,27 @@
+{
+  "name": "exercise1",
+  "version": "1.0.0",
+  "description": "Markdown\r # Recommendation System Server",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yarinraj/exercise1.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/yarinraj/exercise1/issues"
+  },
+  "homepage": "https://github.com/yarinraj/exercise1#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
