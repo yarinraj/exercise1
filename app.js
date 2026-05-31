@@ -3,9 +3,9 @@ const app = express();
 const port = 8080;
 
 // Import the user routes
-const userRoutes = require('./api/routes/userRoutes');
+const userRoutes = require('./api/routes/user');
 //Import the token router
-const tokenRoutes = require('./api/routes/tokenRoutes');
+const tokenRoutes = require('./api/routes/token');
 
 // Middleware - allows the server to parse incoming JSON in the request body
 app.use(express.json());
