@@ -20,7 +20,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 
 // Start the server and listen on the specified port
-const PORT = 8000;
-app.listen(port, () => {
+const PORT = 8080;
+app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT} - (DELETE BEFORE SUBMITION)`);
 });

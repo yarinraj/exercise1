@@ -1,5 +1,5 @@
 // We need to import the user service because that's where our user data and logic live
-const userService = require('../src/services/user');
+const userService = require('../services/user');
 
 // Function to handle login and generate a token
 const createToken = (req, res) => {
