@@ -28,6 +28,8 @@ const getUser =(req,res)=>{
         return res.status(404).json({error: "User not found"});
     
     }
+    // for security: Remove the password from the user object before sending it back
+    const { password, ...safeUserData } = user;
     // Handle the success case
     // Return 200 OK along with the user object as JSON
     res.status(200).json(user);
