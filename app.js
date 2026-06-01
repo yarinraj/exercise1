@@ -1,16 +1,16 @@
 const express = require('express');
 const app = express();
-const port = 8080;
 
-// Import the user routes
+const restaurantRoutes = require('./src/routes/restaurant');
 const userRoutes = require('./api/routes/user');
-//Import the token router
 const tokenRoutes = require('./api/routes/token');
 //Import the order router
 const orderRoutes = require('./api/routes/order');
 
 // Middleware - allows the server to parse incoming JSON in the request body
 app.use(express.json());
+
+app.use('/api/restaurants', restaurantRoutes);
 //Map '/api/tokens' to our token router
 app.use('/api/tokens', tokenRoutes);
 // Mount the user routes to the base path '/api/users'
@@ -20,6 +20,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 
 // Start the server and listen on the specified port
+const PORT = 8000;
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running on http://localhost:${PORT} - (DELETE BEFORE SUBMITION)`);
 });
