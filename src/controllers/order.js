@@ -1,10 +1,13 @@
-//import both services :order for data ' user for authentication
+// Import services for data, authentication, and validation
 const orderService = require('../services/order');
 const userService = require('../services/user');
-//create new order
-const createOrder = (req,res)=>{
-    //Extract the token from the headers (Express automatically lowercases header names)
+const restaurantService = require('../services/restaurant');
+
+// Create a new order
+const createOrder = (req, res) => {
+    // Extract the token from the headers
     const token = req.headers.authorization;
+    
     // Check if token exists
     if (!token) {
         return res.status(401).json({ error: "Unauthorized: No token provided" });
@@ -16,12 +19,39 @@ const createOrder = (req,res)=>{
         return res.status(401).json({ error: "Unauthorized: Invalid token" });
     }
 
-    // If we reached here, the user is authenticated!
-    // Create the order using the data from the request body and the user's ID
-    const orderData = req.body;
-    const newOrder = orderService.createOrder(user.id, orderData);
+    // Extract restaurant and products from the request body
+    const { restaurantId, products } = req.body;
 
-    // Return the newly created order with a 201 Created status (Standard for successful creation)
+    try {
+        // 1. Check if restaurant ID is provided and exists in the system
+        if (!restaurantId) {
+            return res.status(400).json({ error: "Restaurant ID is required" });
+        }
+        restaurantService.getRestaurantById(restaurantId);
+
+        // 2. Validate that the products array is provided and not empty
+        if (!products || !Array.isArray(products) || products.length === 0) {
+            return res.status(400).json({ error: "Products array is required and cannot be empty" });
+        }
+
+        // 3. Verify each product exists in the specified restaurant's menu
+        for (const item of products) {
+            const productId = item.id || item.productId; 
+            restaurantService.getProductFromRestaurant(restaurantId, productId);
+        }
+
+    } catch (error) {
+        // If the restaurant or product is not found, return 404 Not Found
+        if (error.message === "Not Found") {
+            return res.status(404).json({ error: "Restaurant or product not found" });
+        }
+        return res.status(400).json({ error: error.message });
+    }
+
+    // If everything is valid, create the order
+    const newOrder = orderService.createOrder(user.id, req.body);
+
+    // Return the newly created order with a 201 Created status
     res.status(201).json(newOrder);
 };
 
@@ -52,4 +82,3 @@ module.exports = {
     createOrder,
     getOrders
 };
-
