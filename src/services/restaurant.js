@@ -49,10 +49,64 @@ const deleteRestaurant = (id) => {
     return true;
 };
 
+// getting a menu of a restaurant
+const getRestaurantProducts = (restaurantId) => {
+    const products = Restaurant.getProducts(restaurantId);
+    if (!products) {
+        throw new Error("Not Found");
+    }
+    return products;
+};
+
+// adding a product to a restaurant
+const addProductToRestaurant = (restaurantId, productData) => {
+    if (!productData || !productData.name) {
+        throw new Error("Invalid product data");
+    }
+
+    const newProduct = Restaurant.addProduct(restaurantId, productData);
+    if (!newProduct) {
+        throw new Error("Not Found");
+    }
+    return newProduct;
+};
+
+// getting a specific product from a specific restaurant
+const getProductFromRestaurant = (restaurantId, productId) => {
+    const product = Restaurant.getProductById(restaurantId, productId);
+    if (!product) {
+        throw new Error("Not Found");
+    }
+    return product;
+};
+
+// updating a specific product from a specific restaurant
+const updateRestaurantProduct = (restaurantId, productId, updatedProductData) => {
+    const updatedProduct = Restaurant.updateProduct(restaurantId, productId, updatedProductData);
+    if (!updatedProduct) {
+        throw new Error("Not Found");
+    }
+    return updatedProduct;
+};
+
+// deleting a specific product from a specific restaurant
+const deleteRestaurantProduct = (restaurantId, productId) => {
+    const isDeleted = Restaurant.removeProduct(restaurantId, productId);
+    if (!isDeleted) {
+        throw new Error("Not Found");
+    }
+    return true;
+};
+
 module.exports = {
     getAllRestaurants,
     createRestaurant,
     getRestaurantById,
     updateRestaurant,
-    deleteRestaurant
+    deleteRestaurant,
+    getRestaurantProducts,
+    addProductToRestaurant,
+    getProductFromRestaurant,
+    updateRestaurantProduct,
+    deleteRestaurantProduct
 };
