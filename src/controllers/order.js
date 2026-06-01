@@ -77,8 +77,67 @@ const getOrders = (req, res) => {
     // Return the array of orders
     res.status(200).json(userOrders);
 };
+// Get a specific order by its ID
+const getOrderById = (req, res) => {
+    const token = req.headers.authorization;
+    if (!token) return res.status(401).json({ error: "Unauthorized: No token provided" });
+
+    const user = userService.getUserById(token);
+    if (!user) return res.status(401).json({ error: "Unauthorized: Invalid token" });
+
+    const orderId = req.params.id;
+    const order = orderService.getOrderById(orderId);
+
+    if (!order) return res.status(404).json({ error: "Order not found" });
+    
+    // Security check: Ensure the order belongs to the requester
+    if (order.userId !== user.id) return res.status(403).json({ error: "Forbidden: Access denied to this order" });
+
+    res.status(200).json(order);
+};
+
+// Update a specific order
+const updateOrder = (req, res) => {
+    const token = req.headers.authorization;
+    if (!token) return res.status(401).json({ error: "Unauthorized: No token provided" });
+
+    const user = userService.getUserById(token);
+    if (!user) return res.status(401).json({ error: "Unauthorized: Invalid token" });
+
+    const orderId = req.params.id;
+    const order = orderService.getOrderById(orderId);
+
+    if (!order) return res.status(404).json({ error: "Order not found" });
+    if (order.userId !== user.id) return res.status(403).json({ error: "Forbidden: Access denied to this order" });
+
+    // Update the order via the service layer
+    const updatedOrder = orderService.updateOrder(orderId, req.body);
+    res.status(200).json(updatedOrder);
+};
+
+// Delete a specific order
+const deleteOrder = (req, res) => {
+    const token = req.headers.authorization;
+    if (!token) return res.status(401).json({ error: "Unauthorized: No token provided" });
+
+    const user = userService.getUserById(token);
+    if (!user) return res.status(401).json({ error: "Unauthorized: Invalid token" });
+
+    const orderId = req.params.id;
+    const order = orderService.getOrderById(orderId);
+
+    if (!order) return res.status(404).json({ error: "Order not found" });
+    if (order.userId !== user.id) return res.status(403).json({ error: "Forbidden: Access denied to this order" });
+
+    // Delete the order via the service layer
+    orderService.deleteOrder(orderId);
+    res.status(200).json({ message: "Order deleted successfully" });
+};
 
 module.exports = {
     createOrder,
-    getOrders
+    getOrders,
+    getOrderById,
+    updateOrder,
+    deleteOrder
 };

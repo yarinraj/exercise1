@@ -11,8 +11,10 @@ const registerUser = (req, res)=>{
     //pass the data to the service layer to create and save the new user
     const newUser = userService.createUser({username,password, address, phone});
 
-    //return the success response 201 created along with the newly created user object
-    res.status(201).json(newUser);
+   const { password: _, ...safeUserData } = newUser; // taking the password off
+//send the user info without the password    
+    res.status(201).json(safeUserData);
+    
 }
 //func that handle GET request to fetch a specifin user by ID
 const getUser =(req,res)=>{
@@ -32,7 +34,7 @@ const getUser =(req,res)=>{
     const { password, ...safeUserData } = user;
     // Handle the success case
     // Return 200 OK along with the user object as JSON
-    res.status(200).json(user);
+    res.status(200).json(safeUserData);
 }
 module.exports = {
     registerUser,
