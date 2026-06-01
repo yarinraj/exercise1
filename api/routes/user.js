@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 // Import the user controller to handle the registration logic
-const userController = require('../controllers/userController');
+const userController = require('../controllers/user');
 
 // Define the POST route for user registration
 // The path is '/' because this router will be mounted at '/api/users' in app.js

@@ -22,9 +22,16 @@ const getUserById=(userId)=>{
     // If it finishes scanning the array and finds nothing, it automatically returns 'undefined'.
     return users.find(user=>user.id==userId);
 }
+//verify if a user exists with the matching username and password
+const verifyUser=(username,password)=>{
+    //we use find() to search for an axact match for both properties
+    return users.find(user=>username===username&&user.password===password);
+};
+
 // Export the function and the users array so they can be imported and used in other files
 module.exports = {
     createUser,
     getUserById,
+    verifyUser,
     users 
 };

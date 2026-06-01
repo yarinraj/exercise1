@@ -1,5 +1,5 @@
 // Import the service layer to handle business logic and data storage
-const userService = require('../services/userService');
+const userService = require('../services/user');
 
 const registerUser = (req, res)=>{
     //Extract user data from the request body
