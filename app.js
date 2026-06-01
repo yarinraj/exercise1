@@ -2,10 +2,10 @@ const express = require('express');
 const app = express();
 
 const restaurantRoutes = require('./src/routes/restaurant');
-const userRoutes = require('./api/routes/user');
-const tokenRoutes = require('./api/routes/token');
+const userRoutes = require('./src/routes/user');
+const tokenRoutes = require('./src/routes/token');
 //Import the order router
-const orderRoutes = require('./api/routes/order');
+const orderRoutes = require('./src/routes/order');
 
 // Middleware - allows the server to parse incoming JSON in the request body
 app.use(express.json());
