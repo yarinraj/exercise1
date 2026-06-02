@@ -1,3 +1,4 @@
+const crypto = require('crypto'); // Added to fix "crypto is not defined" error
 const restaurants = [];
 
 const getAll = () => {
