@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # C++ Server Service
   cpp-server:
@@ -15,11 +13,12 @@ services:
   cpp-gateway:
     build:
       context: .
-      dockerfile: Dockerfile # dockerfile usage for cppGateway.js API
+      dockerfile: Dockerfile.gateway # dockerfile usage for cppGateway.js API
     ports:
       - "8080:8080" # expose port 8080 for the cppGateway.js API
     environment:
-      - CPP_SERVER_URL=http://cpp-server:8000 # environment variable for the cppGateway.js API to know where the C++ server is located
+      - CPP_SERVER_HOST=cpp-server # use the service name as the host to connect to the C++ server
+      - CPP_SERVER_PORT=8000 # use the exposed port of the C++ server
     depends_on:
       - cpp-server # makes the cppGateway.js API wait for the C++ server to start first
     networks:

@@ -1,0 +1,19 @@
+# running the cppGateway.js API in a Docker container
+FROM node:18-alpine
+
+WORKDIR /app
+
+# copy package.json and package-lock.json to the container
+COPY package*.json ./
+
+# installing the dependencies
+RUN npm install
+
+# copying all remaining files (including cppGateway.js)
+COPY . .
+
+# exposing the port of the Gateway
+EXPOSE 8080
+
+# command to run the Gateway
+CMD ["node", "app.js"]
