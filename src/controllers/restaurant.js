@@ -1,5 +1,6 @@
 const restaurantService = require('../services/restaurant');
-
+const cppGateway = require('../services/cppGateway');
+const userService = require('../services/user');
 /**
  * dealing with the request: GET /api/restaurants
  * returns all the resturants with status 200 OK
@@ -111,13 +112,36 @@ const createProduct = (req, res) => {
  * dealing with the request: GET /api/restaurants/:id/products/:pid
  * returns a specific product from a specific restaurant 
  */
-const getProductById = (req, res) => {
+const getProductById = async (req, res) => {
+    const restaurantId = req.params.id;
+    const productId = req.params.pid;
+
     try {
-        const product = restaurantService.getProductFromRestaurant(req.params.id, req.params.pid);
+        // getting the product details from the service
+        const product = restaurantService.getProductFromRestaurant(restaurantId, productId);
+
+        // 2. gateway interaction - sending a view interaction to the C++ server
+        try {
+            const token = req.headers.authorization;
+            if (token) {
+                const user = userService.getUserById(token);
+                if (user) {
+                    console.log(`[Gateway] Sending GET interaction for User: ${user.id}, Product: ${productId}`);
+                    await cppGateway.sendGetInteraction(user.id, productId);
+                }
+            } else {
+                console.log(`[Gateway Warning] No authorization token provided, skipping C++ sync.`);
+            }
+        } catch (cppError) {
+            console.error("[Gateway Error] Could not sync view interaction with C++ server:", cppError.message);
+        }
+
+        // successfully retrieved the product, returning it in the response
         return res.status(200).json(product);
+
     } catch (error) {
         if (error.message === "Not Found") {
-            return res.status(404).json({ error: "Not Found" });
+            return res.status(404).json({ error: "Product Not Found" });
         }
         return res.status(500).json({ error: "Internal Server Error" });
     }
@@ -127,13 +151,32 @@ const getProductById = (req, res) => {
  * dealing with the request: PATCH /api/restaurants/:id/products/:pid
  * updating a specific product on the menu
  */
-const updateProduct = (req, res) => {
+const updateProduct = async (req, res) => {
+    const restaurantId = req.params.id;
+    const productId = req.params.pid;
+
     try {
-        const updated = restaurantService.updateRestaurantProduct(req.params.id, req.params.pid, req.body);
-        return res.status(200).json(updated);
+        // updating the product details in the service
+        const updated = restaurantService.updateRestaurantProduct(restaurantId, productId, req.body);
+        
+        // 2. gateway interaction - sending an update interaction to the C++ server
+        try {
+            const token = req.headers.authorization;
+            if (token) {
+                const user = userService.getUserById(token);
+                if (user) {
+                    console.log(`[Gateway] Sending POST interaction for User: ${user.id}, Product: ${productId}`);
+                    await cppGateway.sendPostInteraction(user.id, productId); 
+                }
+            }
+        } catch (cppError) {
+            console.error("[Gateway Error] Could not sync update interaction with C++ server:", cppError.message);
+        }
+
+        return res.status(204).json(updated);
     } catch (error) {
         if (error.message === "Not Found") {
-            return res.status(404).json({ error: "Not Found" });
+            return res.status(404).json({ error: "Product Not Found" });
         }
         return res.status(400).json({ error: error.message });
     }
@@ -143,13 +186,32 @@ const updateProduct = (req, res) => {
  * dealing with the request: DELETE /api/restaurants/:id/products/:pid
  * deleteing a specific product from a restaurant's menu
  */
-const deleteProduct = (req, res) => {
+const deleteProduct = async (req, res) => {
+    const restaurantId = req.params.id;
+    const productId = req.params.pid;
+
     try {
-        restaurantService.deleteRestaurantProduct(req.params.id, req.params.pid);
-        return res.status(200).json({ success: true });
+        // deleting the product from the restaurant's menu in the service
+        restaurantService.deleteRestaurantProduct(restaurantId, productId);
+        
+        // 2. gateway interaction - sending a delete interaction to the C++ server
+        try {
+            const token = req.headers.authorization;
+            if (token) {
+                const user = userService.getUserById(token);
+                if (user) {
+                    console.log(`[Gateway] Sending DELETE interaction for User: ${user.id}, Product: ${productId}`);
+                    await cppGateway.sendDeleteInteraction(user.id, productId);
+                }
+            }
+        } catch (cppError) {
+            console.error("[Gateway Error] Could not sync delete interaction with C++ server:", cppError.message);
+        }
+
+        return res.status(204).json({ success: true });
     } catch (error) {
         if (error.message === "Not Found") {
-            return res.status(404).json({ error: "Not Found" });
+            return res.status(404).json({ error: "Product Not Found" });
         }
         return res.status(500).json({ error: "Internal Server Error" });
     }
