@@ -21,9 +21,40 @@ const getOrdersByUserId = (userId) => {
     // It returns an array of all orders where the 'userId' matches.
     return orders.filter(order => order.userId === userId);
 };
+// Fetch a specific order by its ID
+const getOrderById = (orderId) => {
+    return orders.find(order => order.id === orderId);
+};
+
+// Update a specific order's data
+const updateOrder = (orderId, updateData) => {
+    const order = getOrderById(orderId);
+    if (order) {
+        // We extract id and userId from updateData to prevent them from being overwritten accidentally
+        const { id, userId, ...safeData } = updateData;
+        
+        // Update the existing order object with the new safe data
+        Object.assign(order, safeData);
+    }
+    return order;
+};
+
+// Delete a specific order from the array
+const deleteOrder = (orderId) => {
+    const index = orders.findIndex(order => order.id === orderId);
+    if (index !== -1) {
+        // Remove 1 item at the found index
+        orders.splice(index, 1);
+        return true;
+    }
+    return false;
+};
 
 module.exports = {
     createOrder,
     getOrdersByUserId,
+    getOrderById,
+    updateOrder,
+    deleteOrder,
     orders
 };
