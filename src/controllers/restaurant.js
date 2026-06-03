@@ -201,7 +201,7 @@ const deleteProduct = async (req, res) => {
                 const user = userService.getUserById(token);
                 if (user) {
                     console.log(`[Gateway] Sending DELETE interaction for User: ${user.id}, Product: ${productId}`);
-                    await cppGateway.sendDeleteInteraction(user.id, productId);
+                    await cppGateway.deleteOrderInteraction(user.id, productId);
                 }
             }
         } catch (cppError) {
