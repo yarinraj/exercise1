@@ -1,6 +1,7 @@
 const restaurantService = require('../services/restaurant');
 const cppGateway = require('../services/cppGateway');
 const userService = require('../services/user');
+
 /**
  * dealing with the request: GET /api/restaurants
  * returns all the resturants with status 200 OK
@@ -217,6 +218,23 @@ const deleteProduct = async (req, res) => {
     }
 };
 
+const searchItems = (req, res) => {
+    try {
+        //take the url from the search word, URL (req.params.query)
+        const query = req.params.query;
+
+        //call to the search func  
+        const searchResults = restaurantService.search(query);
+
+        // return 200 with ok
+        return res.status(200).json(searchResults);
+
+  } catch (error) {
+        //check if the server died 
+        console.error("Error in searchItems:", error); 
+        return res.status(500).json({ error: "Internal Server Error", details: error.message });
+    }
+};
 module.exports = {
     getRestaurants,
     createRestaurant,
@@ -227,5 +245,6 @@ module.exports = {
     createProduct,
     getProductById,
     updateProduct,
-    deleteProduct
+    deleteProduct, 
+    searchItems
 };
