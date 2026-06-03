@@ -97,6 +97,10 @@ const deleteRestaurantProduct = (restaurantId, productId) => {
     }
     return true;
 };
+//search func 
+const search = (query) => {
+    return Restaurant.search(query); 
+};
 
 module.exports = {
     getAllRestaurants,
@@ -108,5 +112,7 @@ module.exports = {
     addProductToRestaurant,
     getProductFromRestaurant,
     updateRestaurantProduct,
-    deleteRestaurantProduct
+    deleteRestaurantProduct,
+    search 
+
 };

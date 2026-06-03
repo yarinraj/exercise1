@@ -9,7 +9,9 @@ const create = (restaurantData) => {
     const newRestaurant = {
         id: crypto.randomUUID(), 
         name: restaurantData.name,
+        description: restaurantData.description,
         products: []
+       
         // phone_number: int,
     };
     
@@ -55,6 +57,7 @@ const addProduct = (restaurantId, productData) => {
     const newProduct = {
         id: crypto.randomUUID(), 
         name: productData.name,
+        description: productData.description,
         price: productData.price 
     };
 
@@ -93,6 +96,41 @@ const getProductById = (restaurantId, productId) => {
     if (!restaurant) return null;
     return restaurant.products.find(p => p.id === productId);
 };
+//text search across resturants and products 
+const search = (query)=>{
+    //convert the search text to lowercase
+    const lowerCaseQuery=query.toLowerCase();
+    //prepare the undified results object as required by the ticket
+    const results ={ 
+        restaurants:[],
+        products:[]
+    };
+    //iterate over all resturants in the array
+    for(const restaurant of restaurants){
+
+        // Check if the query is included in the restaurant's name or description
+        // (Using optional chaining '?.' to prevent crashes if the description is missing)
+        const matchResturantName= restaurant.name?.toLowerCase().includes(lowerCaseQuery);
+        const matchRestaurantDesc = restaurant.description?.toLowerCase().includes(lowerCaseQuery);
+        if(matchResturantName||matchRestaurantDesc){
+            results.restaurants.push(restaurant);
+        }
+        //iterste over aver all products of current resturants
+        if(restaurant.products && Array.isArray(restaurant.products)){
+            for(const product of restaurant.products ){
+                // Check if the query is included in the product's name or description
+                const matchProductName = product.name?.toLowerCase().includes(lowerCaseQuery);
+                const matchProductDesc = product.description?.toLowerCase().includes(lowerCaseQuery);
+
+                if (matchProductName || matchProductDesc) {
+                    results.products.push(product);
+                }
+            }
+
+        }
+    }
+    return results;
+};
 
 module.exports = {
     getAll,
@@ -104,5 +142,6 @@ module.exports = {
     addProduct,
     updateProduct,
     removeProduct,
-    getProductById
+    getProductById,
+    search
 };

@@ -6,6 +6,8 @@ const userRoutes = require('./src/routes/user');
 const tokenRoutes = require('./src/routes/token');
 //Import the order router
 const orderRoutes = require('./src/routes/order');
+//import the controller of the resturants
+const restaurantController = require('./src/controllers/restaurant');
 
 // Middleware - allows the server to parse incoming JSON in the request body
 app.use(express.json());
@@ -18,6 +20,8 @@ app.use('/api/tokens', tokenRoutes);
 app.use('/api/users', userRoutes);
 // Map all '/api/orders' requests to the order router
 app.use('/api/orders', orderRoutes);
+//search rout
+app.get('/api/search/:query', restaurantController.searchItems);
 
 // Start the server and listen on the specified port
 const PORT = 8080;
