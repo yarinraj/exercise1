@@ -12,8 +12,8 @@ const registerUser = (req, res)=>{
     const newUser = userService.createUser({username,password, address, phone});
 
    const { password: _, ...safeUserData } = newUser; // taking the password off
-//send the user info without the password    
-    res.status(201).json(safeUserData);
+    //send the user info without the password    
+    return res.status(201).json(safeUserData);
     
 }
 //func that handle GET request to fetch a specifin user by ID
@@ -34,7 +34,7 @@ const getUser =(req,res)=>{
     const { password, ...safeUserData } = user;
     // Handle the success case
     // Return 200 OK along with the user object as JSON
-    res.status(200).json(safeUserData);
+    return res.status(200).json(safeUserData);
 }
 module.exports = {
     registerUser,
