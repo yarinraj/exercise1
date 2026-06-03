@@ -1,8 +1,7 @@
 const net = require('net');
-
 // server details (EX2)
-const CPP_SERVER_HOST = '127.0.0.1';
-const CPP_SERVER_PORT = 9000; 
+const CPP_SERVER_HOST = process.env.CPP_SERVER_HOST || '127.0.0.1';
+const CPP_SERVER_PORT = process.env.CPP_SERVER_PORT || 9000;
 
 /**
  * helper function to extract product IDs from the products array.
