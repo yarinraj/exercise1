@@ -21,7 +21,7 @@ const getRestaurants = (req, res) => {
 const createRestaurant = (req, res) => {
     try {
         const newRestaurant = restaurantService.createRestaurant(req.body);
-        
+        res.set('Location', `/api/restaurants/${newRestaurant.id}`)
         return res.status(201).json(newRestaurant);
     } catch (error) {
         return res.status(400).json({ error: error.message });
@@ -51,7 +51,7 @@ const getRestaurantById = (req, res) => {
 const updateRestaurant = (req, res) => {
     try {
         const updated = restaurantService.updateRestaurant(req.params.id, req.body);
-        return res.status(200).json(updated);
+        return res.status(204).send();
     } catch (error) {
         if (error.message === "Not Found") {
             return res.status(404).json({ error: "Not Found" });
@@ -67,7 +67,7 @@ const updateRestaurant = (req, res) => {
 const deleteRestaurant = (req, res) => {
     try {
         restaurantService.deleteRestaurant(req.params.id);
-        return res.status(200).json({ success: true });
+        return res.status(204).send();
     } catch (error) {
         if (error.message === "Not Found") {
             return res.status(404).json({ error: "Not Found" });
@@ -173,7 +173,7 @@ const updateProduct = async (req, res) => {
             console.error("[Gateway Error] Could not sync update interaction with C++ server:", cppError.message);
         }
 
-        return res.status(204).json(updated);
+        return res.status(204).send();
     } catch (error) {
         if (error.message === "Not Found") {
             return res.status(404).json({ error: "Product Not Found" });
@@ -208,7 +208,7 @@ const deleteProduct = async (req, res) => {
             console.error("[Gateway Error] Could not sync delete interaction with C++ server:", cppError.message);
         }
 
-        return res.status(204).json({ success: true });
+        return res.status(204).send();
     } catch (error) {
         if (error.message === "Not Found") {
             return res.status(404).json({ error: "Product Not Found" });

@@ -60,7 +60,8 @@ const createOrder = async (req, res) => {
     }
     
     // Return the newly created order with a 201 Created status
-    res.status(201).json(newOrder);
+    res.set('Location', `/api/orders/${newOrder.id}`);
+    return res.status(201).json(newOrder);
 };
 
 // Get all orders for the logged-in user
@@ -121,7 +122,7 @@ const updateOrder = (req, res) => {
 
     // Update the order via the service layer
     const updatedOrder = orderService.updateOrder(orderId, req.body);
-    res.status(200).json(updatedOrder);
+    res.status(204).send();
 };
 
 // Delete a specific order 
@@ -147,7 +148,7 @@ const deleteOrder = async (req, res) => {
     }
     // Delete the order via the service layer
     orderService.deleteOrder(orderId);
-    res.status(200).json({ message: "Order deleted successfully" });
+    res.status(204).send();
 };
 
 module.exports = {

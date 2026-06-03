@@ -20,7 +20,7 @@ const createToken = (req, res) => {
     }
 
     // If the user is found, return success with the token (the user's ID)
-    res.status(200).json({ token: user.id });
+    return res.status(200).json({ token: user.id });
 };
 
 // Export the function so the router can use it
