@@ -51,6 +51,15 @@ const getRestaurantById = (req, res) => {
  */
 const updateRestaurant = (req, res) => {
     try {
+        const { phone } = req.body;
+        //phone number validation        
+        if (phone) {
+            const isNumeric = /^\d+$/.test(phone);
+            if (!isNumeric || phone.length > 10) {
+                return res.status(400).json({ error: "Phone must contain only numbers and be up to 10 digits long" });
+            }
+        }
+        
         const updated = restaurantService.updateRestaurant(req.params.id, req.body);
         return res.status(204).send();
     } catch (error) {

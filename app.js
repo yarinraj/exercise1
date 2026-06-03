@@ -26,5 +26,5 @@ app.get('/api/search/:query', restaurantController.searchItems);
 // Start the server and listen on the specified port
 const PORT = 8080;
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT} - (DELETE BEFORE SUBMITION)`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
