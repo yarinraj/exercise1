@@ -1,82 +1,120 @@
-Markdown
-# Recommendation System Server
+# Advanced Systems Programming - Exercise 3
 
 ## Overview
-This project implements a TCP-based Recommendation System Server. The server manages a database of users and products, and processes incoming commands over a network connection to provide product recommendations, manage data, and more. 
+This project implements a complete, scalable food delivery backend system (similar to Wolt) using a microservices architecture based on the specifications in Ex3 (4)_3.pdf[cite: 1]. 
+It combines a modern **Node.js/Express Web Server** (built using the **MVC pattern**) for core business logic[cite: 1] with a high-performance **C++ Recommendation Engine Server**[cite: 1]. 
 
-## Project Structure
-* src/ - Contains all .cpp and .h source files.
-* data/ - Contains the database.txt file and any other persistent data.
-* tests/ - Contains unit tests for the application logic.
+The Node.js API handles user management, orders, and restaurants, while seamlessly communicating with the C++ server via a dedicated TCP Socket Gateway to synchronize user interactions and recommendation data[cite: 1]. All data managed by the Express server is stored in-memory as volatile collections and resets upon server restart[cite: 1].
 
-## How To Run The Project:
-### Step 1: Create the Shared Docker Network (Required Once)
-``bash
-docker network create my-network
-### Step 2: Build and Run the Server
-## Server Docker
-build: docker build -f Dockerfile.server -t cpp-server .
-run: docker run --name server --rm --network my-network -p 8000:8000 -v "$(pwd)/data:/app/data" cpp-server
-### Step 3: Build and Run the Client
-## Client Docker
-build: docker build -f Dockerfile.client -t python-client .
-run: docker run -it --rm --network my-network python-client server 8000
+---
 
-## How To Run The Unit Tests:
-## Tests Docker
-build: docker build -f Dockerfile.tests -t unit-tests .
-run: docker run -it test_env
+## Version Control and Branch Management
+In strict accordance with the project guidelines specified in Ex3 (4)_3.pdf to protect prior submissions[cite: 1]:
+- The complete and standalone C++ server code submitted for Exercise 2 has been locked and isolated into a dedicated branch to preserve its state for evaluation[cite: 1].
+- All active development, integration layers, and Express server implementations for Exercise 3 are maintained and merged directly into the main branch[cite: 1].
 
-## How to Compile and Run (in the terminal)
-*Compilation:*
-We use standard g++ compilation. Open your terminal in the root directory and run:
+---
+
+## Project Structure (MVC Architecture)
+The web server strictly follows the Model-View-Controller design pattern to ensure loose coupling and clean architectural separation[cite: 1]:
+- `app.js` — Main Express service entry point[cite: 1].
+- `src/routes/` — API route definitions mapping URLs to HTTP controllers[cite: 1].
+- `src/controllers/` — Request handlers managing HTTP responses and status codes[cite: 1].
+- `src/models/` — Data structures handling volatile in-memory storage arrays[cite: 1].
+- `src/services/` — Business logic layer and the TCP Socket Gateway connection[cite: 1].
+- `include/` & `src/` (C++ Portion) — Highly optimized recommendation engine core from Exercise 2[cite: 1].
+- `data/` — Persistent files and evaluation data for the recommendation logic[cite: 1].
+
+---
+
+## Tech Stack
+- Web Server: Node.js + Express (JavaScript)[cite: 1]
+- Recommendation Backend: C++17[cite: 1]
+- Testing Suite: CMake + GoogleTest (C++)[cite: 1]
+- Containerization: Docker & Docker-Compose[cite: 1]
+
+---
+
+## Quick Start (Running the Integrated System)
+
+### Option 1: Running via Docker (Recommended)
+To build and spin up both the Node.js API and the C++ backend inside a shared network layer, run[cite: 1]:
 ```bash
-g++ -std=c++17 -Iinclude -Isrc src/*.cpp -o server.exe
-Running the Server:
-Execute the compiled program and provide the desired port number as an argument:
+docker-compose up --build
+```
 
-Bash
-./server.exe 8080
-Execution Example (Client):
-In a separate terminal, use nc (Netcat) to connect to the server and send commands:
+### Option 2: Local Execution
+1) Start the C++ Recommendation Server: Ensure the C++ TCP server is compiled and running on port 8000[cite: 1].
+2) Start the Node.js API Server:
+```bash
+npm install
+npm start
+```
+The API server will run on port 3000 or port 8080 by default[cite: 1].
 
-Bash
-nc localhost 8080
-> POST 10 205
-201 Created
-> GET 10 205
-200 OK
-Product 101, Product 102
-> exit
-Architecture and SOLID Principles (OCP)
-Our design heavily emphasizes Loose Coupling and the Open/Closed Principle (OCP). Below is an analysis of how our architecture handled the new requirements for Exercise 2:
+---
 
-1. Changing Command Names
-Did it require modifying closed code? No.
+## Main RESTful API Endpoints
 
-Explanation: In our initial design (Ex1), the command mapping was implemented using a routing mechanism (CommandParser). Changing a command string (e.g., from add to POST) only required updating the specific route mapping or the command's own identifier, without altering the core parsing logic or the DataManager execution flow.
+### Global Search
+- GET /api/search/:query — Full-Text Search. Case-insensitively filters restaurants and products by matching name or description properties[cite: 1].
 
-2. Adding New Commands
-Did it require modifying closed code? No.
+### Restaurant & Menu Management
+- GET /api/restaurants — List all restaurants[cite: 1].
+- POST /api/restaurants — Create a new restaurant[cite: 1].
+- GET /api/restaurants/:id — Get specific restaurant details[cite: 1].
+- PATCH /api/restaurants/:id — Update restaurant data[cite: 1].
+- DELETE /api/restaurants/:id — Delete a restaurant[cite: 1].
+- GET /api/restaurants/:id/products — List all products (menu) of a restaurant[cite: 1].
+- POST /api/restaurants/:id/products — Add a new product to a restaurant's menu[cite: 1].
+- GET /api/restaurants/:id/products/:pid — View a specific product (Triggers an active background sync to the C++ server over TCP)[cite: 1].
+- PATCH /api/restaurants/:id/products/:pid — Update product data[cite: 1].
+- DELETE /api/restaurants/:id/products/:pid — Delete a product from the menu[cite: 1].
 
-Explanation: The system is open for extension. To add a new command (like PATCH or DELETE), we simply implemented the new logic and registered it in the parser. The core engine that receives input and triggers commands remained completely untouched.
+### Users & Authentication
+- POST /api/users — Register a new user (Sign-Up via JSON body)[cite: 1].
+- GET /api/users/:id — Fetch user profile details[cite: 1].
+- POST /api/tokens — Create an authentication token yielding the user identifier upon successful login[cite: 1].
 
-3. Changing Command Output Formats
-Did it require modifying closed code? No.
+### Orders Management
+- POST /api/orders — Create a new order (requires User ID passed in the HTTP Headers)[cite: 1].
+- GET /api/orders — List all orders associated with the active user session passed via headers[cite: 1].
+- GET /api/orders/:id — Get specific order details[cite: 1].
+- PATCH /api/orders/:id — Update an order[cite: 1].
+- DELETE /api/orders/:id — Delete an order[cite: 1].
 
-Explanation: The output formatting is encapsulated within the specific command's execution logic. Changing the output format (e.g., adding HTTP-like statuses such as 200 OK or 404 Not Found) was done by extending the specific command's response builder, leaving the invoking classes closed to modification.
+---
 
-4. Transitioning from Console (std::cin/cout) to Sockets
-Did it require modifying closed code? No.
+## Execution Example
+As required by the assignment instructions in Ex3 (4)_3.pdf, here is a command example of creating a resource using curl and its expected response[cite: 1]:
 
-Explanation: This is a prime example of our loose coupling. In Ex1, our application logic printed outputs directly to std::cout. To move to a network architecture, we did not modify the internal logic of our commands to take a socket file descriptor. Instead, we used a std::stringstream buffer and std::cout.rdbuf() in the server's outer loop to temporarily redirect the standard output into a string variable. This string is then sent over the TCP socket. The core application remains entirely agnostic to the delivery mechanism.
+```bash
+curl -i -X POST http://localhost:3000/api/restaurants \
+-H "Content-Type: application/json" \
+-d '{"name": "aaa"}'
+```
 
-Future Scalability: Concurrency and Multiple Clients
-Currently, the server processes one client sequentially. However, the code is closed to modification but open to extension for concurrent connections (e.g., supporting multiple clients simultaneously).
+Expected Output:
+```text
+HTTP/1.1 201 Created
+X-Powered-By: Express
+Location: /api/restaurants/ffc76e45-2353-4265-9e6a-29760a01f408
+Connection: keep-alive
+Content-Length: 0
+```
 
-Because the internal logic is decoupled from the network layer, upgrading to a multithreaded server would merely require wrapping the inner while(true) loop (which handles the individual client_fd) into a separate function, such as handleClient(int client_fd). We could then spawn a new std::thread for every accepted connection:
-std::thread(handleClient, client_fd).detach();
-The core business logic (DataManager, CommandParser) would require zero changes regarding the network flow, aside from standard thread-safety measures (e.g., std::mutex for file/data writing).
+---
 
-Note: This project does not contain any sensitive keys, tokens, or personal passwords in the code or commit history.
+## Local C++ Compilation & Unit Tests
+If you wish to test or develop the C++ standalone core locally[cite: 1]:
+```bash
+cmake -S . -B build
+cmake --build build
+```
 
+---
+
+## Notes
+- This project strictly adheres to Agile methodologies (managed via JIRA workflows and sprint tracking)[cite: 1].
+- Contains no sensitive credentials, keys, or private tokens in its history[cite: 1].
+- All data managed by the Node.js server is volatile and will reset upon server restart[cite: 1].
