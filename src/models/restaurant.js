@@ -6,13 +6,22 @@ const getAll = () => {
 };
 
 const create = (restaurantData) => {
+    const { name, phone, address } = restaurantData;
+    //phone number validation        
+    if (phone) {
+        const isNumeric = /^\d+$/.test(phone);
+        if (!isNumeric || phone.length > 10) {
+            throw new Error("Phone must contain only numbers and be up to 10 digits long");
+        }
+    }
+
     const newRestaurant = {
         id: crypto.randomUUID(), 
         name: restaurantData.name,
         description: restaurantData.description,
+        phone: phone || null, 
+        address: address || null,
         products: []
-       
-        // phone_number: int,
     };
     
     restaurants.push(newRestaurant);
