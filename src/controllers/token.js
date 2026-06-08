@@ -32,7 +32,7 @@ const createToken = async (req, res) => {
         const token = jwt.sign(
             { userId: user._id, username: user.username },
             'my_super_secret_key', // Secret key for signing (keep this safe)
-            { expiresIn: '2h' }    // Token expiration time
+           // { expiresIn: '2h' }    // Token expiration time better practiced but not neede now
         );
 
         // Return the valid token to the client
