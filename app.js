@@ -1,7 +1,9 @@
+if (!globalThis.crypto) {
+    globalThis.crypto = require('crypto').webcrypto;
+}
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
-
 const restaurantRoutes = require('./src/routes/restaurant');
 const userRoutes = require('./src/routes/user');
 const tokenRoutes = require('./src/routes/token');
@@ -12,7 +14,7 @@ const restaurantController = require('./src/controllers/restaurant');
 
 // Middleware - allows the server to parse incoming JSON in the request body
 app.use(express.json({ limit: '5mb' }));
-
+// Map '/api/restaurants' to our restaurant router
 app.use('/api/restaurants', restaurantRoutes);
 //Map '/api/tokens' to our token router
 app.use('/api/tokens', tokenRoutes);
@@ -34,7 +36,7 @@ console.log('Attempting to connect to MongoDB...'); // visual feedback for conne
 mongoose.connect(MONGODB_URI, {serverSelectionTimeoutMS: 5000})
   .then(() => {
     console.log('Successfully connected to MongoDB!');
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server is running on http://localhost:${PORT}`);
     });
   })
