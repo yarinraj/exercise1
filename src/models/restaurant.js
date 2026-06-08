@@ -6,8 +6,10 @@ const getAll = () => {
 };
 
 const create = (restaurantData) => {
-    const { name, phone, address } = restaurantData;
-    //phone number validation        
+   
+
+    const { name, phone, address, products } = restaurantData;
+
     if (phone) {
         const isNumeric = /^\d+$/.test(phone);
         if (!isNumeric || phone.length > 10) {
@@ -17,13 +19,13 @@ const create = (restaurantData) => {
 
     const newRestaurant = {
         id: crypto.randomUUID(), 
-        name: restaurantData.name,
+        name: name ,
         description: restaurantData.description,
         phone: phone || null, 
         address: address || null,
-        products: []
+        products: Array.isArray(products) ? products : []
     };
-    
+
     restaurants.push(newRestaurant);
     return newRestaurant;
 };

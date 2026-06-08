@@ -1,5 +1,5 @@
 const crypto = require('crypto'); 
-const User = require('../models/User'); // importing the User model to interact with the users collection in MongoDB
+const User = require('../models/user'); // importing the User model to interact with the users collection in MongoDB
 
 // validating password complexity function: at least 8 characters, including letters and numbers
 const validatePasswordComplexity = (password) => {

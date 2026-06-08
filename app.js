@@ -30,7 +30,7 @@ app.get('/api/search/:query', restaurantController.searchItems);
 
 // Start the server and listen on the specified port
 const PORT = 8080;
-const MONGODB_URI = 'mongodb://127.0.0.1:27017/woltDB';
+const MONGODB_URI = 'mongodb://mongo:27017/woltDB';
 console.log('Attempting to connect to MongoDB...'); // visual feedback for connection attempt (delete if not needed)
 // Connect to MongoDB using Mongoose
 mongoose.connect(MONGODB_URI, {serverSelectionTimeoutMS: 5000})
