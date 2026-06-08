@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
   },
   profileImage: {
     type: String, // saving the image as a base64 string or a URL
-    default: ''   // defult to an empty string if no image is provided
+    required: true // image is also required for user registration
   }
 }, { timestamps: true }); // automatically adds createdAt and updatedAt fields
 

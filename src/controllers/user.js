@@ -1,41 +1,85 @@
-// Import the service layer to handle business logic and data storage
-const userService = require('../services/user');
+const crypto = require('crypto'); 
+const User = require('../models/User'); // importing the User model to interact with the users collection in MongoDB
 
-const registerUser = (req, res)=>{
-    //Extract user data from the request body
-    const{username, password, address, phone } = req.body;
-  if(!username||!password){
-        return res.status(400).json({error: "Username and password are required"});
+// validating password complexity function: at least 8 characters, including letters and numbers
+const validatePasswordComplexity = (password) => {
+    const complexityRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+    return complexityRegex.test(password);
+};
+
+// registerUser function to handle user registration (POST /api/users)
+const registerUser = async (req, res) => {
+    try {
+        // extracting the fields from the request body
+        const { username, password, displayName, profileImage } = req.body;
+
+        // checking if all required fields are provided
+        if (!username || !password || !displayName || !profileImage) {
+            return res.status(400).json({ error: "All fields are required" });
+        }
+
+        // validating password complexity
+        if (!validatePasswordComplexity(password)) {
+            return res.status(400).json({ 
+                error: "Password is not complex enough. It must contain at least 8 characters including letters and numbers" 
+            });
+        }
+
+        // checking if the username is already taken
+        const userExists = await User.findOne({ username });
+        if (userExists) {
+            return res.status(400).json({ error: "Username is already taken" });
+        }
+
+        // hashing the password using SHA-256 before saving to the database
+        const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+
+        // saving the new user to the database with the hashed password
+        const newUser = new User({
+            username,
+            password: hashedPassword,
+            displayName,
+            profileImage
+        });
+
+        await newUser.save();
+
+        // converting the object to a clean JSON and deleting the password for security reasons before returning it to the client
+        const userResponse = newUser.toObject();
+        delete userResponse.password;
+
+        return res.status(201).json(userResponse);
+
+    } catch (err) {
+        console.error("Registration Error:", err);
+        return res.status(500).json({ error: "Internal server error" });
     }
+};
 
-    //pass the data to the service layer to create and save the new user
-    const newUser = userService.createUser({username,password, address, phone});
+// getUser function to handle fetching user details by ID (GET /api/users/:id)
+const getUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
 
-   const { password: _, ...safeUserData } = newUser; // taking the password off
-    //send the user info without the password    
-    return res.status(201).json(safeUserData);
-    
-}
-//func that handle GET request to fetch a specifin user by ID
-const getUser =(req,res)=>{
-    // Extract the dynamic 'id' parameter from the URL path
-    // For example, if the URL is /api/users/123, req.params.id will be '123'
-    const userId=req.params.id;
-    //call the service layer to search for this user in our database
-    const user=userService.getUserById(userId);
+        // async searching for the user in the database by ID
+        const user = await User.findById(userId);
 
-    //handle the case where the user is not found
-    if(!user){
-        //returns 404 not found with json error message
-        return res.status(404).json({error: "User not found"});
-    
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // removing the hashed password before returning user data for security reasons
+        const userResponse = user.toObject();
+        delete userResponse.password;
+
+        return res.status(200).json(userResponse);
+
+    } catch (err) {
+        // user not found or invalid ID format will be caught here
+        return res.status(404).json({ error: "User not found" });
     }
-    // for security: Remove the password from the user object before sending it back
-    const { password, ...safeUserData } = user;
-    // Handle the success case
-    // Return 200 OK along with the user object as JSON
-    return res.status(200).json(safeUserData);
-}
+};
+
 module.exports = {
     registerUser,
     getUser
