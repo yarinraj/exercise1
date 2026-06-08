@@ -23,6 +23,7 @@
   "homepage": "https://github.com/yarinraj/exercise1#readme",
   "dependencies": {
     "express": "^5.2.1",
+    "mongoose": "^9.6.3",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
