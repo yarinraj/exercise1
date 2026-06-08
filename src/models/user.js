@@ -22,5 +22,8 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true }); // automatically adds createdAt and updatedAt fields
 
 // creating and exporting the User model based on the userSchema
-const User = mongoose.model('User', userSchema);
+// Check if the model already exists in mongoose.models to prevent OverwriteModelError
+// If it exists, use it. Otherwise, create a new model.
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+
 module.exports = User;
