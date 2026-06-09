@@ -12,6 +12,8 @@ const orderRoutes = require('./src/routes/order');
 //import the controller of the resturants
 const restaurantController = require('./src/controllers/restaurant');
 const path = require('path');
+//using the react build folder as static files for the frontend
+app.use(express.static('public'));
 // Serve static files from the 'public' directory (for frontend assets)
 app.use(express.static(path.join(__dirname, 'public')));
 // Middleware - allows the server to parse incoming JSON in the request body

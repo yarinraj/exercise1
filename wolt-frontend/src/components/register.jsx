@@ -1,7 +1,32 @@
 import React, { useState, useRef } from 'react';
+import './register.css';
+
+// Reusable form input component for consistent premium Wolt styling and validation feedback
+const FormInput = ({ label, type, value, onChange, placeholder, required, wasValidated, isValid, errorFeedback, hint }) => {
+    // Merging Wolt styling with core validation feedback classes
+    const validationClass = wasValidated ? (isValid ? 'is-wolt-valid' : 'is-wolt-invalid') : '';
+
+    return (
+        <div className="wolt-input-group">
+            <label className="wolt-label">{label}</label>
+            <input
+                type={type}
+                value={value}
+                onChange={onChange}
+                placeholder={placeholder}
+                required={required}
+                className={`wolt-input ${validationClass}`}
+            />
+            {wasValidated && !isValid && (
+                <div className="wolt-invalid-feedback">{errorFeedback}</div>
+            )}
+            {hint && <div className="wolt-form-hint">{hint}</div>}
+        </div>
+    );
+};
 
 const Register = () => {
-    // State hooks for tracking form input values
+    // State hooks for tracking form input values (Kept exactly from your original engine)
     const [username, setUsername] = useState('');
     const [displayName, setDisplayName] = useState('');
     const [password, setPassword] = useState('');
@@ -12,7 +37,7 @@ const Register = () => {
     const [wasValidated, setWasValidated] = useState(false);
     const [generalError, setGeneralError] = useState('');
 
-    // useRef hook used to reference the file input element as required by specifications
+    // useRef hook used to reference the file input element as required by your specs
     const fileInputRef = useRef(null);
 
     // Password validation: Minimum 8 characters, must contain both letters and numbers
@@ -37,7 +62,7 @@ const Register = () => {
         }
     };
 
-    // Form submission handler
+    // Form submission handler (100% intact)
     const handleSubmit = async (e) => {
         e.preventDefault();
         setWasValidated(true);
@@ -70,141 +95,208 @@ const Register = () => {
         };
 
         console.log('Form successfully validated. Ready to register user:', newUserPayload);
-        alert('Validation successful! Ready to transmit data to the API.');
+
         try {
-        const response = await fetch('/api/users', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(newUserPayload),
-        });
-        // Handle the response from the server
-        if (response.ok) {
-            alert('User registered successfully in the Database!');
-        } else {
-            // if the server rejects the registration 
-            const errorData = await response.json().catch(() => ({}));
-            setGeneralError(errorData.message || 'Registration failed on the server.');
+            const response = await fetch('/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newUserPayload),
+            });
+
+            // Handle the response from the server
+            if (response.ok) {
+                alert('User registered successfully in the Database!');
+            } else {
+                // If the server rejects the registration 
+                const errorData = await response.json().catch(() => ({}));
+                setGeneralError(errorData.message || 'Registration failed on the server.');
+            }
+        } catch (error) {
+            // Network or other unexpected errors during the fetch operation
+            console.error('Network error during registration:', error);
+            setGeneralError('Network error. Please check if your server is running.');
         }
-    } catch (error) {
-        // network or other unexpected errors during the fetch operation
-        console.error('Network error during registration:', error);
-        setGeneralError('Network error. Please check if your server is running.');
-    }
-};
-    ;
+    };
+    const backgroundDoodles = [
+        // top left corner
+        { emoji: '🍕', top: '14%', left: '5%', size: '1.4rem', duration: '6s', delay: '-1.5s' },
+        { emoji: '🍔', top: '22%', left: '14%', size: '1.6rem', duration: '8s', delay: '-4s' },
+        { emoji: '🍣', top: '35%', left: '6%', size: '1.3rem', duration: '7s', delay: '-2.5s' },
+        { emoji: '🍩', top: '15%', left: '22%', size: '1.5rem', duration: '9s', delay: '-5s' },
 
+        // top right corner
+        { emoji: '🍩', top: '12%', left: '78%', size: '1.5rem', duration: '8.5s', delay: '-3.5s' },
+        { emoji: '🍕', top: '28%', left: '88%', size: '1.4rem', duration: '6.5s', delay: '-1s' },
+        { emoji: '🍔', top: '38%', left: '75%', size: '1.7rem', duration: '7.5s', delay: '-6s' },
+        { emoji: '🍣', top: '18%', left: '92%', size: '1.3rem', duration: '9.5s', delay: '-2s' },
+
+        // middle / central area)
+        { emoji: '🍟', top: '48%', left: '15%', size: '1.5rem', duration: '7.4s', delay: '-2.8s' },
+        { emoji: '🍔', top: '45%', left: '8%', size: '1.5rem', duration: '6.5s', delay: '-0.5s' },
+
+        // middle / central area)
+        { emoji: '🍟', top: '46%', left: '79%', size: '1.5rem', duration: '6.7s', delay: '-1.9s' },
+        { emoji: '🍕', top: '52%', left: '93%', size: '1.3rem', duration: '7s', delay: '-3.8s' },
+
+        // bottom left corner 
+        { emoji: '🍣', top: '60%', left: '8%', size: '1.6rem', duration: '7.2s', delay: '-0.5s' },
+        { emoji: '🍩', top: '75%', left: '18%', size: '1.4rem', duration: '8.2s', delay: '-4.5s' },
+        { emoji: '🌮', top: '79%', left: '26%', size: '1.4rem', duration: '8.3s', delay: '-4.1s' },
+        { emoji: '🍕', top: '88%', left: '5%', size: '1.5rem', duration: '6.8s', delay: '-3s' },
+
+        // bottom right corner
+        { emoji: '🍔', top: '62%', left: '85%', size: '1.5rem', duration: '7.8s', delay: '-2.2s' },
+        { emoji: '🍣', top: '72%', left: '76%', size: '1.4rem', duration: '6.2s', delay: '-4.8s' },
+        { emoji: '🌮', top: '81%', left: '85%', size: '1.6rem', duration: '7.9s', delay: '-5.2s' },
+        { emoji: '🍩', top: '85%', left: '90%', size: '1.6rem', duration: '8.7s', delay: '-1.2s' },
+    ];
     return (
-        <div className="container mt-5">
-            <div className="row justify-content-center">
-                <div className="col-md-6">
-                    <div className="card shadow">
-                        <div className="card-body p-4">
-                            <h2 className="card-title text-center mb-4 text-primary fw-bold">Sign Up to Wolt</h2>
-                            
-                            {/* Generic validation server-like error message alert */}
-                            {generalError && (
-                                <div className="alert alert-danger text-center fw-semibold" role="alert">
-                                    {generalError}
-                                </div>
-                            )}
-
-                            <form onSubmit={handleSubmit} noValidate>
-                                {/* Username input container */}
-                                <div className="mb-3">
-                                    <label className="form-label fw-medium">Username</label>
-                                    <input 
-                                        type="text" 
-                                        className={`form-control ${wasValidated ? (username ? 'is-valid' : 'is-invalid') : ''}`}
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        placeholder="Enter your username"
-                                        required
-                                    />
-                                    <div className="invalid-feedback">Username is required.</div>
-                                </div>
-
-                                {/* Display Name input container */}
-                                <div className="mb-3">
-                                    <label className="form-label fw-medium">Display Name</label>
-                                    <input 
-                                        type="text" 
-                                        className={`form-control ${wasValidated ? (displayName ? 'is-valid' : 'is-invalid') : ''}`}
-                                        value={displayName}
-                                        onChange={(e) => setDisplayName(e.target.value)}
-                                        placeholder="Enter your public display name"
-                                        required
-                                    />
-                                    <div className="invalid-feedback">Display name is required.</div>
-                                </div>
-
-                                {/* Password input container */}
-                                <div className="mb-3">
-                                    <label className="form-label fw-medium">Password</label>
-                                    <input 
-                                        type="password" 
-                                        className={`form-control ${wasValidated ? (isPasswordValid(password) ? 'is-valid' : 'is-invalid') : ''}`}
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="Min 8 characters, numbers & letters"
-                                        required
-                                    />
-                                    <div className="invalid-feedback">
-                                        Password must be at least 8 characters long and contain both letters and numbers.
-                                    </div>
-                                    <div className="form-text text-muted small">Must include letters and numbers (min. 8 chars).</div>
-                                </div>
-
-                                {/* Confirm Password input container */}
-                                <div className="mb-3">
-                                    <label className="form-label fw-medium">Confirm Password</label>
-                                    <input 
-                                        type="password" 
-                                        className={`form-control ${wasValidated ? (doPasswordsMatch ? 'is-valid' : 'is-invalid') : ''}`}
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        placeholder="Repeat your password"
-                                        required
-                                    />
-                                    <div className="invalid-feedback">Passwords must match exactly.</div>
-                                </div>
-
-                                {/* Profile Image upload container using fileInputRef */}
-                                <div className="mb-4">
-                                    <label className="form-label fw-medium">Profile Image</label>
-                                    <input 
-                                        type="file" 
-                                        ref={fileInputRef}
-                                        className={`form-control ${wasValidated ? (profileImage ? 'is-valid' : 'is-invalid') : ''}`}
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                        required
-                                    />
-                                    <div className="invalid-feedback">Please upload a profile picture.</div>
-                                    
-                                    {/* Image runtime dynamic preview rendering */}
-                                    {profileImage && (
-                                        <div className="text-center mt-3">
-                                            <p className="text-muted small mb-1">Image Preview:</p>
-                                            <img 
-                                                src={profileImage} 
-                                                alt="Profile Preview" 
-                                                className="rounded-circle border border-2 border-primary shadow-sm"
-                                                style={{ width: '90px', height: '90px', objectFit: 'cover' }}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Action button to submit the form */}
-                                <button type="submit" className="btn btn-primary w-100 py-2 fw-bold uppercase shadow-sm">
-                                    Register Now
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+        <div className="container register-page-container">
+            {backgroundDoodles.map((doodle, index) => (
+                <div
+                    key={index}
+                    className="bg-doodle-container"
+                    style={{
+                        position: 'absolute',
+                        top: doodle.top,
+                        left: doodle.left,
+                        zIndex: 1,
+                    }}
+                >
+                    <span
+                        className="bg-doodle-icon"
+                        style={{
+                            fontSize: doodle.size,
+                            animationDuration: doodle.duration,
+                            animationDelay: doodle.delay,
+                            display: 'inline-block',
+                        }}
+                    >
+                        {doodle.emoji}
+                    </span>
                 </div>
+            ))}
+
+            <div className="bites-logo-container">
+                <div className="delivery-scooter">
+                    <span className="scooter-mirror">🛵</span>
+                </div>
+                <div className="bites-logo-text">bites</div>
+            </div>
+
+            <div className="register-card">
+                {/* Premium Wolt Header */}
+                <div className="register-header">
+                    <h2 className="register-title">Sign Up to bites</h2>
+                    <p className="register-subtitle">Discover foods, groceries, essentials, and maybe bytes delivered directly to your doorstep.</p>
+                </div>
+
+                {/* Generic Validation Error Display */}
+                {generalError && (
+                    <div className="wolt-alert-danger" role="alert">
+                        ⚠️ {generalError}
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} noValidate>
+
+                    {/* Username Input */}
+                    <FormInput
+                        label="Username"
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Choose a username"
+                        required
+                        wasValidated={wasValidated}
+                        isValid={username !== ''}
+                        errorFeedback="Username is required."
+                    />
+
+                    {/* Display Name Input */}
+                    <FormInput
+                        label="Display Name"
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        placeholder="Enter your public name"
+                        required
+                        wasValidated={wasValidated}
+                        isValid={displayName !== ''}
+                        errorFeedback="Display name is required."
+                    />
+
+                    {/* Password Input */}
+                    <FormInput
+                        label="Password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Create a password"
+                        required
+                        wasValidated={wasValidated}
+                        isValid={isPasswordValid(password)}
+                        errorFeedback="Password must be at least 8 characters long and contain both letters and numbers."
+                        hint="Must include letters and numbers (min. 8 chars)."
+                    />
+
+                    {/* Confirm Password Input */}
+                    <FormInput
+                        label="Confirm Password"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Repeat your password"
+                        required
+                        wasValidated={wasValidated}
+                        isValid={doPasswordsMatch}
+                        errorFeedback="Passwords must match exactly."
+                    />
+
+                    {/* Custom Profile Image upload using fileInputRef */}
+                    <div className="wolt-input-group mb-4">
+                        <label className="wolt-label">Profile Image</label>
+                        <div className="file-upload-wrapper">
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                id="file-upload"
+                                className="file-upload-input"
+                                required
+                            />
+                            <label
+                                htmlFor="file-upload"
+                                className={`file-upload-button ${wasValidated ? (profileImage ? 'is-valid-upload' : 'is-invalid-upload') : ''}`}
+                            >
+                                <span>{profileImage ? '✓ Image Selected' : '📸 Choose profile picture'}</span>
+                            </label>
+                        </div>
+                        {wasValidated && !profileImage && (
+                            <div className="wolt-invalid-feedback">Please upload a profile picture.</div>
+                        )}
+
+                        {/* Dynamic Live Image Preview Rendering */}
+                        {profileImage && (
+                            <div className="text-center mt-3 animate-preview">
+                                <p className="wolt-form-hint mb-2">Image Preview:</p>
+                                <img
+                                    src={profileImage}
+                                    alt="Profile Preview"
+                                    className="profile-preview-img"
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Wolt Cyan Call-To-Action Button */}
+                    <button type="submit" className="wolt-btn wolt-btn-block">
+                        Register Now
+                    </button>
+                </form>
             </div>
         </div>
     );

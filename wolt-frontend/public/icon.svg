@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@700&amp;display=swap');
+      .bites-text {
+        font-family: 'Fredoka', sans-serif;
+        font-weight: 700;
+        font-style: italic;
+        fill: #FFFFFF;
+        font-size: 195px; 
+        letter-spacing: -9px; 
+      }
+    </style>
+  </defs>
+  
+  <rect width="512" height="512" rx="145" fill="#00c2e8" />
+  
+  <text x="256" y="315" text-anchor="middle" class="bites-text">bites</text>
+</svg>
