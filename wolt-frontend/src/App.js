@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Register from './components/register';
 import Navbar from './components/navbar';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Globally injecting Bootstrap styles into the application
-import { BrowserRouter as Router } from 'react-router-dom';
 function App() {
   const [user, setUser] = useState(null);
 
@@ -15,7 +14,6 @@ function App() {
   }, []);
 
   return (
-    <Router>
       <div className="App">
         {/* Dynamic Conditional Rendering: Navbar only displays if user is authenticated */}
         {user && <Navbar user={user} setUser={setUser} />}
@@ -33,7 +31,6 @@ function App() {
           )}
         </div>
       </div>
-    </Router>
   );
 }
 

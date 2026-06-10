@@ -14,12 +14,9 @@
 }
 
 .brand-logo {
-    font-size: 24px;
-    font-weight: bold;
-    font-family: 'Fredoka', sans-serif;
+    font-size: 44px;
     font-weight: 700;
     font-style: italic;
-    font-size: 44px;
     color: #00c2e8;
     letter-spacing: -2px;
     text-transform: lowercase;
@@ -53,6 +50,39 @@
     border: 2px solid #00c2e8;
 }
 
+.theme-toggle {
+    width: 60px;
+    height: 32px;
+    border-radius: 999px;
+    background: #e4e6eb;
+    border: none;
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+    transition: background 0.3s ease;
+}
+
+.theme-toggle .knob {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: white;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle .icon {
+    font-size: 14px;
+    z-index: 1;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
 .logout-button,
 .nav-login-btn {
     background: none;
@@ -64,8 +94,46 @@
     transition: all 0.2s ease;
 }
 
+.theme-toggle .hidden {
+  opacity: 0;
+  transform: scale(0.6);
+}
+
+.theme-toggle:hover,
 .logout-button:hover,
 .nav-login-btn:hover {
     background-color: #f8f9fa;
     border-color: #202125;
+}
+
+body.dark-theme {
+    background-color: #0B1020;
+    color: #EAF0FF;
+}
+
+body.dark-theme .wolt-navbar {
+    background-color: #05070A;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-theme .display-name {
+    color: #EAF0FF;
+}
+
+body.dark-theme .brand-logo {
+  color: #00c2e8;
+}
+
+body.dark-theme .logout-button,
+body.dark-theme .nav-login-btn {
+    color: #EAF0FF;
+    background: transparent;
+}
+
+body.dark-theme .theme-toggle {
+    background: #0B1020;
+}
+
+body.dark-theme .theme-toggle .knob {
+    transform: translateX(28px);
 }
