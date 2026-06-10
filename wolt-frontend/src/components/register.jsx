@@ -25,7 +25,7 @@ const FormInput = ({ label, type, value, onChange, placeholder, required, wasVal
     );
 };
 
-const Register = () => {
+const Register = ({ setUser }) => {
     // State hooks for tracking form input values (Kept exactly from your original engine)
     const [username, setUsername] = useState('');
     const [displayName, setDisplayName] = useState('');
@@ -107,11 +107,33 @@ const Register = () => {
 
             // Handle the response from the server
             if (response.ok) {
+                // 🌟 Temporary Mock: Force log-in using form data to test the Navbar layout
+                const loggedInUser = {
+                    username: username,
+                    displayName: displayName,
+                    profileImage: profileImage // The base64 string you generated
+                };
+
+                localStorage.setItem('user', JSON.stringify(loggedInUser));
+                setUser(loggedInUser); // This will instantly hide the form and show the Navbar!
+
+                // Clear form fields
+                setUsername('');
+                setDisplayName('');
+                setPassword('');
+                setConfirmPassword('');
+                setProfileImage('');
+                setWasValidated(false);
+
                 alert('User registered successfully in the Database!');
             } else {
                 // If the server rejects the registration 
                 const errorData = await response.json().catch(() => ({}));
-                setGeneralError(errorData.message || 'Registration failed on the server.');
+                setGeneralError(
+                    errorData.error ||
+                    errorData.message ||
+                    'Registration failed on the server.'
+                );
             }
         } catch (error) {
             // Network or other unexpected errors during the fetch operation
