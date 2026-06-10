@@ -36,12 +36,11 @@ app.get('*all', (req, res) => {
 
 // Start the server and listen on the specified port
 const PORT = 8080;
-const MONGODB_URI = 'mongodb://localhost/woltDB';
-console.log('Attempting to connect to MongoDB...'); // visual feedback for connection attempt (delete if not needed)
-// Connect to MongoDB using Mongoose
-mongoose.connect(MONGODB_URI, {serverSelectionTimeoutMS: 10000})
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/woltDB';
+
+mongoose.connect(MONGODB_URI, {serverSelectionTimeoutMS: 5000})
   .then(() => {
-    console.log('Successfully connected to MongoDB!');
+  
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server is running on http://localhost:${PORT}`);
     });
