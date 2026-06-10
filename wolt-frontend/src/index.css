@@ -1,0 +1,53 @@
+/* app "DNA" - defining the root variables for designing the app */
+:root {
+  /* colors */
+  --wolt-blue: #00c2e8;
+  --wolt-dark-blue: #009dbd;
+  --wolt-light-blue: #e6f9fc;
+  
+  /* background and text colors (light mode) */
+  --bg-main: #f8f9fa;
+  --text-main: #202125;
+  --text-muted: #4d4e52;
+  
+  /* Wolt's glassmorphism effect */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --card-shadow: 0 8px 32px 0 rgba(0, 194, 232, 0.08);
+  
+  /* rounded corners of Wolt */
+  --radius-wolt: 16px;
+  --radius-button: 12px;
+  
+  /* smooth animation for mouse hover */
+  --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* reset and base styles for consistency across all pages */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Assistant', 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* basic button style consistent with Wolt's design */
+.wolt-btn {
+  background-color: var(--wolt-blue);
+  color: white;
+  border: none;
+  border-radius: var(--radius-button);
+  padding: 12px 24px;
+  font-weight: 700;
+  transition: var(--transition-smooth);
+  cursor: pointer;
+}
+
+.wolt-btn:hover {
+  background-color: var(--wolt-dark-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 194, 232, 0.3);
+}

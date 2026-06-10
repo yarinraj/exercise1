@@ -11,7 +11,11 @@ const tokenRoutes = require('./src/routes/token');
 const orderRoutes = require('./src/routes/order');
 //import the controller of the resturants
 const restaurantController = require('./src/controllers/restaurant');
-
+const path = require('path');
+//using the react build folder as static files for the frontend
+app.use(express.static('public'));
+// Serve static files from the 'public' directory (for frontend assets)
+app.use(express.static(path.join(__dirname, 'public')));
 // Middleware - allows the server to parse incoming JSON in the request body
 app.use(express.json({ limit: '5mb' }));
 // Map '/api/restaurants' to our restaurant router
@@ -25,15 +29,17 @@ app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 //search rout
 app.get('/api/search/:query', restaurantController.searchItems);
-
-
+// For any other routes not handled by the above, serve the React app's index.html
+app.get('*all', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // Start the server and listen on the specified port
 const PORT = 8080;
-const MONGODB_URI = 'mongodb://127.0.0.1:27017/woltDB';
+const MONGODB_URI = 'mongodb://localhost/woltDB';
 console.log('Attempting to connect to MongoDB...'); // visual feedback for connection attempt (delete if not needed)
 // Connect to MongoDB using Mongoose
-mongoose.connect(MONGODB_URI, {serverSelectionTimeoutMS: 5000})
+mongoose.connect(MONGODB_URI, {serverSelectionTimeoutMS: 10000})
   .then(() => {
     console.log('Successfully connected to MongoDB!');
     app.listen(PORT, '0.0.0.0', () => {
