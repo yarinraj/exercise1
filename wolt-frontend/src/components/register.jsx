@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import './register.css';
+import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 // Reusable form input component for consistent premium Wolt styling and validation feedback
 const FormInput = ({ label, type, value, onChange, placeholder, required, wasValidated, isValid, errorFeedback, hint }) => {
@@ -7,6 +9,7 @@ const FormInput = ({ label, type, value, onChange, placeholder, required, wasVal
     const validationClass = wasValidated ? (isValid ? 'is-wolt-valid' : 'is-wolt-invalid') : '';
 
     return (
+
         <div className="wolt-input-group">
             <label className="wolt-label">{label}</label>
             <input
@@ -27,6 +30,7 @@ const FormInput = ({ label, type, value, onChange, placeholder, required, wasVal
 
 const Register = ({ setUser }) => {
     // State hooks for tracking form input values (Kept exactly from your original engine)
+    const navigate = useNavigate();
     const [username, setUsername] = useState('');
     const [displayName, setDisplayName] = useState('');
     const [password, setPassword] = useState('');
@@ -115,7 +119,8 @@ const Register = ({ setUser }) => {
                 };
 
                 localStorage.setItem('user', JSON.stringify(loggedInUser));
-                setUser(loggedInUser); // This will instantly hide the form and show the Navbar!
+                setUser(loggedInUser); // Update the user state in App to trigger Navbar rendering
+                navigate('/'); // Redirect to home page after successful registration
 
                 // Clear form fields
                 setUsername('');
@@ -176,6 +181,15 @@ const Register = ({ setUser }) => {
     ];
     return (
         <div className="container register-page-container">
+            <div style={{ position: 'absolute', top: '35px', right: '20px', zIndex: 1000 }}>
+                <Link
+                    to="/login"
+                    className="btn btn-outline-info rounded-pill px-4 fw-bold shadow-sm"
+                    style={{ borderWidth: '2px', fontSize: '0.9rem' }}
+                >
+                    Login
+                </Link>
+            </div>
             {backgroundDoodles.map((doodle, index) => (
                 <div
                     key={index}

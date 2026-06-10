@@ -1,8 +1,11 @@
 import React from 'react';
 import './navbar.css';
+import { Link, useNavigate } from 'react-router-dom';
 
 function Navbar({ user, setUser }) {
   const [isDarkMode, setIsDarkMode] = React.useState(false);
+  const navigate = useNavigate();
+
   const toggleTheme = () => {
     setIsDarkMode(prev => {
       const newMode = !prev;
@@ -10,22 +13,22 @@ function Navbar({ user, setUser }) {
       return newMode;
     });
   };
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     document.body.classList.remove('dark-theme');
     setIsDarkMode(false);
     setUser(null);
+    navigate('/');
   };
 
   return (
     <nav className="wolt-navbar">
 
       <div className="navbar-left">
-        <span className="brand-logo">
+        <Link to="/" className="brand-logo" style={{ textDecoration: 'none', color: '#00c2e8' }}>
           bites
-        </span>
+        </Link>
       </div>
 
       <div className="navbar-right">
@@ -53,7 +56,6 @@ function Navbar({ user, setUser }) {
             Logout
           </button>
         </div>
-
       </div>
     </nav>
   );
