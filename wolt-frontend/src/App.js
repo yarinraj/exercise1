@@ -52,7 +52,7 @@ return (
             <Route path="/login" element={
               <div className="container mt-5 text-center">
                 <h2>Login Page Placeholder</h2>
-                <p className="text-secondary">The login form will be implemented here later.</p>
+                <p className="text-secondary">The login form will be implemented here later by Moran my expensive brother.</p>
                 <Link to="/" className="btn btn-secondary btn-sm mt-3">Back to Home</Link>
               </div>
             } />
