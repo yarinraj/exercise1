@@ -1,15 +1,27 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './navbar.css';
 import { Link, useNavigate } from 'react-router-dom';
 
 function Navbar({ user, setUser }) {
-  const [isDarkMode, setIsDarkMode] = React.useState(false);
+  // Initialize state by checking localStorage first. Default to false if not found.
+  const [isDarkMode, setIsDarkMode] = React.useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme === 'dark';
+  });
+
   const navigate = useNavigate();
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark-theme');
+    } else {
+      document.body.classList.remove('dark-theme');
+    }
+  }, [isDarkMode]);
 
   const toggleTheme = () => {
     setIsDarkMode(prev => {
       const newMode = !prev;
-      document.body.classList.toggle('dark-theme', newMode);
+      localStorage.setItem('theme', newMode ? 'dark' : 'light'); // Persist theme selection
       return newMode;
     });
   };
