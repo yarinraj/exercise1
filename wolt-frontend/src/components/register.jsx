@@ -93,8 +93,7 @@ const Register = ({ setUser }) => {
                 };
 
                 localStorage.setItem('user', JSON.stringify(loggedInUser));
-                setUser(loggedInUser); // Triggers the Navbar to render globally
-                navigate('/'); // Redirect to the dashboard
+              
 
                 // Clear form fields
                 setUsername('');
@@ -104,7 +103,8 @@ const Register = ({ setUser }) => {
                 setProfileImage('');
                 setWasValidated(false);
 
-                alert('User registered successfully in the Database!');
+                alert('User registered successfully! Redirecting to login page...');
+                navigate('/login');
             } else {
                 // Server rejected the registration (e.g., username taken)
                 const errorData = await response.json().catch(() => ({}));
