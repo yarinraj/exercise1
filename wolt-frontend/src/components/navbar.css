@@ -69,13 +69,3 @@
     background-color: #f8f9fa;
     border-color: #202125;
 }
-.avatar-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #00c2e8;
-    color: white;
-    font-weight: 700;
-    font-size: 18px;
-    line-height: 1;
-}

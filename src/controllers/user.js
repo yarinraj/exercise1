@@ -79,46 +79,8 @@ const getUser = async (req, res) => {
         return res.status(404).json({ error: "User not found" });
     }
 };
-// Function to handle user login (POST /api/users/login)
-// Function to handle user login (POST /api/users/login)
-const login = async (req, res) => {
-    try {
-        const { username, password } = req.body;
 
-        // 1. Validate input existence
-        if (!username || !password) {
-            return res.status(400).json({ error: "Username and password are required" });
-        }
-
-        // 2. Find user in the database
-        const user = await User.findOne({ username });
-        if (!user) {
-            return res.status(401).json({ error: "Invalid username or password" });
-        }
-
-        // 3. Hash the provided password to compare with the stored hash
-        const hashedInputPassword = crypto.createHash('sha256').update(password).digest('hex');
-
-        // 4. Verify password match
-        if (user.password !== hashedInputPassword) {
-            // Returning the same error message for security reasons
-            return res.status(401).json({ error: "Invalid username or password" });
-        }
-
-        // 5. Successful login: remove password from response object
-        const userResponse = user.toObject();
-        delete userResponse.password;
-
-        return res.status(200).json(userResponse);
-
-    } catch (err) {
-        // Log the actual error internally for debugging
-        console.error("Login System Error:", err);
-        return res.status(500).json({ error: "Internal server error" });
-    }
-};
 module.exports = {
     registerUser,
-    getUser,
-    login
+    getUser
 };
