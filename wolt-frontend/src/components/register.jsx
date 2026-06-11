@@ -28,6 +28,12 @@ const FormInput = ({ label, type, value, onChange, placeholder, required, wasVal
         </div>
     );
 };
+// Password validation: Minimum 8 characters, must contain both letters and numbers
+const isPasswordValid = (pwd) => {
+    const hasLetters = /[a-zA-Z]/.test(pwd);
+    const hasNumbers = /\d/.test(pwd);
+    return pwd.length >= 8 && hasLetters && hasNumbers;
+};
 
 const Register = ({ setUser }) => {
     // State hooks for tracking form input values (Kept exactly from your original engine)
@@ -36,7 +42,9 @@ const Register = ({ setUser }) => {
     const [displayName, setDisplayName] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [isPasswordTouched, setIsPasswordTouched] = useState(false);
     const [isConfirmTouched, setIsConfirmTouched] = useState(false);
+    const isValidPassword = isPasswordValid(password);
     const isTypingMistake = confirmPassword !== '' && !password.startsWith(confirmPassword);
     const isPerfectMatch = confirmPassword !== '' && password === confirmPassword;
     const [profileImage, setProfileImage] = useState('');
@@ -71,13 +79,6 @@ const Register = ({ setUser }) => {
             console.error('Error checking username:', error);
         }
     }
-
-    // Password validation: Minimum 8 characters, must contain both letters and numbers
-    const isPasswordValid = (pwd) => {
-        const hasLetters = /[a-zA-Z]/.test(pwd);
-        const hasNumbers = /\d/.test(pwd);
-        return pwd.length >= 8 && hasLetters && hasNumbers;
-    };
 
     // Confirm password validation: Must match the original password and not be empty
     const doPasswordsMatch = password === confirmPassword && confirmPassword !== '';
@@ -306,12 +307,25 @@ const Register = ({ setUser }) => {
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Create a password"
+
+                        // signals that the user has finished interacting with the password field
+                        onBlur={() => setIsPasswordTouched(true)}
+
+                        placeholder="Enter your password"
                         required
-                        wasValidated={wasValidated}
-                        isValid={isPasswordValid(password)}
+
+                        // Logic:
+                        // we visually validate the password field if:
+                        // - the user tried to submit the form (wasValidated) OR
+                        // - they left the field after visiting it (isPasswordTouched) OR
+                        // - they typed something that satisfies the password requirements (isValidPassword)
+                        // as soon as one of these conditions is met, the field will show green or red
+                        wasValidated={wasValidated || isPasswordTouched || isValidPassword}
+
+                        // green <=> the password satisfies all complexity requirements
+                        isValid={isValidPassword}
+
                         errorFeedback="Password must be at least 8 characters long and contain both letters and numbers."
-                        hint="Must include letters and numbers (min. 8 chars)."
                     />
 
                     {/* Confirm Password Input */}
