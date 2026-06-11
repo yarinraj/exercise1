@@ -1,15 +1,36 @@
 const express = require('express');
 const router = express.Router();
 
-// Import the user controller to handle the registration logic
+// Import the user controller
 const userController = require('../controllers/user');
 
-// Define the POST route for user registration
-// The path is '/' because this router will be mounted at '/api/users' in app.js
+//  IMPORT YOUR USER MODEL: Change the path if your model file name is lowercase 'user'
+const User = require('../models/User'); 
+
+// Route for registration
 router.post('/', userController.registerUser);
-// NEW ROUTE: GET /api/users/:id - Fetch a specific user by their ID
-// The colon ':' before 'id' tells Express that this is a dynamic parameter, not a static word.
-// So /api/users/123 and /api/users/abc will both match this route, and the dynamic part will be saved in req.params.id
+
+// Route for checking username (MUST BE ABOVE /:id)
+router.get('/check-username/:username', async (req, res) => {
+    try {
+        const { username } = req.params;
+
+        // Search MongoDB for the username (case-insensitive)
+        const existingUser = await User.findOne({ username: username.toLowerCase() });
+
+        if (existingUser) {
+            return res.status(200).json({ exists: true });
+        }
+
+        // If not found, username is available
+        return res.status(200).json({ exists: false });
+    } catch (error) {
+        console.error('Error in check-username route:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Route for getting a specific user (Must be at the bottom)
 router.get('/:id', userController.getUser);
-// Export the router so it can be imported in the main application file
+
 module.exports = router;

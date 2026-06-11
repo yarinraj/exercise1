@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
 // Reusable form input component for consistent premium Wolt styling and validation feedback
-const FormInput = ({ label, type, value, onChange, placeholder, required, wasValidated, isValid, errorFeedback, hint }) => {
+const FormInput = ({ label, type, value, onChange, placeholder, required, wasValidated, isValid, errorFeedback, hint, onBlur }) => {
     // Merging Wolt styling with core validation feedback classes
     const validationClass = wasValidated ? (isValid ? 'is-wolt-valid' : 'is-wolt-invalid') : '';
 
@@ -19,6 +19,7 @@ const FormInput = ({ label, type, value, onChange, placeholder, required, wasVal
                 placeholder={placeholder}
                 required={required}
                 className={`wolt-input ${validationClass}`}
+                onBlur={onBlur}
             />
             {wasValidated && !isValid && (
                 <div className="wolt-invalid-feedback">{errorFeedback}</div>
@@ -35,6 +36,9 @@ const Register = ({ setUser }) => {
     const [displayName, setDisplayName] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [isConfirmTouched, setIsConfirmTouched] = useState(false);
+    const isTypingMistake = confirmPassword !== '' && !password.startsWith(confirmPassword);
+    const isPerfectMatch = confirmPassword !== '' && password === confirmPassword;
     const [profileImage, setProfileImage] = useState('');
 
     // State hooks for tracking form submission and validation errors
@@ -43,6 +47,30 @@ const Register = ({ setUser }) => {
 
     // useRef hook used to reference the file input element as required by your specs
     const fileInputRef = useRef(null);
+
+    // State to hold the real-time username availability error
+    const [usernameError, setUsernameError] = useState('');
+
+    // Function to check username availability on blur
+    const checkUsernameAvailability = async () => {
+        if (!username.trim()) return; // Don't check if the field is empty
+
+        try {
+            // Sending a quick request to the backend to check if username exists
+            const response = await fetch(`/api/users/check-username/${username}`);
+            const data = await response.json();
+
+            if (data.exists) {
+                // If the backend says it exists, trigger the red error text
+                setUsernameError('This username is already taken.');
+            } else {
+                // If it's free, clear the error immediately
+                setUsernameError('');
+            }
+        } catch (error) {
+            console.error('Error checking username:', error);
+        }
+    }
 
     // Password validation: Minimum 8 characters, must contain both letters and numbers
     const isPasswordValid = (pwd) => {
@@ -111,7 +139,7 @@ const Register = ({ setUser }) => {
 
             // Handle the response from the server
             if (response.ok) {
-                // 🌟 Temporary Mock: Force log-in using form data to test the Navbar layout
+                //  Temporary Mock: Force log-in using form data to test the Navbar layout
                 const loggedInUser = {
                     username: username,
                     displayName: displayName,
@@ -243,12 +271,20 @@ const Register = ({ setUser }) => {
                         label="Username"
                         type="text"
                         value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        onChange={(e) => {
+                            setUsername(e.target.value);
+                            setUsernameError(''); // Clear the real-time error as soon as the user starts typing again
+                        }}
+                        //Trigger the backend validation when the user leaves this input field
+                        onBlur={checkUsernameAvailability}
                         placeholder="Choose a username"
                         required
-                        wasValidated={wasValidated}
-                        isValid={username !== ''}
-                        errorFeedback="Username is required."
+                        // Force validation styling if the form was submitted OR if an inline error exists
+                        wasValidated={wasValidated || usernameError !== ''}
+                        // Field is valid ONLY if it's not empty AND the username is not taken
+                        isValid={username !== '' && !usernameError}
+                        // Dynamically switch the error text between "required" and "already taken"
+                        errorFeedback={username === '' ? "Username is required." : usernameError}
                     />
 
                     {/* Display Name Input */}
@@ -284,11 +320,23 @@ const Register = ({ setUser }) => {
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
+
+                        // Triggers when the user leaves the field (catches incomplete passwords)
+                        onBlur={() => setIsConfirmTouched(true)}
                         placeholder="Repeat your password"
                         required
-                        wasValidated={wasValidated}
-                        isValid={doPasswordsMatch}
-                        errorFeedback="Passwords must match exactly."
+
+                        // TRIGGER VISUAL VALIDATION IF:
+                        // - General form submitted (wasValidated) OR
+                        // - They typed a wrong character (isTypingMistake) OR
+                        // - They finished and it matches perfectly (isPerfectMatch) OR
+                        // - They left the field after visiting it (isConfirmTouched)
+                        wasValidated={wasValidated || isTypingMistake || isPerfectMatch || isConfirmTouched}
+
+                        //  FIELD IS GREEN ONLY IF IT'S A PERFECT MATCH
+                        isValid={isPerfectMatch}
+
+                        errorFeedback={isTypingMistake ? "Passwords do not match." : "Please complete your password."}
                     />
 
                     {/* Custom Profile Image upload using fileInputRef */}
