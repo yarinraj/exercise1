@@ -228,6 +228,7 @@ const Register = ({ setUser }) => {
                         top: doodle.top,
                         left: doodle.left,
                         zIndex: 1,
+                        cursor: 'default',
                     }}
                 >
                     <span
@@ -237,19 +238,21 @@ const Register = ({ setUser }) => {
                             animationDuration: doodle.duration,
                             animationDelay: doodle.delay,
                             display: 'inline-block',
+                            cursor: 'default',
                         }}
                     >
                         {doodle.emoji}
                     </span>
                 </div>
             ))}
-
-            <div className="bites-logo-container">
-                <div className="delivery-scooter">
-                    <span className="scooter-mirror">🛵</span>
+            <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div className="bites-logo-container">
+                    <div className="delivery-scooter">
+                        <span className="scooter-mirror">🛵</span>
+                    </div>
+                    <div className="bites-logo-text">bites</div>
                 </div>
-                <div className="bites-logo-text">bites</div>
-            </div>
+            </Link>
 
             <div className="register-card">
                 {/* Premium Wolt Header */}
@@ -326,6 +329,7 @@ const Register = ({ setUser }) => {
                         isValid={isValidPassword}
 
                         errorFeedback="Password must be at least 8 characters long and contain both letters and numbers."
+                        hint="Must include at least 8 characters, containing both letters and numbers."
                     />
 
                     {/* Confirm Password Input */}
