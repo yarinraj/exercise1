@@ -25,7 +25,7 @@ const getUserById=(userId)=>{
 //verify if a user exists with the matching username and password
 const verifyUser=(username,password)=>{
     //we use find() to search for an axact match for both properties
-    return users.find(user=>username===username&&user.password===password);
+    return users.find(user=>user.username===username&&user.password===password);
 };
 
 // Export the function and the users array so they can be imported and used in other files
