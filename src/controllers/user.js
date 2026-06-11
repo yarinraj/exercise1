@@ -28,7 +28,7 @@ const registerUser = async (req, res) => {
         // checking if the username is already taken
         const userExists = await User.findOne({ username });
         if (userExists) {
-            return res.status(400).json({ error: "Username is already taken" });
+            return res.status(400).json({ error: "Username is already taken. Please choose another username or log in." });
         }
 
         // hashing the password using SHA-256 before saving to the database
