@@ -1,50 +1,73 @@
 if (!globalThis.crypto) {
     globalThis.crypto = require('crypto').webcrypto;
 }
+
 const express = require('express');
-const app = express();
+const cors = require('cors');
 const mongoose = require('mongoose');
+const path = require('path');
+
 const restaurantRoutes = require('./src/routes/restaurant');
 const userRoutes = require('./src/routes/user');
 const tokenRoutes = require('./src/routes/token');
-//Import the order router
 const orderRoutes = require('./src/routes/order');
-//import the controller of the resturants
 const restaurantController = require('./src/controllers/restaurant');
-const path = require('path');
-//using the react build folder as static files for the frontend
-app.use(express.static('public'));
-// Serve static files from the 'public' directory (for frontend assets)
-app.use(express.static(path.join(__dirname, 'public')));
-// Middleware - allows the server to parse incoming JSON in the request body
+
+const app = express();
+
+// CORS configuration for the React development server
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000'
+];
+
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: false,
+    optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
+
+// Allow Express to parse JSON request bodies
 app.use(express.json({ limit: '5mb' }));
-// Map '/api/restaurants' to our restaurant router
+
+// Serve static frontend files from the public folder
+app.use(express.static(path.join(__dirname, 'public')));
+
+// API routes
 app.use('/api/restaurants', restaurantRoutes);
-//Map '/api/tokens' to our token router
 app.use('/api/tokens', tokenRoutes);
-// Mount the user routes to the base path '/api/users'
-// Any request starting with '/api/users' will be handled by userRoutes
 app.use('/api/users', userRoutes);
-// Map all '/api/orders' requests to the order router
 app.use('/api/orders', orderRoutes);
-//search rout
+
+// Search route
 app.get('/api/search/:query', restaurantController.searchItems);
-// For any other routes not handled by the above, serve the React app's index.html
-app.get('*all', (req, res) => {
+
+// Fallback route for React client-side routing
+app.get(/.*/, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start the server and listen on the specified port
+// Start the server
 const PORT = 8080;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/woltDB';
 
-mongoose.connect(MONGODB_URI, {serverSelectionTimeoutMS: 5000})
-  .then(() => {
-  
-    app.listen(PORT, '0.0.0.0', () => {
-        console.log(`Server is running on http://localhost:${PORT}`);
+mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
+    .then(() => {
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`Server is running on http://localhost:${PORT}`);
+        });
+    })
+    .catch((err) => {
+        console.error('MongoDB connection error:', err);
     });
-  })
-  .catch((err) => {
-    console.error('MongoDB connection error:', err);
-  });
