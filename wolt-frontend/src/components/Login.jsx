@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import FormInput from './common/FormInput';
 import BackgroundDoodles from './common/BackgroundDoodles';
@@ -7,6 +7,7 @@ import './common/auth.css';
 
 const Login = ({ setUser }) => {
     const navigate = useNavigate();
+const location = useLocation();
 
     // Form state
     const [username, setUsername] = useState('');
@@ -15,7 +16,12 @@ const Login = ({ setUser }) => {
     // Validation and error state
     const [wasValidated, setWasValidated] = useState(false);
     const [generalError, setGeneralError] = useState('');
-
+useEffect(() => {
+    setUsername('');
+    setPassword('');
+    setWasValidated(false);
+    setGeneralError('');
+}, [location.key]);
     // Decode JWT payload safely
     const decodeJwtPayload = (token) => {
         const payload = token.split('.')[1];
@@ -158,7 +164,7 @@ const Login = ({ setUser }) => {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} noValidate>
+                <form onSubmit={handleSubmit} noValidate autoComplete="off">
                     <FormInput
                         label="Username"
                         type="text"
@@ -168,6 +174,8 @@ const Login = ({ setUser }) => {
                         required
                         wasValidated={wasValidated}
                         isValid={username !== ''}
+                            autoComplete="off"
+
                     />
 
                     <FormInput
@@ -179,6 +187,7 @@ const Login = ({ setUser }) => {
                         required
                         wasValidated={wasValidated}
                         isValid={password !== ''}
+                         autoComplete="new-password"
                     />
 
                     <button type="submit" className="wolt-btn wolt-btn-block">
