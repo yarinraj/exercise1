@@ -13,6 +13,7 @@ const FormInput = ({
     hint,
     autoComplete,
     name,
+    onBlur, // Added onBlur to receive the event handler from the parent component
 }) => {
     // Merge Wolt styling with validation feedback classes
     const validationClass = wasValidated
@@ -34,6 +35,7 @@ const FormInput = ({
                 required={required}
                 autoComplete={autoComplete}
                 className={`wolt-input ${validationClass}`}
+                onBlur={onBlur} // Attach the onBlur event to trigger validation when the user leaves the field
             />
 
             {wasValidated && !isValid && (

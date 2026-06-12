@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+
 import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import FormInput from './common/FormInput';
@@ -120,8 +120,7 @@ const Register = ({ setUser }) => {
                 };
 
                 localStorage.setItem('user', JSON.stringify(loggedInUser));
-                setUser(loggedInUser); // Update the user state in App to trigger Navbar rendering
-                navigate('/'); // Redirect to home page after successful registration
+               
 
                 // Clear form fields
                 setUsername('');
@@ -168,6 +167,8 @@ const Register = ({ setUser }) => {
                 <div className="bites-logo-container">
                     <div className="delivery-scooter">
                         <span className="scooter-mirror">🛵</span>
+                </div>
+                <div className="bites-logo-text">bites</div>
                 </div>
             </Link>
 

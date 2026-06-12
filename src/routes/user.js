@@ -5,7 +5,7 @@ const router = express.Router();
 const userController = require('../controllers/user');
 
 //  IMPORT YOUR USER MODEL: Change the path if your model file name is lowercase 'user'
-const User = require('../models/User'); 
+const User = require('../models/user'); 
 
 // Route for registration
 router.post('/', userController.registerUser);

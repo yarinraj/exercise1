@@ -32,7 +32,7 @@ const [isDarkMode, setIsDarkMode] = React.useState(() => {
         document.body.classList.remove('dark-theme');
         setIsDarkMode(false);
         setUser(null);
-        navigate('/login');
+        navigate('/');
     };
 
     const displayName = user?.displayName || user?.username || 'User';

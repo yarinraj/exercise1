@@ -136,6 +136,7 @@ body.dark-theme .theme-toggle {
 
 body.dark-theme .theme-toggle .knob {
     transform: translateX(28px);
+}
 .avatar-placeholder {
     display: flex;
     align-items: center;
@@ -145,4 +146,5 @@ body.dark-theme .theme-toggle .knob {
     font-weight: 700;
     font-size: 18px;
     line-height: 1;
+
 }
