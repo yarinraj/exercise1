@@ -1,9 +1,15 @@
 import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import FormInput from './common/FormInput';
 import BackgroundDoodles from './common/BackgroundDoodles';
 import './common/auth.css'; // Shared styling for authentication pages
-
+// Password validation: Minimum 8 characters, must contain both letters and numbers
+const isPasswordValid = (pwd) => {
+    const hasLetters = /[a-zA-Z]/.test(pwd);
+    const hasNumbers = /\d/.test(pwd);
+    return pwd.length >= 8 && hasLetters && hasNumbers;
+};
 const Register = ({ setUser }) => {
     const navigate = useNavigate();
     
@@ -12,6 +18,11 @@ const Register = ({ setUser }) => {
     const [displayName, setDisplayName] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [isPasswordTouched, setIsPasswordTouched] = useState(false);
+    const [isConfirmTouched, setIsConfirmTouched] = useState(false);
+    const isValidPassword = isPasswordValid(password);
+    const isTypingMistake = confirmPassword !== '' && !password.startsWith(confirmPassword);
+    const isPerfectMatch = confirmPassword !== '' && password === confirmPassword;
     const [profileImage, setProfileImage] = useState('');
 
     // State hooks for tracking form submission and validation errors
@@ -21,12 +32,29 @@ const Register = ({ setUser }) => {
     // Reference for the hidden file input element
     const fileInputRef = useRef(null);
 
-    // Password complexity validation: Min 8 chars, must contain letters and numbers
-    const isPasswordValid = (pwd) => {
-        const hasLetters = /[a-zA-Z]/.test(pwd);
-        const hasNumbers = /\d/.test(pwd);
-        return pwd.length >= 8 && hasLetters && hasNumbers;
-    };
+    // State to hold the real-time username availability error
+    const [usernameError, setUsernameError] = useState('');
+
+    // Function to check username availability on blur
+    const checkUsernameAvailability = async () => {
+        if (!username.trim()) return; // Don't check if the field is empty
+
+        try {
+            // Sending a quick request to the backend to check if username exists
+            const response = await fetch(`/api/users/check-username/${username}`);
+            const data = await response.json();
+
+            if (data.exists) {
+                // If the backend says it exists, trigger the red error text
+                setUsernameError('This username is already taken.');
+            } else {
+                // If it's free, clear the error immediately
+                setUsernameError('');
+            }
+        } catch (error) {
+            console.error('Error checking username:', error);
+        }
+    }
 
     const doPasswordsMatch = password === confirmPassword && confirmPassword !== '';
 
@@ -84,8 +112,7 @@ const Register = ({ setUser }) => {
             });
 
             if (response.ok) {
-                // 🌟 Temporary Mock: Force log-in using form data
-                // This will be replaced with actual token fetching in the next sub-task
+                //  Temporary Mock: Force log-in using form data to test the Navbar layout
                 const loggedInUser = {
                     username: username,
                     displayName: displayName,
@@ -93,7 +120,8 @@ const Register = ({ setUser }) => {
                 };
 
                 localStorage.setItem('user', JSON.stringify(loggedInUser));
-              
+                setUser(loggedInUser); // Update the user state in App to trigger Navbar rendering
+                navigate('/'); // Redirect to home page after successful registration
 
                 // Clear form fields
                 setUsername('');
@@ -128,7 +156,7 @@ const Register = ({ setUser }) => {
                     to="/login"
                     className="btn btn-outline-info rounded-pill px-4 fw-bold shadow-sm"
                     style={{ borderWidth: '2px', fontSize: '0.9rem' }}
-                >
+>
                     Login
                 </Link>
             </div>
@@ -136,12 +164,12 @@ const Register = ({ setUser }) => {
             {/* Render the shared floating emojis background */}
             <BackgroundDoodles />
 
-            <div className="bites-logo-container">
-                <div className="delivery-scooter">
-                    <span className="scooter-mirror">🛵</span>
+            <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div className="bites-logo-container">
+                    <div className="delivery-scooter">
+                        <span className="scooter-mirror">🛵</span>
                 </div>
-                <div className="bites-logo-text">bites</div>
-            </div>
+            </Link>
 
             <div className="register-card">
                 <div className="register-header">
@@ -160,12 +188,20 @@ const Register = ({ setUser }) => {
                         label="Username"
                         type="text"
                         value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        onChange={(e) => {
+                            setUsername(e.target.value);
+                            setUsernameError(''); // Clear the real-time error as soon as the user starts typing again
+                        }}
+                        //Trigger the backend validation when the user leaves this input field
+                        onBlur={checkUsernameAvailability}
                         placeholder="Choose a username"
                         required
-                        wasValidated={wasValidated}
-                        isValid={username !== ''}
-                        errorFeedback="Username is required."
+                        // Force validation styling if the form was submitted OR if an inline error exists
+                        wasValidated={wasValidated || usernameError !== ''}
+                        // Field is valid ONLY if it's not empty AND the username is not taken
+                        isValid={username !== '' && !usernameError}
+                        // Dynamically switch the error text between "required" and "already taken"
+                        errorFeedback={username === '' ? "Username is required." : usernameError}
                     />
 
                     <FormInput
@@ -185,12 +221,26 @@ const Register = ({ setUser }) => {
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Create a password"
+
+                        // signals that the user has finished interacting with the password field
+                        onBlur={() => setIsPasswordTouched(true)}
+
+                        placeholder="Enter your password"
                         required
-                        wasValidated={wasValidated}
-                        isValid={isPasswordValid(password)}
+
+                        // Logic:
+                        // we visually validate the password field if:
+                        // - the user tried to submit the form (wasValidated) OR
+                        // - they left the field after visiting it (isPasswordTouched) OR
+                        // - they typed something that satisfies the password requirements (isValidPassword)
+                        // as soon as one of these conditions is met, the field will show green or red
+                        wasValidated={wasValidated || isPasswordTouched || isValidPassword}
+
+                        // green <=> the password satisfies all complexity requirements
+                        isValid={isValidPassword}
+
                         errorFeedback="Password must be at least 8 characters long and contain both letters and numbers."
-                        hint="Must include letters and numbers (min. 8 chars)."
+                        hint="Must include at least 8 characters, containing both letters and numbers."
                     />
 
                     <FormInput
@@ -198,11 +248,23 @@ const Register = ({ setUser }) => {
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
+
+                        // Triggers when the user leaves the field (catches incomplete passwords)
+                        onBlur={() => setIsConfirmTouched(true)}
                         placeholder="Repeat your password"
                         required
-                        wasValidated={wasValidated}
-                        isValid={doPasswordsMatch}
-                        errorFeedback="Passwords must match exactly."
+
+                        // TRIGGER VISUAL VALIDATION IF:
+                        // - General form submitted (wasValidated) OR
+                        // - They typed a wrong character (isTypingMistake) OR
+                        // - They finished and it matches perfectly (isPerfectMatch) OR
+                        // - They left the field after visiting it (isConfirmTouched)
+                        wasValidated={wasValidated || isTypingMistake || isPerfectMatch || isConfirmTouched}
+
+                        //  FIELD IS GREEN ONLY IF IT'S A PERFECT MATCH
+                        isValid={isPerfectMatch}
+
+                        errorFeedback={isTypingMistake ? "Passwords do not match." : "Please complete your password."}
                     />
 
                     <div className="wolt-input-group mb-4">
