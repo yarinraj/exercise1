@@ -4,10 +4,11 @@ import Register from './components/register';
 import Login from './components/Login'; 
 import Navbar from './components/navbar';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Globally injecting Bootstrap styles into the application
-function App() {
-  const [user, setUser] = useState(null);
+import ProtectedRoute from './components/ProtectedRoute';
 
-  // Check if a user session already exists in localStorage on initial page load
+const App = () => {
+  const [user, setUser] = useState(null);
+  // Check if a user session already exists on page load
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
@@ -52,6 +53,9 @@ return (
             } />
 
             {/* LOGIN ROUTE: Real component, redirects to home if already logged in */}
+            {/* Public Routes */}
+                {/* a homepage - <Route path="/" element={<HomePage />} /> */}
+                {/* <Route path="/login" element={<Login />} /> */}
             <Route 
               path="/login" 
               element={!user ? <Login setUser={setUser} /> : <Navigate to="/" />} 
@@ -68,6 +72,12 @@ return (
               path="/signup" 
               element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />} 
             />
+
+          {/* Protected Routes - Only accessible with a token */}
+                <Route element={<ProtectedRoute />}>
+                    {/* example below to pages that force users to be connected */}
+                    {/* <Route path="/orders" element={<Orders />} /> */}
+                </Route>
           </Routes>
         </div>
       </div>
