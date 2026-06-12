@@ -5,6 +5,7 @@ import Login from './components/Login';
 import Navbar from './components/navbar';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Globally injecting Bootstrap styles into the application
 import ProtectedRoute from './components/ProtectedRoute';
+import RestaurantFeed from "./components/RestaurantFeed"
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -54,8 +55,8 @@ return (
 
             {/* LOGIN ROUTE: Real component, redirects to home if already logged in */}
             {/* Public Routes */}
-                {/* a homepage - <Route path="/" element={<HomePage />} /> */}
-                {/* <Route path="/login" element={<Login />} /> */}
+            {/* a homepage - <Route path="/" element={<HomePage />} /> */}
+            {/* <Route path="/login" element={<Login />} /> */}
             <Route 
               path="/login" 
               element={!user ? <Login setUser={setUser} /> : <Navigate to="/" />} 
@@ -74,10 +75,9 @@ return (
             />
 
           {/* Protected Routes - Only accessible with a token */}
-                <Route element={<ProtectedRoute />}>
-                    {/* example below to pages that force users to be connected */}
-                    {/* <Route path="/orders" element={<Orders />} /> */}
-                </Route>
+            <Route element={<ProtectedRoute />}>
+                <Route path="/restaurants" element={<RestaurantFeed />} />
+            </Route>
           </Routes>
         </div>
       </div>
