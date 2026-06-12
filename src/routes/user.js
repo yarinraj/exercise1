@@ -33,4 +33,6 @@ router.get('/check-username/:username', async (req, res) => {
 // Route for getting a specific user (Must be at the bottom)
 router.get('/:id', userController.getUser);
 
+// Export the router so it can be imported in the main application file
+router.post('/login', userController.login);
 module.exports = router;

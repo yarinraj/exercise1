@@ -23,6 +23,7 @@
   "homepage": "https://github.com/yarinraj/exercise1#readme",
   "dependencies": {
     "bootstrap": "^5.3.8",
+    "cors": "^2.8.6",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.3",

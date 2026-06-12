@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import Register from './components/register';
+import Login from './components/Login'; 
 import Navbar from './components/navbar';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Globally injecting Bootstrap styles into the application
 function App() {
   const [user, setUser] = useState(null);
 
-  // Check if a user session already exists on page load
+  // Check if a user session already exists in localStorage on initial page load
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
@@ -17,49 +18,56 @@ function App() {
 return (
     <Router>
       <div className="App">
-        {/* NAVBAR: Rendered globally, but ONLY if the user is logged in */}
+{/* NAVBAR: Rendered globally, but ONLY if the user is logged in */}
         {user && <Navbar user={user} setUser={setUser} />}
 
         <div className="main-content">
           <Routes>
-            
-            {/* 🌟 PUBLIC HOME PAGE ROUTE */}
+            {/* PUBLIC HOME PAGE OR DASHBOARD */}
             <Route path="/" element={
-              <div style={{ position: 'relative', minHeight: '80vh', paddingTop: '20px' }}>
-                
-                {/* GUEST NAVIGATION BUTTONS: Rendered top-right ONLY when logged out */}
-                {!user && (
+              user ? (
+                /* Dashboard for logged-in users */
+                <div className="container mt-5 text-center">
+                  <h1>Welcome to bites Dashboard!</h1>
+                  <p>Main content and restaurant listings will appear here.</p>
+                </div>
+              ) : (
+                /* Public Home Page for guests */
+                <div style={{ position: 'relative', minHeight: '80vh', paddingTop: '20px' }}>
                   <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '12px', zIndex: 1000 }}>
                     <Link to="/login" className="btn btn-outline-info rounded-pill px-4 fw-bold shadow-sm" style={{ borderWidth: '2px' }}>
                       Login
                     </Link>
-                    <Link to="/signup" className="btn btn-info text-white rounded-pill px-4 fw-bold shadow-sm">
+                    <Link to="/register" className="btn btn-info text-white rounded-pill px-4 fw-bold shadow-sm">
                       Sign up
                     </Link>
                   </div>
-                )}
-                
-                {/* Main Homepage text content */}
-                <div className="container text-center" style={{ marginTop: '80px' }}>
-                  <h1 className="display-4 fw-bold mb-3">Welcome to bites Home Page!</h1>
-                  <p className="lead text-secondary">This page is public and visible to everyone.</p>
+                  
+                  <div className="container text-center" style={{ marginTop: '80px' }}>
+                    <h1 className="display-4 fw-bold mb-3">Welcome to bites Home Page!</h1>
+                    <p className="lead text-secondary">This page is public and visible to everyone.</p>
+                  </div>
                 </div>
-
-              </div>
+              )
             } />
 
-            {/* TEMPORARY LOGIN PLACEHOLDER ROUTE */}
-            <Route path="/login" element={
-              <div className="container mt-5 text-center">
-                <h2>Login Page Placeholder</h2>
-                <p className="text-secondary">The login form will be implemented here later by Moran my expensive brother.</p>
-                <Link to="/" className="btn btn-secondary btn-sm mt-3">Back to Home</Link>
-              </div>
-            } />
+            {/* LOGIN ROUTE: Real component, redirects to home if already logged in */}
+            <Route 
+              path="/login" 
+              element={!user ? <Login setUser={setUser} /> : <Navigate to="/" />} 
+            />
 
-            {/* SIGNUP ROUTE: Protected against already logged-in users */}
-            <Route path="/signup" element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />} />
-
+            {/* REGISTER ROUTE: Real component, redirects to home if already logged in */}
+            <Route 
+              path="/register" 
+              element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />} 
+            />
+            
+            {/* Catch-all for /signup to redirect to /register */}
+            <Route 
+              path="/signup" 
+              element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />} 
+            />
           </Routes>
         </div>
       </div>

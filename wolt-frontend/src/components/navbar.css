@@ -136,4 +136,13 @@ body.dark-theme .theme-toggle {
 
 body.dark-theme .theme-toggle .knob {
     transform: translateX(28px);
+.avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #00c2e8;
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1;
 }
