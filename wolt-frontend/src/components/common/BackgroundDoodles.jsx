@@ -46,6 +46,7 @@ const BackgroundDoodles = () => {
                         top: doodle.top,
                         left: doodle.left,
                         zIndex: 1,
+                        cursor: 'default',
                     }}
                 >
                     <span
