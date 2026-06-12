@@ -13,8 +13,7 @@ const ProtectedRoute = () => {
     // If not, redirect to Login and pass the unauthorized flag via router state
     return (
         <Navigate 
-        //NEED TO CHANGE TO LOGIN PAGE
-            to="/register" 
+            to="/login" 
             replace 
             state={{ fromUnauthorized: true }} 
         />
