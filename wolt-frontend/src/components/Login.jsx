@@ -143,12 +143,14 @@ useEffect(() => {
             {/* Background decorative elements */}
             <BackgroundDoodles />
 
-            <div className="bites-logo-container">
-                <div className="delivery-scooter">
-                    <span className="scooter-mirror">🛵</span>
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div className="bites-logo-container">
+                    <div className="delivery-scooter">
+                        <span className="scooter-mirror">🛵</span>
+                    </div>
+                    <div className="bites-logo-text">bites</div>
                 </div>
-                <div className="bites-logo-text">bites</div>
-            </div>
+            </Link>
 
             <div className="register-card">
                 <div className="register-header">
