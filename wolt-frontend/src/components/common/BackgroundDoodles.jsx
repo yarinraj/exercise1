@@ -55,6 +55,7 @@ const BackgroundDoodles = () => {
                             animationDuration: doodle.duration,
                             animationDelay: doodle.delay,
                             display: 'inline-block',
+                            cursor: 'default',
                         }}
                     >
                         {doodle.emoji}
