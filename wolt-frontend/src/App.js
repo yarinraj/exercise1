@@ -4,7 +4,6 @@ import Register from './components/register';
 import Login from './components/Login'; 
 import Navbar from './components/navbar';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Globally injecting Bootstrap styles into the application
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
