@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import './navbar.css';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
-function Navbar({ user, setUser }) {
-const [isDarkMode, setIsDarkMode] = React.useState(() => {
+function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
+    const [isDarkMode, setIsDarkMode] = React.useState(() => {
         const savedTheme = localStorage.getItem('theme');
         return savedTheme === 'dark';
     });
@@ -45,35 +45,61 @@ const [isDarkMode, setIsDarkMode] = React.useState(() => {
                 </span>
             </div>
 
-            <div className="navbar-right">
-                {/* THEME TOGGLE */}
-                <button className="theme-toggle" onClick={toggleTheme}>
-                    <span className={`icon sun ${isDarkMode ? 'hidden' : ''}`}>☀️</span>
-                    <span className={`icon moon ${!isDarkMode ? 'hidden' : ''}`}>🌙</span>
-                    <span className="knob"></span>
-                </button>
-
-                {/* USER MENU */}
-                <div className="user-menu">
-                    <span className="display-name">{displayName}</span>
-                    
-                    {user?.profileImage ? (
-                        <img
-                            src={user.profileImage}
-                            alt={displayName}
-                            className="profile-avatar"
-                        />
-                    ) : (
-                        <div className="profile-avatar avatar-placeholder">
-                            {displayName.charAt(0).toUpperCase()}
+            {user ? (
+                <>
+                    <div className="navbar-center" style={{ flex: 1, maxWidth: '400px', margin: '0 20px' }}>
+                        <div className="input-group">
+                            <span className="input-group-text text-muted">🔍</span>
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Search restaurants or cuisines..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                         </div>
-                    )}
+                    </div>
 
-                    <button className="logout-button" onClick={handleLogout}>
-                        Logout
-                    </button>
+                    <div className="navbar-right">
+                        {/* THEME TOGGLE */}
+                        <button className="theme-toggle" onClick={toggleTheme}>
+                            <span className={`icon sun ${isDarkMode ? 'hidden' : ''}`}>☀️</span>
+                            <span className={`icon moon ${!isDarkMode ? 'hidden' : ''}`}>🌙</span>
+                            <span className="knob"></span>
+                        </button>
+
+                        {/* USER MENU */}
+                        <div className="user-menu">
+                            <span className="display-name">{displayName}</span>
+                            
+                            {user?.profileImage ? (
+                                <img
+                                    src={user.profileImage}
+                                    alt={displayName}
+                                    className="profile-avatar"
+                                />
+                            ) : (
+                                <div className="profile-avatar avatar-placeholder">
+                                    {displayName.charAt(0).toUpperCase()}
+                                </div>
+                            )}
+
+                            <button className="logout-button" onClick={handleLogout}>
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </>
+            ) : (
+                <div className="navbar-right d-flex gap-2">
+                    <Link to="/login" className="btn btn-outline-info rounded-pill px-4 fw-bold shadow-sm" style={{ borderWidth: '2px' }}>
+                        Login
+                    </Link>
+                    <Link to="/register" className="btn btn-info text-white rounded-pill px-4 fw-bold shadow-sm">
+                        Sign up
+                    </Link>
                 </div>
-            </div>
+            )}
         </nav>
     );
 }

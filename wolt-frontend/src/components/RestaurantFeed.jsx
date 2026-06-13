@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import RestaurantCard from './RestaurantCard'; 
 
-const RestaurantFeed = () => {
+const RestaurantFeed = ({ searchQuery }) => {
     const [restaurants, setRestaurants] = useState([]);
     const [activeFilter, setActiveFilter] = useState('all'); //the current state of filtering
     const [error, setError] = useState(null);
@@ -29,17 +29,24 @@ const RestaurantFeed = () => {
 
     //filtering logic
     const filteredRestaurants = restaurants.filter(restaurant => {
-        //only closer than 2 km
-        if (activeFilter === 'nearby') {
-            return restaurant.distance <= 2; 
+        // filtering by filter buttons
+        if (activeFilter === 'nearby' && restaurant.distance > 2) {
+            return false; 
         }
-        //only promoted
-        if (activeFilter === 'promoted') {
-            return restaurant.isPromoted === true; 
+        if (activeFilter === 'promoted' && restaurant.isPromoted !== true) {
+            return false; 
         }
-        //all restaurants
+        
+        // filtering by the text inserted in the search
+        const query = searchQuery ? searchQuery.toLowerCase().trim() : '';
+        if (query) {
+            const matchesName = restaurant.name?.toLowerCase().includes(query);
+            const matchesCuisine = restaurant.cuisine?.toLowerCase().includes(query);
+            return matchesName || matchesCuisine;
+        }
+
         return true; 
-    })
+    });
 
     if (loading) {
         return (
@@ -62,7 +69,7 @@ const RestaurantFeed = () => {
                     <h2 className="fw-bold m-0 text-dark">Restaurants:</h2>
                     <p className="text-muted m-0">Explore our curated list of available kitchens</p>
                 </div>
-                <span className="badge bg-secondary p-2">{filteredRestaurants.length} filter</span>
+                <span className="badge bg-secondary p-2">{filteredRestaurants.length} Places Found</span>
             </div>
             
             {/* filtering buttons */}
@@ -106,7 +113,7 @@ const RestaurantFeed = () => {
                     ))
                 ) : (
                     <div className="text-center p-5 w-100">
-                        <p className="text-muted fs-5">No restaurants match this category right now.</p>
+                        <p className="text-muted fs-5">No restaurants match your search or category criteria.</p>
                     </div>
                 )}
             </div>
