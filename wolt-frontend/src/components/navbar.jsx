@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import './navbar.css';
 import { useNavigate, Link } from 'react-router-dom';
 
@@ -9,6 +9,16 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     });
 
     const navigate = useNavigate();
+    
+    //Created the reference for the search input
+    const searchInputRef = useRef(null);
+
+    // Auto-focus logic that triggers safely when the component mounts or when the user logs in. At the end of the useEffect, added 'user' as a dependency so it focuses right after login
+    useEffect(() => {
+        if (searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+    }, [user]); 
 
     useEffect(() => {
         if (isDarkMode) {
@@ -56,6 +66,7 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
                                 placeholder="Search restaurants or cuisines..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                ref={searchInputRef} 
                             />
                         </div>
                     </div>
