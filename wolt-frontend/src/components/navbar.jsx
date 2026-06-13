@@ -10,7 +10,7 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
 
     const navigate = useNavigate();
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (isDarkMode) {
             document.body.classList.add('dark-theme');
         } else {

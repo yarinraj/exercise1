@@ -1,11 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import RestaurantCard from './RestaurantCard'; 
+import Toast from './Toast'; 
 
 const RestaurantFeed = ({ searchQuery }) => {
     const [restaurants, setRestaurants] = useState([]);
-    const [activeFilter, setActiveFilter] = useState('all'); //the current state of filtering
+    const [activeFilter, setActiveFilter] = useState('all'); 
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [userLocation, setUserLocation] = useState(null);
+    const [locationDenied, setLocationDenied] = useState(false);
+    
+    const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    });
+                    setLocationDenied(false);
+                },
+                (err) => {
+                    console.error("Error fetching location:", err);
+                    setLocationDenied(true);
+                }
+            );
+        } else {
+            setLocationDenied(true);
+        }
+    }, []);
 
     useEffect(() => {
         const fetchRestaurants = async () => {
@@ -27,26 +52,64 @@ const RestaurantFeed = ({ searchQuery }) => {
         fetchRestaurants();
     }, []);
 
-    //filtering logic
-    const filteredRestaurants = restaurants.filter(restaurant => {
-        // filtering by filter buttons
-        if (activeFilter === 'nearby' && restaurant.distance > 2) {
-            return false; 
-        }
-        if (activeFilter === 'promoted' && restaurant.isPromoted !== true) {
-            return false; 
-        }
-        
-        // filtering by the text inserted in the search
-        const query = searchQuery ? searchQuery.toLowerCase().trim() : '';
-        if (query) {
-            const matchesName = restaurant.name?.toLowerCase().includes(query);
-            const matchesCuisine = restaurant.cuisine?.toLowerCase().includes(query);
-            return matchesName || matchesCuisine;
-        }
+    const getRealDistance = (lat1, lon1, lat2, lon2) => {
+        if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+        const R = 6371; 
+        const dLat = (lat2 - lat1) * (Math.PI / 180);
+        const dLon = (lon2 - lon1) * (Math.PI / 180);
+        const a = 
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+        return parseFloat((R * c).toFixed(1));
+    };
 
-        return true; 
-    });
+    const handleFilterClick = (filterType) => {
+        if (filterType === 'nearby' && locationDenied) {
+            setToast({
+                show: true,
+                message: "Location access is required to view nearby restaurants. Please enable permissions in browser settings.",
+                type: 'warning'
+            });
+            return; 
+        }
+        setActiveFilter(filterType);
+    };
+
+    const filteredRestaurants = restaurants
+        .map(restaurant => {
+            const distance = userLocation && restaurant.lat && restaurant.lng
+                ? getRealDistance(userLocation.lat, userLocation.lng, restaurant.lat, restaurant.lng)
+                : null;
+
+            return {
+                ...restaurant,
+                calculatedDistance: distance
+            };
+        })
+        .filter(restaurant => {
+            if (activeFilter === 'nearby') {
+                if (locationDenied || restaurant.calculatedDistance === null) {
+                    return false;
+                }
+                if (restaurant.calculatedDistance > 5) {
+                    return false; 
+                }
+            }
+            
+            if (activeFilter === 'promoted' && restaurant.isPromoted !== true) {
+                return false; 
+            }
+            
+            const query = searchQuery ? searchQuery.toLowerCase().trim() : '';
+            if (query) {
+                const matchesName = restaurant.name?.toLowerCase().includes(query);
+                const matchesCuisine = restaurant.cuisine?.toLowerCase().includes(query);
+                return matchesName || matchesCuisine;
+            }
+
+            return true; 
+        });
 
     if (loading) {
         return (
@@ -64,6 +127,14 @@ const RestaurantFeed = ({ searchQuery }) => {
 
     return (
         <div className="container p-4">
+            {toast.show && (
+                <Toast 
+                    message={toast.message} 
+                    type={toast.type} 
+                    onClose={() => setToast({ ...toast, show: false })} 
+                />
+            )}
+
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <div className="text-start mb-4">
                     <h2 className="fw-bold m-0 text-dark">Restaurants:</h2>
@@ -76,39 +147,44 @@ const RestaurantFeed = ({ searchQuery }) => {
             <div className="d-flex gap-2 mb-4">
                 <button 
                     className={`btn rounded-pill fw-bold px-4 ${activeFilter === 'all' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                    onClick={() => setActiveFilter('all')}
+                    onClick={() => handleFilterClick('all')}
                 >
                     All Places
                 </button>
                 <button 
                     className={`btn rounded-pill fw-bold px-4 ${activeFilter === 'nearby' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                    onClick={() => setActiveFilter('nearby')}
+                    onClick={() => handleFilterClick('nearby')}
                 >
                     📍 Nearby
                 </button>
                 <button 
                     className={`btn rounded-pill fw-bold px-4 ${activeFilter === 'promoted' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                    onClick={() => setActiveFilter('promoted')}
+                    onClick={() => handleFilterClick('promoted')}
                 >
                     ⭐ Promoted
                 </button>
             </div>
             
-            {activeFilter === 'nearby' && (
+            {activeFilter === 'nearby' && !locationDenied && (
                 <div className="text-start mb-3 animate__animated animate__fadeIn">
                     <small className="text-muted fw-semibold bg-light px-3 py-1.5 rounded-pill border">
-                        Filtered to 2 km max from your destination
+                        Filtered to 5 km max from your location
                     </small>
                 </div>
             )}
 
-            {/* the filtered restaurants*/}
+            {/* the filtered restaurants */}
             <div className="row">
                 {filteredRestaurants.length > 0 ? (
                     filteredRestaurants.map((restaurant) => (
                         <RestaurantCard 
                             key={restaurant._id || restaurant.id} 
-                            restaurant={restaurant} 
+                            restaurant={{
+                                ...restaurant,
+                                distance: restaurant.calculatedDistance !== null 
+                                    ? `${restaurant.calculatedDistance} km` 
+                                    : "Location unavailable"
+                            }} 
                         />
                     ))
                 ) : (

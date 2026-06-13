@@ -1,5 +1,5 @@
-const crypto = require('crypto'); // Added to fix "crypto is not defined" error
-// const restaurants = [];
+const crypto = require('crypto');
+// // const restaurants = [];
 
 const restaurants = [
     { 
@@ -8,7 +8,8 @@ const restaurants = [
         cuisine: "Burgers", 
         phone: "0312345678", 
         address: "Herzl 12",
-        distance: 0.8, 
+        lat: 32.0697, 
+        lng: 34.8010,
         isPromoted: true,
         products: []
     },
@@ -18,7 +19,8 @@ const restaurants = [
         cuisine: "Italian", 
         phone: "0498765432", 
         address: "Bialik 45",
-        distance: 2.8, 
+        lat: 32.0914, 
+        lng: 34.8115,
         isPromoted: false,
         products: []
     },
@@ -28,7 +30,8 @@ const restaurants = [
         cuisine: "Asian", 
         phone: "0255544332", 
         address: "Jaffa 89",
-        distance: 2.0, 
+        lat: 32.0512, 
+        lng: 34.7532,
         isPromoted: false,
         products: []
     }
@@ -39,9 +42,7 @@ const getAll = () => {
 };
 
 const create = (restaurantData) => {
-   
-
-    const { name, cuisine, phone, address, products } = restaurantData;
+    const { name, cuisine, phone, address, products, lat, lng, isPromoted } = restaurantData;
 
     if (phone) {
         const isNumeric = /^\d+$/.test(phone);
@@ -52,12 +53,15 @@ const create = (restaurantData) => {
 
     const newRestaurant = {
         id: crypto.randomUUID(), 
-        name: name ,
+        name: name,
         cuisine: cuisine,
         description: restaurantData.description,
         phone: phone || null, 
         address: address || null,
-        distance: distance !== undefined ? Number(distance) : 999,
+        //Latitude
+        lat: lat !== undefined ? Number(lat) : null,
+        //Longitude
+        lng: lng !== undefined ? Number(lng) : null,
         isPromoted: isPromoted === true || isPromoted === 'true',
         products: Array.isArray(products) ? products : []
     };
@@ -144,28 +148,21 @@ const getProductById = (restaurantId, productId) => {
     return restaurant.products.find(p => p.id === productId);
 };
 //text search across resturants and products 
-const search = (query)=>{
-    //convert the search text to lowercase
-    const lowerCaseQuery=query.toLowerCase();
+const search = (query) => {
+    const lowerCaseQuery = query.toLowerCase();
     //prepare the undified results object as required by the ticket
-    const results ={ 
-        restaurants:[],
-        products:[]
+    const results = { 
+        restaurants: [],
+        products: []
     };
-    //iterate over all resturants in the array
-    for(const restaurant of restaurants){
-
-        // Check if the query is included in the restaurant's name or description
-        // (Using optional chaining '?.' to prevent crashes if the description is missing)
-        const matchResturantName= restaurant.name?.toLowerCase().includes(lowerCaseQuery);
+    for (const restaurant of restaurants) {
+        const matchResturantName = restaurant.name?.toLowerCase().includes(lowerCaseQuery);
         const matchRestaurantDesc = restaurant.description?.toLowerCase().includes(lowerCaseQuery);
-        if(matchResturantName||matchRestaurantDesc){
+        if (matchResturantName || matchRestaurantDesc) {
             results.restaurants.push(restaurant);
         }
-        //iterste over aver all products of current resturants
-        if(restaurant.products && Array.isArray(restaurant.products)){
-            for(const product of restaurant.products ){
-                // Check if the query is included in the product's name or description
+        if (restaurant.products && Array.isArray(restaurant.products)) {
+            for (const product of restaurant.products) {
                 const matchProductName = product.name?.toLowerCase().includes(lowerCaseQuery);
                 const matchProductDesc = product.description?.toLowerCase().includes(lowerCaseQuery);
 
@@ -173,7 +170,6 @@ const search = (query)=>{
                     results.products.push(product);
                 }
             }
-
         }
     }
     return results;

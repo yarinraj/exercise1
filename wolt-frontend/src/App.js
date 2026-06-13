@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Register from './components/register';
 import Login from './components/Login'; 
 import Navbar from './components/navbar';
@@ -9,6 +9,28 @@ import ProtectedRoute from './components/ProtectedRoute';
 import RestaurantFeed from "./components/RestaurantFeed";
 import HomePage from './components/HomePage';
 
+// Sub-component to handle conditional Navbar rendering based on the active path
+const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
+  const location = useLocation();
+  // Normalize path to lowercase and remove trailing slashes for precise matching
+  const currentPath = location.pathname.toLowerCase().replace(/\/$/, "");
+  // Routes where the Navbar should be completely hidden
+  const authRoutes = ['/login', '/register', '/signup'];
+  const shouldHideNavbar = authRoutes.includes(currentPath);
+
+  return (
+    <>
+      {!shouldHideNavbar && (
+        <Navbar 
+          user={user} 
+          setUser={setUser} 
+          searchQuery={searchQuery} 
+          setSearchQuery={setSearchQuery} 
+        />
+      )}
+    </>
+  );
+};
 
 const App = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,7 +46,8 @@ const App = () => {
 return (
     <Router>
       <div className="App">
-        <Navbar 
+        {/* NavigationLayout dynamically decides whether to display the Navbar */}
+        <NavigationLayout 
           user={user} 
           setUser={setUser} 
           searchQuery={searchQuery} 
