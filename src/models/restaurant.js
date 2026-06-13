@@ -1,5 +1,32 @@
 const crypto = require('crypto'); // Added to fix "crypto is not defined" error
-const restaurants = [];
+// const restaurants = [];
+
+const restaurants = [
+    { 
+        id: "1", 
+        name: "Burgers & Co", 
+        cuisine: "Burgers", 
+        phone: "0312345678", 
+        address: "Herzl 12",
+        products: []
+    },
+    { 
+        id: "2", 
+        name: "Pizza Piazza", 
+        cuisine: "Italian", 
+        phone: "0498765432", 
+        address: "Bialik 45",
+        products: []
+    },
+    { 
+        id: "3", 
+        name: "Sushi Station", 
+        cuisine: "Asian", 
+        phone: "0255544332", 
+        address: "Jaffa 89",
+        products: []
+    }
+];
 
 const getAll = () => {
     return restaurants;
@@ -8,7 +35,7 @@ const getAll = () => {
 const create = (restaurantData) => {
    
 
-    const { name, phone, address, products } = restaurantData;
+    const { name, cuisine, phone, address, products } = restaurantData;
 
     if (phone) {
         const isNumeric = /^\d+$/.test(phone);
@@ -20,6 +47,7 @@ const create = (restaurantData) => {
     const newRestaurant = {
         id: crypto.randomUUID(), 
         name: name ,
+        cuisine: cuisine,
         description: restaurantData.description,
         phone: phone || null, 
         address: address || null,

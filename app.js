@@ -54,6 +54,15 @@ app.use('/api/orders', orderRoutes);
 // Search route
 app.get('/api/search/:query', restaurantController.searchItems);
 
+
+// returns an 404 error for wrong API's
+app.use((req, res, next) => {
+    if (req.url.startsWith('/api') || req.path.includes('/api')) {
+        return res.status(404).json({ error: "API endpoint not found" });
+    }
+    next(); 
+});
+
 // Fallback route for React client-side routing
 app.get(/.*/, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));

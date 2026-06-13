@@ -28,6 +28,41 @@
   color: #61dafb;
 }
 
+.error-page-container {
+    min-height: 90vh;
+    background-color: #f8f9fa;
+}
+
+.error-circle-card {
+    width: 400px;
+    height: 400px;
+    padding: 4rem;
+}
+.error-title {
+    color: #009de0;
+}
+
+.error-text {
+    max-width: 320px;
+}
+
+.error-btn-home {
+    background-color: #009de0;
+    border: none;
+    font-size: 0.9rem;
+    transition: background-color 0.2s, transform 0.1s;
+    margin-top: 10px;
+}
+
+.error-btn-home:hover {
+    background-color: #007bb0;
+    color: white;
+}
+
+.error-btn-home:active {
+    transform: scale(0.98);
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

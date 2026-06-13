@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import RestaurantCard from './RestaurantCard'; 
 
 const RestaurantFeed = () => {
     const [restaurants, setRestaurants] = useState([]);
@@ -9,11 +10,9 @@ const RestaurantFeed = () => {
         const fetchRestaurants = async () => {
             try {
                 const response = await fetch('http://localhost:8080/api/restaurants');
-                
                 if (!response.ok) {
                     throw new Error(`Server responded with status: ${response.status}`);
                 }
-
                 const data = await response.json();
                 setRestaurants(data);
             } catch (err) {
@@ -28,7 +27,13 @@ const RestaurantFeed = () => {
     }, []);
 
     if (loading) {
-        return <div className="text-center p-5">Loading restaurants...</div>;
+        return (
+            <div className="d-flex justify-content-center align-items-center p-5" style={{ minHeight: '50vh' }}>
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading restaurants...</span>
+                </div>
+            </div>
+        );
     }
 
     if (error) {
@@ -37,16 +42,28 @@ const RestaurantFeed = () => {
 
     return (
         <div className="container p-4">
-            <h2 className="mb-4">📢 Dynamic Restaurant Feed (Task EX1-143)</h2>
-            <p className="text-muted">Successfully connected to backend! Found {restaurants.length} restaurants.</p>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 className="fw-bold m-0">Restaurants:</h2>
+                    <p className="text-muted m-0">Explore our curated list of available kitchens</p>
+                </div>
+                <span className="badge bg-secondary p-2">{restaurants.length} Places Nearby</span>
+            </div>
             
-            <ul className="list-group">
-                {restaurants.map((restaurant) => (
-                    <li key={restaurant._id || restaurant.id} className="list-group-item">
-                        <strong>{restaurant.name}</strong> - {restaurant.cuisine || 'No culinary tag'}
-                    </li>
-                ))}
-            </ul>
+            <div className="row">
+                {restaurants.length > 0 ? (
+                    restaurants.map((restaurant) => (
+                        <RestaurantCard 
+                            key={restaurant._id || restaurant.id} 
+                            restaurant={restaurant} 
+                        />
+                    ))
+                ) : (
+                    <div className="text-center p-5">
+                        <p className="text-muted">No restaurants available right now.</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
