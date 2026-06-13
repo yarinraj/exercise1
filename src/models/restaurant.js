@@ -8,6 +8,8 @@ const restaurants = [
         cuisine: "Burgers", 
         phone: "0312345678", 
         address: "Herzl 12",
+        distance: 0.8, 
+        isPromoted: true,
         products: []
     },
     { 
@@ -16,6 +18,8 @@ const restaurants = [
         cuisine: "Italian", 
         phone: "0498765432", 
         address: "Bialik 45",
+        distance: 2.8, 
+        isPromoted: false,
         products: []
     },
     { 
@@ -24,6 +28,8 @@ const restaurants = [
         cuisine: "Asian", 
         phone: "0255544332", 
         address: "Jaffa 89",
+        distance: 2.0, 
+        isPromoted: false,
         products: []
     }
 ];
@@ -51,6 +57,8 @@ const create = (restaurantData) => {
         description: restaurantData.description,
         phone: phone || null, 
         address: address || null,
+        distance: distance !== undefined ? Number(distance) : 999,
+        isPromoted: isPromoted === true || isPromoted === 'true',
         products: Array.isArray(products) ? products : []
     };
 
