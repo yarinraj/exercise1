@@ -1,16 +1,23 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import './RestaurantCard.css'; 
 
 const RestaurantCard = ({ restaurant }) => {
+    const navigate = useNavigate();
     const defaultImage = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500&auto=format&fit=crop&q=60";
 
+    const restaurantId = restaurant._id || restaurant.id;
+    
     return (
         <div className="col-md-4 col-sm-6 mb-4">
-            <div className="card h-100 shadow-sm hover-card" style={{ cursor: 'pointer', transition: 'transform 0.2s' }}>
+            <div 
+                className="card h-100 shadow-sm hover-card" 
+                onClick={() => navigate(`/restaurant/${restaurantId}`)}
+            >
                 <img 
                     src={restaurant.image || defaultImage} 
-                    className="card-img-top" 
+                    className="card-img-top restaurant-card-img" 
                     alt={restaurant.name}
-                    style={{ height: '180px', objectFit: 'cover' }}
                 />
                 
                 <div className="card-body d-flex flex-column">
