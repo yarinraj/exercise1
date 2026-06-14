@@ -3,13 +3,23 @@ import './navbar.css';
 import { Link, useNavigate } from 'react-router-dom';
 
 function Navbar({ user, setUser }) {
-const [isDarkMode, setIsDarkMode] = React.useState(() => {
-        const savedTheme = localStorage.getItem('theme');
-        return savedTheme === 'dark';
-    });
+    // Start with light mode (false) by default until useEffect checks the user's preference
+    const [isDarkMode, setIsDarkMode] = React.useState(false);
 
     const navigate = useNavigate();
 
+    // Check if a user is logged in and fetch their personal theme preference from localStorage
+    React.useEffect(() => {
+        if (user && user.username) {
+            const savedTheme = localStorage.getItem(`theme_${user.username}`);
+            setIsDarkMode(savedTheme === 'dark');
+        } else {
+            // Reset to light mode if no user is logged in
+            setIsDarkMode(false);
+        }
+    }, [user]); 
+
+    // Apply or remove the dark theme class on the document body based on the current state
     React.useEffect(() => {
         if (isDarkMode) {
             document.body.classList.add('dark-theme');
@@ -18,14 +28,18 @@ const [isDarkMode, setIsDarkMode] = React.useState(() => {
         }
     }, [isDarkMode]);
 
+    // Toggle the theme and save the preference specifically for the logged-in user
     const toggleTheme = () => {
         setIsDarkMode(prev => {
             const newMode = !prev;
-            localStorage.setItem('theme', newMode ? 'dark' : 'light');
+            if (user && user.username) {
+                localStorage.setItem(`theme_${user.username}`, newMode ? 'dark' : 'light');
+            }
             return newMode;
         });
     };
 
+    // Handle user logout: clear storage, reset theme, clear user state, and redirect to home
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -35,6 +49,7 @@ const [isDarkMode, setIsDarkMode] = React.useState(() => {
         navigate('/');
     };
 
+    // Determine the name to display in the navbar
     const displayName = user?.displayName || user?.username || 'User';
 
     return (
