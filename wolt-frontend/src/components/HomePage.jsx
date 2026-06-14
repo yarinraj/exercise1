@@ -1,7 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './HomePage.css'; 
 
 const HomePage = ({ user }) => {
+
+    useEffect(() => {
+        if (!user) {
+            document.body.classList.remove('dark-theme');
+        }
+    }, [user]);
+
     return (
         <div className="home-page-container">
             {user ? (

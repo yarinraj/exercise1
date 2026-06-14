@@ -26,6 +26,9 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
         } else {
             document.body.classList.remove('dark-theme');
         }
+        return () => {
+            document.body.classList.remove('dark-theme');
+        };
     }, [isDarkMode]);
 
     const toggleTheme = () => {
