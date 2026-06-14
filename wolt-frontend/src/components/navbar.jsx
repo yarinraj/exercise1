@@ -20,9 +20,8 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
         }
     }, [user]); 
 
-    useEffect(() => {
     // Check if a user is logged in and fetch their personal theme preference from localStorage
-    React.useEffect(() => {
+    useEffect(() => {
         if (user && user.username) {
             const savedTheme = localStorage.getItem(`theme_${user.username}`);
             setIsDarkMode(savedTheme === 'dark');
