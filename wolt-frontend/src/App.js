@@ -6,8 +6,9 @@ import Navbar from './components/navbar';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import ProtectedRoute from './components/ProtectedRoute';
-import RestaurantFeed from "./components/RestaurantFeed";
 import HomePage from './components/HomePage';
+import RestaurantFeed from "./components/RestaurantFeed";
+import RestaurantMenu from './components/RestaurantMenu';
 
 // Sub-component to handle conditional Navbar rendering based on the active path
 const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
@@ -75,6 +76,7 @@ return (
             {/* protected routes */}
             <Route element={<ProtectedRoute />}>
                 <Route path="/restaurants" element={<RestaurantFeed searchQuery={searchQuery} />} />
+                <Route path="/restaurant/:id" element={<RestaurantMenu />} /> 
             </Route>
             
             {/* a 404 page for unknown routes*/}
