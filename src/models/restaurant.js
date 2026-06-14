@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+
 // // const restaurants = [];
 
 const restaurants = [
@@ -11,7 +12,22 @@ const restaurants = [
         lat: 32.0697, 
         lng: 34.8010,
         isPromoted: true,
-        products: []
+        products: [
+            {
+                id: "b1",
+                name: "Classic Cheeseburger",
+                description: "Juicy beef patty with melted cheddar cheese, fresh lettuce, and tomato.",
+                price: 52,
+                image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500"
+            },
+            {
+                id: "b2",
+                name: "Crispy Chicken Wings",
+                description: "8 pieces of crispy golden wings tossed in BBQ sauce.",
+                price: 45,
+                image: "" 
+            }
+        ]
     },
     { 
         id: "2", 
@@ -22,7 +38,15 @@ const restaurants = [
         lat: 32.0914, 
         lng: 34.8115,
         isPromoted: false,
-        products: []
+        products: [
+        {
+            id: "p1",
+            name: "Margarita Pizza",
+            description: "Classic tomato sauce, fresh mozzarella, and basil leaves.",
+            price: 60,
+            image: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500"
+        }
+        ]
     },
     { 
         id: "3", 
@@ -33,7 +57,15 @@ const restaurants = [
         lat: 32.0512, 
         lng: 34.7532,
         isPromoted: false,
-        products: []
+        products: [
+            {
+                id: "p1",
+                name: "Margarita Pizza",
+                description: "Classic tomato sauce, fresh mozzarella, and basil leaves.",
+                price: 60,
+                image: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500"
+            }
+        ]
     }
 ];
 
@@ -109,7 +141,8 @@ const addProduct = (restaurantId, productData) => {
         id: crypto.randomUUID(), 
         name: productData.name,
         description: productData.description,
-        price: productData.price 
+        price: productData.price,
+        image: productData.image || ""
     };
 
     restaurant.products.push(newProduct);

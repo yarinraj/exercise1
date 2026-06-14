@@ -54,7 +54,33 @@ const RestaurantMenu = () => {
         }
 
         const restaurantData = await restaurantRes.json();
-        const productsData = await productsRes.json();
+        let productsData = await productsRes.json();
+
+        // if (!productsData || productsData.length === 0) {
+        //   productsData = [
+        //     {
+        //       id: 'mock-1',
+        //       name: 'Classic Cheeseburger',
+        //       description: 'Juicy beef patty with melted cheddar cheese, fresh lettuce, tomato, and our secret Bites sauce in a toasted brioche bun.',
+        //       price: 52,
+        //       image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop&q=60' 
+        //     },
+        //     {
+        //       id: 'mock-2',
+        //       name: 'Crispy Chicken Wings',
+        //       description: '8 pieces of crispy golden wings tossed in your choice of spicy buffalo or sweet BBQ sauce, served with ranch dressing.',
+        //       price: 45,
+        //       image: '' 
+        //     },
+        //     {
+        //       id: 'mock-3',
+        //       name: 'Truffle Fries',
+        //       description: 'Golden crispy French fries tossed in aromatic white truffle oil, grated parmesan cheese, and fresh parsley.',
+        //       price: 28,
+        //       image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&auto=format&fit=crop&q=60' 
+        //     }
+        //   ];
+        // }
 
         setRestaurant(restaurantData);
         setProducts(productsData);
@@ -107,24 +133,55 @@ const RestaurantMenu = () => {
       {/* Render the restaurant view layout only if data was fetched successfully */}
       {restaurant && (
         <>
-          <div className="card shadow-sm p-4 bg-white rounded-3 mb-4">
-            <h1 className="fw-bold text-dark">{restaurant.name}</h1>
-            <p className="text-muted">{restaurant.cuisine} • {restaurant.address}</p>
+          <div className="text-center mb-5 pt-3">
+            <h1 className="fw-bold">{restaurant.name}</h1>
+            <p className="text-muted mb-0">{restaurant.cuisine} • {restaurant.address}</p>
           </div>
 
-          <h3 className="fw-bold mb-3">Menu Items ({products.length})</h3>
+          <h3 className="fw-bold mb-5">Menu</h3>
           
           <div className="row">
-            {products.map((product) => (
-              <div key={product._id || product.id} className="col-md-6 mb-3">
-                <div className="card h-100 shadow-sm p-3">
-                  <h5 className="fw-bold">{product.name}</h5>
-                  <p className="text-muted small">{product.description}</p>
-                  <div className="text-info fw-bold mt-auto">${product.price}</div>
-                </div>
+  {products.map((product) => {
+    const hasImage = product.image && product.image.trim() !== "";
+
+    return (
+      <div key={product._id || product.id} className="col-md-6 mb-3">
+        <div className="card h-100 shadow-sm p-3 content-card" style={{ borderRadius: '12px' }}>
+          <div className="d-flex justify-content-between align-items-start gap-2 h-100">
+            
+            <div 
+              className="d-flex flex-column h-100 flex-grow-1" 
+              style={{ maxWidth: hasImage ? '72%' : '100%' }}
+            >
+              <h5 className="fw-bold text-dark mb-1">{product.name}</h5>
+              <p className="text-muted small mb-3 text-truncate-3" style={{ lineHeight: '1.4' }}>
+                {product.description}
+              </p>
+              <div className="text-info fw-bold mt-auto fs-5">₪{product.price}</div>
+            </div>
+
+            {hasImage && (
+              <div className="flex-shrink-0">
+                <img 
+                  src={product.image} 
+                  alt={product.name} 
+                  style={{ 
+                    width: '110px', 
+                    height: '110px', 
+                    objectFit: 'cover', 
+                    borderRadius: '10px',
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
+                  }} 
+                />
               </div>
-            ))}
+            )}
+
           </div>
+        </div>
+      </div>
+    );
+  })}
+</div>
         </>
       )}
     </div>
