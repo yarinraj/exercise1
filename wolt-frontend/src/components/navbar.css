@@ -148,3 +148,39 @@ body.dark-theme .theme-toggle .knob {
     line-height: 1;
 
 }
+
+.wolt-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 30px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e6e6e6;
+    width: 100%;
+}
+
+.wolt-navbar .input-group {
+    border-radius: 50rem; 
+    overflow: hidden;
+    transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    border: 1px solid #dee2e6; 
+}
+
+.wolt-navbar .input-group-text,
+.wolt-navbar .form-control {
+    border: none !important;
+    box-shadow: none !important; 
+}
+
+.wolt-navbar .input-group:focus-within {
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+.wolt-navbar .input-group-text {
+    background-color: #f8f9fa !important;
+    padding-left: 15px;
+}
+.wolt-navbar .form-control {
+    background-color: #f8f9fa !important;
+}

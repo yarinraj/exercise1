@@ -4,10 +4,12 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import FormInput from './common/FormInput';
 import BackgroundDoodles from './common/BackgroundDoodles';
 import './common/auth.css';
+import Toast from './Toast'; 
 
 const Login = ({ setUser }) => {
     const navigate = useNavigate();
-const location = useLocation();
+    const location = useLocation();
+    const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
 
     // Form state
     const [username, setUsername] = useState('');
@@ -16,12 +18,27 @@ const location = useLocation();
     // Validation and error state
     const [wasValidated, setWasValidated] = useState(false);
     const [generalError, setGeneralError] = useState('');
+
 useEffect(() => {
     setUsername('');
     setPassword('');
     setWasValidated(false);
     setGeneralError('');
 }, [location.key]);
+
+useEffect(() => {
+    if (location.state?.fromProtected) {
+        setToast({
+            show: true,
+            message: 'Authorized for logged-in users only',
+            type: 'info'
+        });
+        
+        // Clean up the history state so the message won't pop up again if the user refresh
+        window.history.replaceState({}, document.title);
+    }
+}, [location.key]);
+
     // Decode JWT payload safely
     const decodeJwtPayload = (token) => {
         const payload = token.split('.')[1];
@@ -119,9 +136,17 @@ useEffect(() => {
             setGeneralError('Login failed. Please try again.');
         }
     };
-
+    
     return (
         <div className="container register-page-container">
+            {toast.show && (
+                <Toast 
+                    message={toast.message} 
+                    type={toast.type} 
+                    onClose={() => setToast({ ...toast, show: false })} 
+                />
+            )}
+
             {/* Navigation link to the registration page */}
             <div
                 style={{
