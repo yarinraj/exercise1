@@ -12,9 +12,10 @@
       }
     </style>
     
+    
     <mask id="bite-effect">
       <rect width="512" height="512" fill="white" />
-      <circle cx="490" cy="22" r="75" fill="black" />
+      <circle cx="490" cy="22" r="125" fill="black" />
       <circle cx="445" cy="-15" r="45" fill="black" />
       <circle cx="525" cy="75" r="45" fill="black" />
     </mask>

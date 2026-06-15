@@ -5,8 +5,7 @@ const router = express.Router();
 // Import the order controller we just created
 const orderController = require('../controllers/order');
 // Import the auth middleware to protect these routes
-const authMiddleware = require('../middleware/authMiddleware');
-
+const { authMiddleware, isOwner } = require('../middleware/authMiddleware');
 // Route to handle creating a new order (POST)
 router.post('/',authMiddleware, orderController.createOrder);
 

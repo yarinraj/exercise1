@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@700&display=swap');
+
 /* central container */
 .register-main-content {
   display: flex;
@@ -6,7 +7,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 440px; 
+  max-width: 440px;
   margin: 0 auto;
   z-index: 5;
 }
@@ -14,9 +15,9 @@
 /* logo container*/
 .bites-logo-container {
   position: absolute;
-  top: 30px; 
+  top: 30px;
   left: 40px;
-  width: 130px; 
+  width: 130px;
   height: 60px;
   display: flex;
   align-items: center;
@@ -38,6 +39,7 @@
   text-align: center;
   animation: revealText15s 15s linear infinite;
 }
+
 /* delivery scooter */
 .delivery-scooter {
   position: absolute;
@@ -52,56 +54,65 @@
   display: inline-block;
   transform: scaleX(-1);
 }
+
 /* keyframes for the scooter driving across the screen and fading out */
 @keyframes driveBy15s {
   0% {
     left: -26px;
     opacity: 1;
   }
+
   16% {
     left: 130px;
     opacity: 1;
   }
-  17%, 100% {
+
+  17%,
+  100% {
     left: 150px;
     opacity: 0;
   }
 }
+
 /* keyframes for the logo text reveal - mimicking the scooter's movement and biting the logo to make it disappear */
 @keyframes revealText15s {
- 
+
   0% {
     clip-path: inset(0 100% 0 0);
     mask-image: none;
   }
+
   16% {
     clip-path: inset(0 0% 0 0);
     mask-image: none;
   }
-  
+
   83% {
     clip-path: inset(0 0% 0 0);
     mask-image: none;
   }
 
-  84%, 88% {
+  84%,
+  88% {
     clip-path: inset(0 0% 0 0);
     mask-image: radial-gradient(circle 35px at 15% 0%, transparent 99%, black 100%);
   }
 
-  89%, 93% {
+  89%,
+  93% {
     clip-path: inset(0 0% 0 0);
-   
-    mask-image: 
+
+    mask-image:
       radial-gradient(circle 35px at 15% 0%, transparent 99%, black 100%),
       radial-gradient(circle 40px at 50% 100%, transparent 99%, black 100%);
-    mask-composite: intersect; 
-    -webkit-mask-composite: destination-in; 
+    mask-composite: intersect;
+    -webkit-mask-composite: destination-in;
   }
 
-  94%, 98% {
+  94%,
+  98% {
     clip-path: inset(0 0% 0 0);
-    mask-image: 
+    mask-image:
       radial-gradient(circle 35px at 15% 0%, transparent 99%, black 100%),
       radial-gradient(circle 40px at 50% 100%, transparent 99%, black 100%),
       radial-gradient(circle 55px at 85% 50%, transparent 99%, black 100%);
@@ -114,6 +125,7 @@
     mask-image: linear-gradient(to bottom, transparent, transparent);
   }
 }
+
 /* main container */
 .register-page-container {
   position: relative;
@@ -126,11 +138,11 @@
   box-sizing: border-box;
   font-family: 'Segoe UI', Roboto, sans-serif;
   background: radial-gradient(circle farthest-corner at center,
-                            rgba(0, 194, 232, 0.30) 0%,
-                            rgba(0, 194, 232, 0.18) 30%,
-                            rgba(0, 194, 232, 0.08) 60%,
-                            rgba(0, 194, 232, 0.02) 85%,
-                            #ffffff 100%);
+      rgba(0, 194, 232, 0.30) 0%,
+      rgba(0, 194, 232, 0.18) 30%,
+      rgba(0, 194, 232, 0.08) 60%,
+      rgba(0, 194, 232, 0.02) 85%,
+      #ffffff 100%);
 }
 
 /* smooth fade-in animation for the entire page */
@@ -159,6 +171,7 @@
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   animation: fadeInUp 0.6s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
 }
+
 /* hover effect for the card - subtle lift and shadow */
 .register-card:hover {
   transform: translateY(-2px);
@@ -188,7 +201,6 @@
 
 .wolt-input-group {
   margin-bottom: 14px;
-  /* ירד מ-22px ל-14px! */
   text-align: left;
 }
 
@@ -358,4 +370,73 @@
 .register-card {
   position: relative;
   z-index: 10;
+}
+
+.role-toggle-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.custom-role-toggle {
+  position: relative;
+  display: flex;
+  background-color: #f3f3f3;
+  border-radius: 50px;
+  padding: 4px;
+  width: 100%;
+  user-select: none;
+  border: 1px solid #e2e8f0;
+}
+
+.role-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  cursor: pointer;
+  z-index: 2;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #4a5568;
+  transition: color 0.3s ease;
+}
+
+.toggle-icon {
+  font-size: 1.2rem;
+  transition: transform 0.2s ease;
+}
+
+.role-option:hover .toggle-icon {
+  transform: scale(1.15);
+}
+
+.role-option.active {
+  color: #ffffff;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: calc(50% - 4px);
+  background-color: #009de0;
+  border-radius: 40px;
+  z-index: 1;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-slider.customer {
+  transform: translateX(0);
+}
+
+.toggle-slider.owner {
+  transform: translateX(100%);
+}
+
+[dir="rtl"] .toggle-slider.owner {
+  transform: translateX(-100%);
 }

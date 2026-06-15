@@ -11,7 +11,7 @@ const validatePasswordComplexity = (password) => {
 const registerUser = async (req, res) => {
     try {
         // extracting the fields from the request body
-        const { username, password, displayName, profileImage } = req.body;
+        const { username, password, displayName, profileImage, role } = req.body;
 
         // checking if all required fields are provided
         if (!username || !password || !displayName || !profileImage) {
@@ -39,7 +39,8 @@ const registerUser = async (req, res) => {
             username,
             password: hashedPassword,
             displayName,
-            profileImage
+            profileImage,
+            role: role || 'customer' // default role is 'customer' if not provided
         });
 
         await newUser.save();
