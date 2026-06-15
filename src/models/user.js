@@ -18,7 +18,12 @@ const userSchema = new mongoose.Schema({
   profileImage: {
     type: String, // saving the image as a base64 string or a URL
     required: true // image is also required for user registration
-  }
+  },
+  role: {
+  type: String,
+  enum: ['customer', 'owner'],
+  default: 'customer'
+}
 }, { timestamps: true }); // automatically adds createdAt and updatedAt fields
 
 // creating and exporting the User model based on the userSchema
