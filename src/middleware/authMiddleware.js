@@ -31,5 +31,7 @@ const isOwner = (req, res, next) => {
   }
 };
 
-module.exports = { isOwner }; 
-module.exports = authMiddleware;
+module.exports = {
+    authMiddleware,
+    isOwner
+};
