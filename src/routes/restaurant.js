@@ -1,36 +1,52 @@
 const express = require('express');
 const router = express.Router();
-
 const restaurantController = require('../controllers/restaurant');
 
-// route for getting all the restaurants: GET/api/restaurants
+// Import the authentication and authorization middlewares
+const { authMiddleware, isOwner } = require('../middleware/authMiddleware');
+
+// Route for getting all the restaurants: GET /api/restaurants
+// Public route
 router.get('/', restaurantController.getRestaurants);
 
-// route for creating new restaurant: POST/api/restaurants
-router.post('/', restaurantController.createRestaurant);
+// Route for creating new restaurant: POST /api/restaurants
+// Protected route: Only authenticated owners can create a restaurant
+router.post('/', authMiddleware, isOwner, restaurantController.createRestaurant);
 
-// route for getting a specific restaurant: GET/api/restaurants/:id
+// Route for getting a specific restaurant: GET /api/restaurants/:id
+// Public route
 router.get('/:id', restaurantController.getRestaurantById);
 
-// route for updating a specific restaurant: PATCH/api/restaurants/:id
-router.patch('/:id', restaurantController.updateRestaurant);
+// Route for updating a specific restaurant: PATCH /api/restaurants/:id
+// Protected route: Only authenticated owners can update
+router.patch('/:id', authMiddleware, isOwner, restaurantController.updateRestaurant);
 
-// route for deleting a specific restaurant: DELETE/api/restaurants/:id
-router.delete('/:id', restaurantController.deleteRestaurant);
+// Route for deleting a specific restaurant: DELETE /api/restaurants/:id
+// Protected route: Only authenticated owners can delete
+router.delete('/:id', authMiddleware, isOwner, restaurantController.deleteRestaurant);
 
-// route for getting the menu of a specific restaurant: GET/api/restaurants/:id/products
+// Route for getting the menu of a specific restaurant: GET /api/restaurants/:id/products
+// Public route
 router.get('/:id/products', restaurantController.getRestaurantProducts);
 
-// route for adding a product to the menu of a specific restaurant: POST/api/restaurants/:id/products
-router.post('/:id/products', restaurantController.createProduct);
+// Route for adding a product to the menu of a specific restaurant: POST /api/restaurants/:id/products
+// Protected route: Only authenticated owners can add products
+router.post('/:id/products', authMiddleware, isOwner, restaurantController.createProduct);
 
-// route for getting a specific product in a specific restaurant's menu: GET/api/restaurants/:id/products/:pid
+// Route for getting a specific product in a specific restaurant's menu: GET /api/restaurants/:id/products/:pid
+// Public route
 router.get('/:id/products/:pid', restaurantController.getProductById);
 
-// route for updating a specific product in a specific restaurant's menu: PATCH/api/restaurants/:id/products/:pid
-router.patch('/:id/products/:pid', restaurantController.updateProduct);
+// Route for updating a specific product in a specific restaurant's menu: PATCH /api/restaurants/:id/products/:pid
+// Protected route: Only authenticated owners can update products
+router.patch('/:id/products/:pid', authMiddleware, isOwner, restaurantController.updateProduct);
 
-// route for deleting a specific product in a specific restaurant's menu: DELETE/api/restaurants/:id/products/:pid
-router.delete('/:id/products/:pid', restaurantController.deleteProduct);
+// Route for deleting a specific product in a specific restaurant's menu: DELETE /api/restaurants/:id/products/:pid
+// Protected route: Only authenticated owners can delete products
+router.delete('/:id/products/:pid', authMiddleware, isOwner, restaurantController.deleteProduct);
+
+// Route for searching across restaurants and products: GET /api/restaurants/search/:query
+// Public route
+router.get('/search/:query', restaurantController.searchItems);
 
 module.exports = router;

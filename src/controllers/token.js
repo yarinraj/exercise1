@@ -42,7 +42,8 @@ const createToken = async (req, res) => {
         const token = jwt.sign(
             {
                 userId: user._id,
-                username: user.username
+                username: user.username,
+                role: user.role
             },
             'my_super_secret_key'
         );
@@ -53,7 +54,8 @@ const createToken = async (req, res) => {
             user: {
                 username: user.username,
                 displayName: user.displayName,
-                profileImage: user.profileImage
+                profileImage: user.profileImage,
+                role: user.role
             }
         });
 

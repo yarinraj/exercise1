@@ -1,105 +1,182 @@
 const Restaurant = require('../models/restaurant');
 
-/**
- * getting all the resturants
- */
-const getAllRestaurants = () => {
-    return Restaurant.getAll();
+// Getting all the restaurants
+const getAllRestaurants = async () => {
+    return await Restaurant.find();
 };
 
-/**
- * @param {Object} restaurantData - the data from the request
- */
-const createRestaurant = (restaurantData) => {
+// Creating a new restaurant, attaching the ownerId
+const createRestaurant = async (restaurantData, ownerId) => {
     if (!restaurantData || !restaurantData.name || restaurantData.name.trim() === "") {
         throw new Error("Name is required");
     }
     
-    // data is valid -> sending the data to the model so it'll make the object with the id
-    return Restaurant.create(restaurantData);
+    const newRestaurant = new Restaurant({
+        ...restaurantData,
+        ownerId
+    });
+    
+    return await newRestaurant.save();
 };
 
-// getting a resturant by ID
-const getRestaurantById = (id) => {
-    const restaurant = Restaurant.getById(id);
+// Getting a restaurant by ID
+const getRestaurantById = async (id) => {
+    const restaurant = await Restaurant.findById(id);
     if (!restaurant) {
         throw new Error("Not Found");
     }
     return restaurant;
 };
 
-// updating restaurant
-const updateRestaurant = (id, updatedData) => {
+// Updating a restaurant - strictly requires ownerId
+const updateRestaurant = async (id, updatedData, ownerId) => {
     if (!updatedData) {
         throw new Error("Invalid data");
     }
-    const restaurant = Restaurant.update(id, updatedData);
+    
+    // findOneAndUpdate with ownerId ensures only the creator can edit
+    const restaurant = await Restaurant.findOneAndUpdate(
+        { _id: id, ownerId: ownerId },
+        updatedData,
+        { new: true } // Returns the updated document
+    );
+    
     if (!restaurant) {
-        throw new Error("Not Found");
+        throw new Error("Not Found or Unauthorized");
     }
     return restaurant;
 };
 
-// deleting restaurant
-const deleteRestaurant = (id) => {
-    const isDeleted = Restaurant.remove(id);
+// Deleting a restaurant - strictly requires ownerId
+const deleteRestaurant = async (id, ownerId) => {
+    const isDeleted = await Restaurant.findOneAndDelete({ _id: id, ownerId: ownerId });
     if (!isDeleted) {
-        throw new Error("Not Found");
+        throw new Error("Not Found or Unauthorized");
     }
     return true;
 };
 
-// getting a menu of a restaurant
-const getRestaurantProducts = (restaurantId) => {
-    const products = Restaurant.getProducts(restaurantId);
-    if (!products) {
+// Getting the menu (products) of a restaurant
+const getRestaurantProducts = async (restaurantId) => {
+    const restaurant = await Restaurant.findById(restaurantId);
+    if (!restaurant) {
         throw new Error("Not Found");
     }
-    return products;
+    return restaurant.products;
 };
 
-// adding a product to a restaurant
-const addProductToRestaurant = (restaurantId, productData) => {
+// Adding a product to a restaurant - strictly requires ownerId
+const addProductToRestaurant = async (restaurantId, productData, ownerId) => {
     if (!productData || !productData.name) {
         throw new Error("Invalid product data");
     }
 
-    const newProduct = Restaurant.addProduct(restaurantId, productData);
-    if (!newProduct) {
-        throw new Error("Not Found");
+    const restaurant = await Restaurant.findOne({ _id: restaurantId, ownerId: ownerId });
+    if (!restaurant) {
+        throw new Error("Not Found or Unauthorized");
     }
-    return newProduct;
+
+    restaurant.products.push(productData);
+    await restaurant.save();
+    
+    // Return the newly added product (the last one in the array)
+    return restaurant.products[restaurant.products.length - 1];
 };
 
-// getting a specific product from a specific restaurant
-const getProductFromRestaurant = (restaurantId, productId) => {
-    const product = Restaurant.getProductById(restaurantId, productId);
+// Getting a specific product from a specific restaurant
+const getProductFromRestaurant = async (restaurantId, productId) => {
+    const restaurant = await Restaurant.findById(restaurantId);
+    if (!restaurant) {
+        throw new Error("Not Found");
+    }
+    
+    // Mongoose allows searching subdocuments by ID
+    const product = restaurant.products.id(productId);
     if (!product) {
         throw new Error("Not Found");
     }
     return product;
 };
 
-// updating a specific product from a specific restaurant
-const updateRestaurantProduct = (restaurantId, productId, updatedProductData) => {
-    const updatedProduct = Restaurant.updateProduct(restaurantId, productId, updatedProductData);
-    if (!updatedProduct) {
+// Updating a specific product - strictly requires ownerId
+const updateRestaurantProduct = async (restaurantId, productId, updatedProductData, ownerId) => {
+    const restaurant = await Restaurant.findOne({ _id: restaurantId, ownerId: ownerId });
+    if (!restaurant) {
+        throw new Error("Not Found or Unauthorized");
+    }
+
+    const product = restaurant.products.id(productId);
+    if (!product) {
         throw new Error("Not Found");
     }
-    return updatedProduct;
+
+    // Update product fields
+    Object.assign(product, updatedProductData);
+    await restaurant.save();
+    return product;
 };
 
-// deleting a specific product from a specific restaurant
-const deleteRestaurantProduct = (restaurantId, productId) => {
-    const isDeleted = Restaurant.removeProduct(restaurantId, productId);
-    if (!isDeleted) {
+// Deleting a specific product - strictly requires ownerId
+const deleteRestaurantProduct = async (restaurantId, productId, ownerId) => {
+    const restaurant = await Restaurant.findOne({ _id: restaurantId, ownerId: ownerId });
+    if (!restaurant) {
+        throw new Error("Not Found or Unauthorized");
+    }
+
+    const product = restaurant.products.id(productId);
+    if (!product) {
         throw new Error("Not Found");
     }
+
+    // Remove the subdocument
+    product.deleteOne();
+    await restaurant.save();
     return true;
 };
-//search func 
-const search = (query) => {
-    return Restaurant.search(query); 
+
+// Search function across restaurants and products
+const search = async (query) => {
+    const regex = new RegExp(query, 'i'); // Case insensitive regex
+    
+    // Find all restaurants where either the restaurant or its products match the query
+    const dbRestaurants = await Restaurant.find({
+        $or: [
+            { name: regex },
+            { description: regex },
+            { 'products.name': regex },
+            { 'products.description': regex }
+        ]
+    });
+
+    const results = { 
+        restaurants: [],
+        products: []
+    };
+    
+    const lowerCaseQuery = query.toLowerCase();
+
+    // Reconstruct the exact return structure the frontend expects
+    dbRestaurants.forEach(restaurant => {
+        const matchRestaurantName = restaurant.name?.toLowerCase().includes(lowerCaseQuery);
+        const matchRestaurantDesc = restaurant.description?.toLowerCase().includes(lowerCaseQuery);
+        
+        if (matchRestaurantName || matchRestaurantDesc) {
+            results.restaurants.push(restaurant);
+        }
+        
+        if (restaurant.products && Array.isArray(restaurant.products)) {
+            restaurant.products.forEach(product => {
+                const matchProductName = product.name?.toLowerCase().includes(lowerCaseQuery);
+                const matchProductDesc = product.description?.toLowerCase().includes(lowerCaseQuery);
+
+                if (matchProductName || matchProductDesc) {
+                    results.products.push(product);
+                }
+            });
+        }
+    });
+
+    return results;
 };
 
 module.exports = {
@@ -114,5 +191,4 @@ module.exports = {
     updateRestaurantProduct,
     deleteRestaurantProduct,
     search 
-
 };
