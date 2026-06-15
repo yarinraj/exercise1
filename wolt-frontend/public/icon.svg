@@ -5,7 +5,7 @@
       
       .logo-text {
         font-family: 'Fredoka', sans-serif;
-        font-size: 160px; 
+        font-size: 175px; 
         font-weight: 700;
         fill: #FFFFFF;
         text-anchor: middle;
@@ -15,7 +15,7 @@
     
     <mask id="bite-effect">
       <rect width="512" height="512" fill="white" />
-      <circle cx="490" cy="22" r="150" fill="black" />
+      <circle cx="490" cy="22" r="125" fill="black" />
       <circle cx="445" cy="-15" r="45" fill="black" />
       <circle cx="525" cy="75" r="45" fill="black" />
     </mask>
