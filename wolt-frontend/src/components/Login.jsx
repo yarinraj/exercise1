@@ -124,6 +124,7 @@ useEffect(() => {
                 username: userData.username,
                 displayName: userData.displayName,
                 profileImage: userData.profileImage,
+                role: userData.role
             };
 
             // Store the full user locally and update the app state
