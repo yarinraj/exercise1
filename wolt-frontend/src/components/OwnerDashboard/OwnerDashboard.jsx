@@ -75,17 +75,26 @@ const OwnerDashboard = () => {
                             restaurant.map((res) => (
                                 <div key={res._id} className="col-md-4 mb-3">
                                     <div className="card h-100 border-0 shadow-sm">
+                                        
+                                        {/* Dynamic Image Rendering */}
+                                        {/* Uses the app logo (/icon.svg) with tailored styling if the image is missing */}
                                         <img
-                                            src={res.image}
+                                            src={(res.image && res.image.trim() !== '') ? res.image : '/icon.svg'}
                                             className="card-img-top"
                                             alt={res.name}
-                                            style={{ height: '150px', objectFit: 'cover' }}
+                                            style={{ 
+                                                height: '150px', 
+                                                objectFit: (res.image && res.image.trim() !== '') ? 'cover' : 'contain',
+                                                backgroundColor: (res.image && res.image.trim() !== '') ? 'transparent' : '#f8f9fa',
+                                                padding: (res.image && res.image.trim() !== '') ? '0' : '20px'
+                                            }}
                                         />
+                                        
                                         <div className="card-body">
                                             <h5 className="card-title">{res.name}</h5>
                                             <p className="card-text text-muted">{res.cuisine}</p>
 
-                                            {/* Action buttons for Edit and Delete */}
+                                            {/* Action buttons for Edit, Menu, and Delete */}
                                             <div className="d-flex justify-content-between align-items-center mt-3">
                                                 <button
                                                     className="btn btn-sm btn-outline-primary rounded-pill px-3"

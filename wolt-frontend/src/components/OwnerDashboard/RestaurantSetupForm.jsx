@@ -1,216 +1,137 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import FormInput from '../common/FormInput';
 import BackgroundDoodles from '../common/BackgroundDoodles';
-import { useNavigate } from 'react-router-dom';
+
 /**
  * RestaurantSetupForm Component
- * Allows restaurant owners to register their business details, including location and cover image.
+ * Form to create a new restaurant. Coordinates (lat, lng) are now strictly required.
  */
 const RestaurantSetupForm = () => {
-  // Initial state for all restaurant fields
-  const [formData, setFormData] = useState({
-    name: '',
-    cuisine: '',
-    description: '',
-    phone: '',
-    address: '',
-    image: '',
-    lat: '',
-    lng: ''
-  });
-const navigate = useNavigate();
-  // Track touched fields for real-time validation feedback
-  const [touched, setTouched] = useState({});
-  const [statusMessage, setStatusMessage] = useState('');
+    const navigate = useNavigate();
 
-  // Handle changes in input fields
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value
-    }));
-  };
+    // State to manage form inputs
+    const [formData, setFormData] = useState({
+        name: '',
+        address: '',
+        cuisine: '',
+        description: '', // Optional
+        phone: '',       // Optional
+        image: '',       // Optional
+        lat: '',         // Required coordinate
+        lng: ''          // Required coordinate
+    });
 
-  // Mark field as touched when user focuses out of it
-  const handleBlur = (e) => {
-    const { name } = e.target;
-    setTouched((prev) => ({
-      ...prev,
-      [name]: true
-    }));
-  };
+    const [statusMessage, setStatusMessage] = useState({ text: '', type: '' });
 
-  // Basic validation logic
-  const isFieldValid = (fieldName) => {
-    const value = formData[fieldName];
-    if (fieldName === 'image') return value.startsWith('http');
-    return value && value.trim() !== '';
-  };
+    // Handle input changes dynamically
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
 
-  // Submit form data to the backend API
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    // Handle form submission with validation
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-    // 1. Validation: Check if every field in formData has a non-empty value
-    const isFormValid = Object.values(formData).every((value) => 
-      typeof value === 'string' ? value.trim() !== '' : value !== ''
-    );
+        // 1. Validate strictly required fields, now including lat and lng
+        if (!formData.name || !formData.address || !formData.cuisine || formData.lat === '' || formData.lng === '') {
+            setStatusMessage({ text: '❌ Please fill in all required fields (Name, Address, Cuisine, Latitude, Longitude)!', type: 'alert-danger' });
+            return;
+        }
 
-    // 2. If form is not valid, trigger "touched" for all fields and stop
-    if (!isFormValid) {
-      const allTouched = Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {});
-      setTouched(allTouched);
-      setStatusMessage('❌ Please fill in all fields correctly before creating the restaurant.');
-      return;
-    }
+        // 2. Validate Image URL ONLY if the user provided one
+        if (formData.image) {
+            const urlPattern = /^(https?:\/\/)/i;
+            if (!urlPattern.test(formData.image)) {
+                setStatusMessage({ text: '❌ Please enter a valid URL starting with http:// or https://', type: 'alert-danger' });
+                return;
+            }
+        }
 
-    // 3. Proceed only if valid
-    setStatusMessage('Creating restaurant...');
+        // 3. Prepare payload, parsing coordinates to numbers for Mongoose
+        const payload = { ...formData };
+        payload.lat = parseFloat(payload.lat);
+        payload.lng = parseFloat(payload.lng);
 
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setStatusMessage('Error: You are not logged in!');
-      return;
-    }
+        try {
+            setStatusMessage({ text: 'Creating restaurant...', type: 'alert-info' });
+            const token = localStorage.getItem('token');
 
-    try {
-      // Prepare data, ensuring coordinates are parsed as numbers
-      const dataToSend = {
-        ...formData,
-        lat: parseFloat(formData.lat) || 0,
-        lng: parseFloat(formData.lng) || 0,
-        isPromoted: false
-      };
+            // Send POST request to the backend
+            const response = await fetch(`http://localhost:8080/api/restaurants`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
 
-      const response = await fetch('http://localhost:8080/api/restaurants', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(dataToSend)
-      });
+            if (response.ok) {
+                setStatusMessage({ text: '✅ Restaurant created successfully!', type: 'alert-success' });
+                // Redirect to owner dashboard
+                setTimeout(() => navigate('/owner/dashboard'), 500);
+            } else {
+                const errorData = await response.json();
+                setStatusMessage({ text: `❌ ${errorData.error || 'Failed to create restaurant'}`, type: 'alert-danger' });
+            }
+        } catch (error) {
+            setStatusMessage({ text: '❌ Server error, please try again later.', type: 'alert-danger' });
+        }
+    };
 
-      if (response.status === 201) {
-        setStatusMessage('✅ Restaurant created successfully!');
-        setTimeout(() => {
-          navigate('/owner/dashboard');
-        }, 500);
-      } else {
-        const errorData = await response.json();
-        setStatusMessage(`❌ Error: ${errorData.message || errorData.error}`);
-      }
-    } catch (error) {
-      console.error('Submit error:', error);
-      setStatusMessage('❌ Network error occurred.');
-    }
-  };
+    return (
+        <div className="register-page-container min-vh-100 py-5">
+            <BackgroundDoodles />
+            <div className="container position-relative">
+                <div className="row justify-content-center">
+                    <div className="col-12 col-md-8 col-lg-6">
 
-  return (
-    // Relative wrapper for the background doodles
-    <div className="register-page-container min-vh-100 py-5">
-      <BackgroundDoodles />
+                        <div className="text-center mb-4">
+                            <h2 className="fw-bold">Create Your Restaurant</h2>
+                            <p className="text-muted">Fields marked with * are required. Add optional details to stand out!</p>
+                        </div>
 
-      <div className="container position-relative">
-        <div className="row justify-content-center">
-          <div className="col-12 col-md-8 col-lg-6">
-            
-            <div className="text-center mb-4">
-              <h2 className="fw-bold">Restaurant Setup</h2>
-              <p className="text-muted">Enter your restaurant details to get started.</p>
-            </div>
+                        <div className="card shadow-sm border-0 rounded-4 p-4 p-md-5">
+                            <form onSubmit={handleSubmit} noValidate>
+                                {/* Required Fields */}
+                                <FormInput name="name" label="Restaurant Name *" type="text" value={formData.name} onChange={handleChange} required={true} />
+                                <FormInput name="address" label="Address *" type="text" value={formData.address} onChange={handleChange} required={true} />
+                                <FormInput name="cuisine" label="Cuisine Type *" type="text" value={formData.cuisine} onChange={handleChange} required={true} />
 
-            <div className="card shadow-sm border-0 rounded-4 p-4 p-md-5">
-              <form onSubmit={handleSubmit} noValidate>
-                
-                {/* Standard text inputs using custom FormInput component */}
-                <FormInput
-                  name="name" label="Restaurant Name" type="text"
-                  value={formData.name} onChange={handleChange} onBlur={handleBlur}
-                  placeholder="e.g., best restaurant" required={true}
-                  wasValidated={touched.name} isValid={isFieldValid('name')}
-                  errorFeedback="Please enter a valid restaurant name."
-                />
+                                {/* Location Coordinates (Now Required) */}
+                                <div className="row">
+                                    <div className="col-6">
+                                        <FormInput name="lat" label="Latitude *" type="number" step="any" value={formData.lat} onChange={handleChange} placeholder="e.g., 32.0853" required={true} />
+                                    </div>
+                                    <div className="col-6">
+                                        <FormInput name="lng" label="Longitude *" type="number" step="any" value={formData.lng} onChange={handleChange} placeholder="e.g., 34.7818" required={true} />
+                                    </div>
+                                </div>
 
-                <FormInput
-                  name="cuisine" label="Cuisine Type" type="text"
-                  value={formData.cuisine} onChange={handleChange} onBlur={handleBlur}
-                  placeholder="e.g., American, Italian" required={true}
-                  wasValidated={touched.cuisine} isValid={isFieldValid('cuisine')}
-                  errorFeedback="Cuisine type is required."
-                />
+                                {/* Optional Fields */}
+                                <FormInput name="description" label="Description (Optional)" type="text" value={formData.description} onChange={handleChange} required={false} />
+                                <FormInput name="phone" label="Phone Number (Optional)" type="text" value={formData.phone} onChange={handleChange} required={false} />
+                                <FormInput name="image" label="Cover Image URL (Optional)" type="url" value={formData.image} onChange={handleChange} placeholder="https://example.com/cover.jpg" required={false} />
 
-                {/* Manual textarea for description */}
-                <div className="wolt-input-group mb-3">
-                  <label className="wolt-label">Description</label>
-                  <textarea 
-                    className={`wolt-input ${touched.description ? (isFieldValid('description') ? 'is-wolt-valid' : 'is-wolt-invalid') : ''}`}
-                    name="description" rows="3" value={formData.description} 
-                    onChange={handleChange} onBlur={handleBlur}
-                    placeholder="Tell us about your restaurant" required
-                  ></textarea>
+                                <button type="submit" className="btn btn-primary w-100 rounded-pill fw-bold py-2 mt-3">
+                                    Create Restaurant
+                                </button>
+                            </form>
+
+                            {/* Status feedback message */}
+                            {statusMessage.text && (
+                                <div className={`alert mt-4 text-center rounded-3 ${statusMessage.type}`} role="alert">
+                                    {statusMessage.text}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
-
-                <FormInput
-                  name="phone" label="Phone Number" type="tel"
-                  value={formData.phone} onChange={handleChange} onBlur={handleBlur}
-                  placeholder="e.g., 0501234567" required={true}
-                  wasValidated={touched.phone} isValid={isFieldValid('phone')}
-                />
-
-                <FormInput
-                  name="address" label="Address" type="text"
-                  value={formData.address} onChange={handleChange} onBlur={handleBlur}
-                  placeholder="e.g., Tel Aviv" required={true}
-                  wasValidated={touched.address} isValid={isFieldValid('address')}
-                />
-
-                {/* Coordinate inputs */}
-                <FormInput
-                  name="lat" label="Latitude" type="number"
-                  value={formData.lat} onChange={handleChange} onBlur={handleBlur}
-                  placeholder="e.g., 32.0697" required={true}
-                  wasValidated={touched.lat} isValid={formData.lat !== ''}
-                />
-
-                <FormInput
-                  name="lng" label="Longitude" type="number"
-                  value={formData.lng} onChange={handleChange} onBlur={handleBlur}
-                  placeholder="e.g., 34.8010" required={true}
-                  wasValidated={touched.lng} isValid={formData.lng !== ''}
-                />
-
-                {/* Image URL input */}
-                <FormInput
-                  name="image" label="Image URL" type="url"
-                  value={formData.image} onChange={handleChange} onBlur={handleBlur}
-                  placeholder="https://example.com/image.jpg" required={true}
-                  wasValidated={touched.image} isValid={isFieldValid('image')}
-                  errorFeedback="Please enter a valid image URL."
-                />
-
-                <button type="submit" className="btn btn-primary w-100 rounded-pill fw-bold py-2 mt-3">
-                  Create Restaurant
-                </button>
-              </form>
-
-              {/* Status message area */}
-              {statusMessage && (
-                <div className={`alert mt-4 text-center rounded-3 ${
-                  statusMessage.includes('✅') ? 'alert-success' : 
-                  statusMessage.includes('❌') ? 'alert-danger' : 
-                  'alert-info' 
-                }`} role="alert">
-                  {statusMessage}
-                </div>
-              )}
             </div>
-          </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default RestaurantSetupForm;

@@ -3,11 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import BackgroundDoodles from '../common/BackgroundDoodles';
 import '../common/auth.css';
 
+/**
+ * RestaurantMenuManager Component
+ * Lists all dishes for a restaurant. Uses the app's logo as a fallback image.
+ */
 const RestaurantMenuManager = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
 
+    // Fetch all products on component mount
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -22,6 +27,7 @@ const RestaurantMenuManager = () => {
         fetchProducts();
     }, [id]);
 
+    // Handle product deletion
     const handleDeleteProduct = async (productId) => {
         if (!window.confirm("Are you sure you want to delete this dish?")) return;
 
@@ -33,6 +39,7 @@ const RestaurantMenuManager = () => {
             });
 
             if (response.ok) {
+                // Remove product from local state upon successful deletion
                 setProducts(products.filter(p => p._id !== productId));
             }
         } catch (error) {
@@ -46,7 +53,7 @@ const RestaurantMenuManager = () => {
             <div className="container position-relative">
                 <div className="row justify-content-center">
                     <div className="col-12 col-md-10 col-lg-8">
-                        
+
                         <div className="text-center mb-4">
                             <h1 className="fw-bold">Menu Management</h1>
                             <p className="text-muted">Manage the dishes available at your restaurant.</p>
@@ -67,15 +74,25 @@ const RestaurantMenuManager = () => {
                                 {products.length > 0 ? (
                                     products.map(product => (
                                         <div key={product._id} className="list-group-item d-flex justify-content-between align-items-center py-3 bg-transparent border-bottom">
-                                            
-                                           
+
                                             <div className="d-flex align-items-center">
-                                                
-                                                <img 
-                                                    src={product.image || 'https://via.placeholder.com/60?text=No+Image'} 
-                                                    alt={product.name} 
-                                                    className="rounded-3 me-3" 
-                                                    style={{ width: '60px', height: '60px', objectFit: 'cover', border: '1px solid #eaeaea' }} 
+
+                                                {/* Dish Image - Uses the app logo (/icon.svg) from the public folder 
+                                                    as a fallback if the product.image field is empty.
+                                                    The style uses objectFit: 'contain' to prevent the SVG from being cropped.
+                                                */}
+                                                <img
+                                                    src={(product.image && product.image.trim() !== '') ? product.image : '/icon.svg'}
+                                                    alt={product.name}
+                                                    className="rounded-3 me-3"
+                                                    style={{
+                                                        width: '60px',
+                                                        height: '60px',
+                                                        objectFit: 'contain',
+                                                        border: '1px solid #eaeaea',
+                                                        backgroundColor: '#f8f9fa',
+                                                        padding: '5px'
+                                                    }}
                                                 />
                                                 <div>
                                                     <h5 className="mb-1 fw-bold" style={{ color: 'inherit' }}>{product.name}</h5>
