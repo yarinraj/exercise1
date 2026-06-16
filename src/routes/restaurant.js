@@ -13,6 +13,18 @@ router.get('/', restaurantController.getRestaurants);
 // Protected route: Only authenticated owners can create a restaurant
 router.post('/', authMiddleware, isOwner, restaurantController.createRestaurant);
 
+// IMPORTANT: specific routes must come before /:id routes
+// Route for getting restaurants owned by the logged-in owner
+router.get(
+  '/my-restaurants',
+  authMiddleware,
+  isOwner,
+  restaurantController.getMyRestaurants
+);
+
+// Route for searching across restaurants and products
+router.get('/search/:query', restaurantController.searchItems);
+
 // Route for getting a specific restaurant: GET /api/restaurants/:id
 // Public route
 router.get('/:id', restaurantController.getRestaurantById);
@@ -44,9 +56,5 @@ router.patch('/:id/products/:pid', authMiddleware, isOwner, restaurantController
 // Route for deleting a specific product in a specific restaurant's menu: DELETE /api/restaurants/:id/products/:pid
 // Protected route: Only authenticated owners can delete products
 router.delete('/:id/products/:pid', authMiddleware, isOwner, restaurantController.deleteProduct);
-
-// Route for searching across restaurants and products: GET /api/restaurants/search/:query
-// Public route
-router.get('/search/:query', restaurantController.searchItems);
 
 module.exports = router;

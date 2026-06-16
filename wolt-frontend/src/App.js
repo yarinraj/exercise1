@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import RestaurantFeed from "./components/RestaurantFeed";
 import HomePage from './components/HomePage';
 import RestaurantSetupForm from './components/OwnerDashboard/RestaurantSetupForm';
+import OwnerDashboard from './components/OwnerDashboard/OwnerDashboard';
 
 // Sub-component to handle conditional Navbar rendering based on the active path
 const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
@@ -18,6 +19,7 @@ const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
   // Routes where the Navbar should be completely hidden
   const authRoutes = ['/login', '/register', '/signup'];
   const shouldHideNavbar = authRoutes.includes(currentPath);
+
 
   return (
     <>
@@ -80,6 +82,8 @@ return (
                 
                 {/* --- new route for owner--- */}
                 <Route path="/owner/setup" element={<RestaurantSetupForm />} />
+
+                <Route path="/owner/dashboard" element={<OwnerDashboard />} />
             </Route>
             
             {/* a 404 page for unknown routes*/}

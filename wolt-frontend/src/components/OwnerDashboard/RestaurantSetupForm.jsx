@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import FormInput from '../common/FormInput';
 import BackgroundDoodles from '../common/BackgroundDoodles';
-
+import { useNavigate } from 'react-router-dom';
 /**
  * RestaurantSetupForm Component
  * Allows restaurant owners to register their business details, including location and cover image.
@@ -18,7 +18,7 @@ const RestaurantSetupForm = () => {
     lat: '',
     lng: ''
   });
-
+const navigate = useNavigate();
   // Track touched fields for real-time validation feedback
   const [touched, setTouched] = useState({});
   const [statusMessage, setStatusMessage] = useState('');
@@ -52,10 +52,20 @@ const RestaurantSetupForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate all fields upon submission
-    const allTouched = Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {});
-    setTouched(allTouched);
+    // 1. Validation: Check if every field in formData has a non-empty value
+    const isFormValid = Object.values(formData).every((value) => 
+      typeof value === 'string' ? value.trim() !== '' : value !== ''
+    );
 
+    // 2. If form is not valid, trigger "touched" for all fields and stop
+    if (!isFormValid) {
+      const allTouched = Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {});
+      setTouched(allTouched);
+      setStatusMessage('❌ Please fill in all fields correctly before creating the restaurant.');
+      return;
+    }
+
+    // 3. Proceed only if valid
     setStatusMessage('Creating restaurant...');
 
     const token = localStorage.getItem('token');
@@ -84,6 +94,9 @@ const RestaurantSetupForm = () => {
 
       if (response.status === 201) {
         setStatusMessage('✅ Restaurant created successfully!');
+        setTimeout(() => {
+          navigate('/owner/dashboard');
+        }, 500);
       } else {
         const errorData = await response.json();
         setStatusMessage(`❌ Error: ${errorData.message || errorData.error}`);
