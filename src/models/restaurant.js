@@ -15,6 +15,18 @@ const productSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 0
+    },
+    image: {
+        type: String,
+        required: false, // Optional field
+        trim: true,
+        validate: {
+            validator: function(v) {
+                // Only validate if the user actually provided a URL
+                return !v || /^(https?:\/\/)/.test(v);
+            },
+            message: props => `${props.value} is not a valid image URL!`
+        }
     }
 });
 
@@ -26,6 +38,10 @@ const restaurantSchema = new mongoose.Schema({
         trim: true
     },
     cuisine: {
+        type: String,
+        trim: true
+    },
+    image: {              
         type: String,
         trim: true
     },
@@ -42,10 +58,12 @@ const restaurantSchema = new mongoose.Schema({
         trim: true
     },
     lat: {
-        type: Number
+        type: Number,
+        required: true // Now strictly required
     },
     lng: {
-        type: Number
+        type: Number,
+        required: true // Now strictly required
     },
     isPromoted: {
         type: Boolean,

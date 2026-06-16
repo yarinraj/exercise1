@@ -184,3 +184,51 @@ body.dark-theme .theme-toggle .knob {
 .wolt-navbar .form-control {
     background-color: #f8f9fa !important;
 }
+/* Dark mode form card adjustments */
+body.dark-theme .card {
+    background-color: #12192A !important; 
+    border: 1px solid #1E293B !important;
+    color: #EAF0FF !important;
+}
+
+/* Dark mode inputs adjustments */
+body.dark-theme .form-control {
+    background-color: #0B1020 !important;
+    color: #EAF0FF !important;
+    border: 1px solid #1E293B !important;
+}
+
+/* Dark mode labels adjustments */
+body.dark-theme label {
+    color: #A0AEC0 !important;
+}
+
+/* Fix placeholders in dark mode */
+body.dark-theme .form-control::placeholder {
+    color: #4A5568 !important;
+}
+/* Dark mode text readability fixes */
+body.dark-theme .card-title, 
+body.dark-theme .restaurant-name {
+    color: #ffffff !important; 
+}
+
+body.dark-theme .cuisine-tag {
+    color: #00c2e8 !important; 
+}
+
+body.dark-theme .card-text, 
+body.dark-theme .restaurant-details {
+    color: #b0b8c6 !important; 
+}
+
+/* Fix for icons if they look dark */
+body.dark-theme .fa, 
+body.dark-theme .icon {
+    color: #8899a6 !important;
+}
+/* Fix for dark mode subtitle readability */
+body.dark-theme .restaurant-setup-subtitle,
+body.dark-theme p {
+    color: #a0aec0 !important; 
+}

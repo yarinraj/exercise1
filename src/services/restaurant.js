@@ -178,6 +178,9 @@ const search = async (query) => {
 
     return results;
 };
+const getMyRestaurants = async (ownerId) => {
+    return await Restaurant.find({ ownerId: ownerId });
+};
 
 module.exports = {
     getAllRestaurants,
@@ -190,5 +193,6 @@ module.exports = {
     getProductFromRestaurant,
     updateRestaurantProduct,
     deleteRestaurantProduct,
-    search 
+    search,
+    getMyRestaurants
 };

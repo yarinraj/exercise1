@@ -1,6 +1,8 @@
 const restaurantService = require('../services/restaurant');
 const cppGateway = require('../services/cppGateway');
+const Restaurant = require('../models/restaurant');
 const userService = require('../services/user');
+
 
 /**
  * Dealing with the request: GET /api/restaurants
@@ -53,6 +55,7 @@ const getRestaurantById = async (req, res) => {
  * Updating fields of an existing restaurant
  */
 const updateRestaurant = async (req, res) => {
+    console.log("User ID from token:", req.user);
     try {
         const { phone } = req.body;
         // Phone number validation        
@@ -258,6 +261,16 @@ const searchItems = async (req, res) => {
         return res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
 };
+const getMyRestaurants = async (req, res) => {
+    try {
+       
+        const ownerId = req.user.userId || req.user.id; 
+        const restaurants = await Restaurant.find({ ownerId: ownerId });
+        res.status(200).json(restaurants);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching your restaurants", error });
+    }
+};
 
 module.exports = {
     getRestaurants,
@@ -270,5 +283,6 @@ module.exports = {
     getProductById,
     updateProduct,
     deleteProduct, 
-    searchItems
+    searchItems,
+    getMyRestaurants
 };
