@@ -9,7 +9,8 @@ const AddDishForm = () => {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        price: ''
+        price: '',
+        image: ''
     });
 
     const [statusMessage, setStatusMessage] = useState({ text: '', type: '' });
@@ -22,7 +23,7 @@ const AddDishForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!formData.name || !formData.description || !formData.price) {
+        if (!formData.name || !formData.description || !formData.price||!formData.image) {
             setStatusMessage({ text: '❌ Please fill in all required fields!', type: 'alert-danger' });
             return;
         }
@@ -72,7 +73,7 @@ const AddDishForm = () => {
                                 <FormInput name="name" label="Dish Name" type="text" value={formData.name} onChange={handleChange} required={true} />
                                 <FormInput name="description" label="Description" type="text" value={formData.description} onChange={handleChange} required={true} />
                                 <FormInput name="price" label="Price (₪)" type="number" value={formData.price} onChange={handleChange} required={true} />
-                                
+                                <FormInput name="image" label="Image URL" type="url" value={formData.image} onChange={handleChange} placeholder="https://..." required={true} />
                                 <button type="submit" className="btn btn-primary w-100 rounded-pill fw-bold py-2 mt-3">
                                     Add Dish
                                 </button>

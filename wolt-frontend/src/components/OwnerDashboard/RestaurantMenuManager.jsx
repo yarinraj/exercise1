@@ -3,16 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import BackgroundDoodles from '../common/BackgroundDoodles';
 import '../common/auth.css';
 
-/**
- * RestaurantMenuManager Component
- * Allows owners to view, edit, add, or delete menu items for a specific restaurant.
- */
 const RestaurantMenuManager = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
 
-    // Fetch all products for the selected restaurant
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -27,7 +22,6 @@ const RestaurantMenuManager = () => {
         fetchProducts();
     }, [id]);
 
-    // Function to handle product deletion
     const handleDeleteProduct = async (productId) => {
         if (!window.confirm("Are you sure you want to delete this dish?")) return;
 
@@ -39,7 +33,6 @@ const RestaurantMenuManager = () => {
             });
 
             if (response.ok) {
-                // Remove product from state to update UI immediately
                 setProducts(products.filter(p => p._id !== productId));
             }
         } catch (error) {
@@ -53,14 +46,12 @@ const RestaurantMenuManager = () => {
             <div className="container position-relative">
                 <div className="row justify-content-center">
                     <div className="col-12 col-md-10 col-lg-8">
-
-                        {/* Title Section - Removed explicit text-dark so CSS can handle it naturally */}
+                        
                         <div className="text-center mb-4">
                             <h1 className="fw-bold">Menu Management</h1>
                             <p className="text-muted">Manage the dishes available at your restaurant.</p>
                         </div>
 
-                        {/* Card Section */}
                         <section className="card p-4 p-md-5 shadow-sm border-0 rounded-4">
                             <div className="d-flex justify-content-between align-items-center mb-4">
                                 <h3 className="fw-bold m-0">Dishes</h3>
@@ -76,11 +67,22 @@ const RestaurantMenuManager = () => {
                                 {products.length > 0 ? (
                                     products.map(product => (
                                         <div key={product._id} className="list-group-item d-flex justify-content-between align-items-center py-3 bg-transparent border-bottom">
-                                            <div>
-                                               
-                                                <h5 className="mb-1 fw-bold bites-dish-name">{product.name}</h5>
-                                                <small className="bites-dish-price">{product.price} ₪</small>
+                                            
+                                           
+                                            <div className="d-flex align-items-center">
+                                                
+                                                <img 
+                                                    src={product.image || 'https://via.placeholder.com/60?text=No+Image'} 
+                                                    alt={product.name} 
+                                                    className="rounded-3 me-3" 
+                                                    style={{ width: '60px', height: '60px', objectFit: 'cover', border: '1px solid #eaeaea' }} 
+                                                />
+                                                <div>
+                                                    <h5 className="mb-1 fw-bold" style={{ color: 'inherit' }}>{product.name}</h5>
+                                                    <small className="text-muted">{product.price} ₪</small>
+                                                </div>
                                             </div>
+
                                             <div className="d-flex">
                                                 <button
                                                     className="btn btn-sm btn-outline-primary rounded-pill me-2 px-3"
@@ -106,7 +108,6 @@ const RestaurantMenuManager = () => {
                         </section>
 
                         <div className="mt-4 text-center">
-                            {/* Back button - explicitly set to inherit color so it works with dark mode override */}
                             <button
                                 className="btn btn-link text-decoration-none fw-bold"
                                 style={{ color: 'inherit' }}

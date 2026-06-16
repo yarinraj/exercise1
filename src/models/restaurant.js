@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Schema for a single product/dish (Nested Schema)
 const productSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -15,6 +14,12 @@ const productSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 0
+    },
+ 
+    image: {
+        type: String,
+        required: true, 
+        trim: true
     }
 });
 
