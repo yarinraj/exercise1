@@ -3,10 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import FormInput from '../common/FormInput';
 import BackgroundDoodles from '../common/BackgroundDoodles';
 
-/**
- * AddDishForm Component
- * Adds a new dish to the restaurant menu with consistent design.
- */
 const AddDishForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -57,29 +53,38 @@ const AddDishForm = () => {
     };
 
     return (
-        // Using the same container class for the consistent blue gradient background
         <div className="register-page-container min-vh-100 py-5">
             <BackgroundDoodles />
-            <div className="container position-relative">
-                {/* Using register-card for the shadow and rounded aesthetic */}
-                <div className="register-card p-4 mx-auto" style={{ maxWidth: '500px' }}>
-                    <h2 className="mb-4 text-center fw-bold">Add New Dish</h2>
-                    <form onSubmit={handleSubmit}>
-                        <FormInput name="name" label="Dish Name" type="text" value={formData.name} onChange={handleChange} />
-                        <FormInput name="description" label="Description" type="text" value={formData.description} onChange={handleChange} />
-                        <FormInput name="price" label="Price (₪)" type="number" value={formData.price} onChange={handleChange} />
-                        
-                        {/* Using the consistent Wolt-style button */}
-                        <button type="submit" className="wolt-btn-block rounded-pill fw-bold">
-                            Add Dish
-                        </button>
-                    </form>
 
-                    {statusMessage.text && (
-                        <div className={`alert mt-3 text-center ${statusMessage.type}`}>
-                            {statusMessage.text}
+            <div className="container position-relative">
+                <div className="row justify-content-center">
+                    <div className="col-12 col-md-8 col-lg-6">
+                        
+                        {/* Title Section - Outside the card, just like SetupForm */}
+                        <div className="text-center mb-4">
+                            <h2 className="fw-bold">Add New Dish</h2>
+                            <p className="text-muted">Enter the details to add a new dish to your menu.</p>
                         </div>
-                    )}
+
+                        {/* Card Section - Standard Bootstrap card */}
+                        <div className="card shadow-sm border-0 rounded-4 p-4 p-md-5">
+                            <form onSubmit={handleSubmit} noValidate>
+                                <FormInput name="name" label="Dish Name" type="text" value={formData.name} onChange={handleChange} required={true} />
+                                <FormInput name="description" label="Description" type="text" value={formData.description} onChange={handleChange} required={true} />
+                                <FormInput name="price" label="Price (₪)" type="number" value={formData.price} onChange={handleChange} required={true} />
+                                
+                                <button type="submit" className="btn btn-primary w-100 rounded-pill fw-bold py-2 mt-3">
+                                    Add Dish
+                                </button>
+                            </form>
+
+                            {statusMessage.text && (
+                                <div className={`alert mt-4 text-center rounded-3 ${statusMessage.type}`} role="alert">
+                                    {statusMessage.text}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

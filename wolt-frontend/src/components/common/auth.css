@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@700&display=swap');
 
+/* --- GENERAL LAYOUT --- */
 /* central container */
 .register-main-content {
   display: flex;
@@ -98,8 +99,11 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* --- CARDS & FORMS --- */
 /* register card */
 .register-card {
+  position: relative;
+  z-index: 10;
   background: #ffffff;
   border-radius: 24px;
   padding: 30px 35px;
@@ -137,7 +141,7 @@
 .wolt-invalid-feedback { color: #ef4444; font-size: 11px; font-weight: 600; margin-top: 4px; }
 .register-card input[type="file"] { display: none !important; }
 
-/* --- Doodles --- */
+/* --- DOODLES --- */
 .bg-doodle-container { position: absolute; z-index: 1; opacity: 0.16; cursor: pointer; transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s ease; }
 .bg-doodle-container:hover { opacity: 0.55; transform: scale(1.35); }
 .bg-doodle-container:hover .bg-doodle-icon { animation-play-state: paused; }
@@ -148,8 +152,8 @@
 .bg-doodle:nth-child(4) { bottom: 15%; right: 8%; animation: floatSlowY 9s ease-in-out infinite alternate; animation-delay: 2s; }
 
 @keyframes woltFloaty { 0% { transform: translateY(0) rotate(-3deg); } 100% { transform: translateY(-35px) rotate(5deg); } }
-.register-card { position: relative; z-index: 10; }
 
+/* --- ROLE TOGGLE --- */
 .role-toggle-wrapper { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .custom-role-toggle { position: relative; display: flex; background-color: #f3f3f3; border-radius: 50px; padding: 4px; width: 100%; user-select: none; border: 1px solid #e2e8f0; }
 .role-option { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; cursor: pointer; z-index: 2; font-weight: 600; font-size: 0.95rem; color: #4a5568; transition: color 0.3s ease; }
@@ -161,22 +165,104 @@
 .toggle-slider.owner { transform: translateX(100%); }
 [dir="rtl"] .toggle-slider.owner { transform: translateX(-100%); }
 
-/* --- DARK MODE OVERRIDES --- */
-.dark .card, .dark .register-card { background-color: #1e1e1e !important; color: #ffffff !important; }
-.dark .list-group-item { background-color: transparent !important; border-color: #333 !important; }
-.dark .text-dark, .dark h1, .dark h3, .dark h5 { color: #ffffff !important; }
-.dark .text-muted { color: #a0a0a0 !important; }
-/* --- DARK MODE FORMS (Add/Edit) --- */
-.dark .register-card h2, 
-.dark .register-card label, 
-.dark .register-card input, 
-.dark .register-card {
+
+/* ==========================================================================
+   DARK MODE OVERRIDES & COMPATIBILITY
+   Ensures seamless transitions across all forms, inputs, and cards.
+   ========================================================================== */
+
+/* 1. Global Text Visibility: Force text to be white in dark mode */
+.dark .text-dark, 
+.dark h1, 
+.dark h2, 
+.dark h3, 
+.dark h5 {
     color: #ffffff !important;
 }
 
-/* Ensure inputs remain readable in dark mode */
-.dark .register-card .wolt-input {
+/* 2. Subtitles & Prices: Lighten muted text for readability */
+.dark .text-muted {
+    color: #b0b3b8 !important;
+}
+
+/* 3. Link Buttons (e.g., "Back to Dashboard") */
+.dark .btn-link.text-dark {
+    color: #ffffff !important;
+}
+
+/* 4. Cards Background: Apply deep dark background and subtle borders */
+.dark .card, 
+.dark .register-card {
+    background-color: #1e1e1e !important;
+    border: 1px solid #333 !important;
+    color: #ffffff !important;
+}
+
+/* 5. List Items (Menu Manager): Remove white background */
+.dark .list-group-item {
+    background-color: transparent !important;
+    border-color: #333 !important;
+}
+
+/* 6. Form Labels: Ensure labels are visible above inputs */
+.dark label,
+.dark .wolt-label {
+    color: #ffffff !important;
+}
+
+/* 7. Form Inputs: Darken the input fields to blend with the card */
+.dark .wolt-input {
     background-color: #2a2a2a !important;
     color: #ffffff !important;
     border-color: #444 !important;
+}
+
+/* Add focus ring specifically for dark inputs to maintain accessibility */
+.dark .wolt-input:focus {
+    background-color: #2a2a2a !important;
+    border-color: #00c2e8 !important;
+}
+/* --- FIX FOR DISH NAMES & PRICES IN LIST --- */
+.dark .list-group-item,
+.dark .list-group-item h5 {
+    color: #ffffff !important;
+}
+
+.dark .list-group-item .text-muted {
+    color: #b0b3b8 !important;
+}
+/* --- BULLETPROOF DISH COLORS --- */
+
+.bites-dish-name {
+    color: #202125;
+}
+
+.bites-dish-price {
+    color: #72737a;
+}
+
+
+.dark .bites-dish-name {
+    color: #ffffff !important;
+}
+
+.dark .bites-dish-price {
+    color: #b0b3b8 !important;
+}
+/* Dark mode fix for menu manager dish name and price */
+body.dark-theme .bites-dish-name {
+  color: #ffffff !important;
+}
+
+body.dark-theme .bites-dish-price {
+  color: #b0b3b8 !important;
+}
+
+body.dark-theme .list-group-item {
+  background-color: transparent !important;
+  border-color: #333 !important;
+}
+
+body.dark-theme .list-group-item h5 {
+  color: #ffffff !important;
 }

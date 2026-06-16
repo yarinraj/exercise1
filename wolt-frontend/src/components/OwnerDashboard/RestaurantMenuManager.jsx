@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import BackgroundDoodles from '../common/BackgroundDoodles';
+import '../common/auth.css';
 
 /**
  * RestaurantMenuManager Component
@@ -46,63 +47,79 @@ const RestaurantMenuManager = () => {
         }
     };
 
-  return (
-        <div className="manager-page-container">
+    return (
+        <div className="manager-page-container min-vh-100 py-5">
             <BackgroundDoodles />
-            <div className="container" style={{ maxWidth: '800px' }}>
-                
-                {/* Header that adapts to theme */}
-                <h1 className="fw-bold mb-4 text-body">Menu Management</h1>
+            <div className="container position-relative">
+                <div className="row justify-content-center">
+                    <div className="col-12 col-md-10 col-lg-8">
 
-                <section className="card p-4 shadow-sm border-0 rounded-4">
-                    <div className="d-flex justify-content-between align-items-center mb-4">
-                        <h3 className="fw-bold text-body">Dishes</h3>
-                        <button
-                            className="btn btn-primary rounded-pill px-4 fw-bold"
-                            onClick={() => navigate(`/owner/edit/${id}/menu/add`)}
-                        >
-                            + Add New Dish
-                        </button>
-                    </div>
+                        {/* Title Section - Removed explicit text-dark so CSS can handle it naturally */}
+                        <div className="text-center mb-4">
+                            <h1 className="fw-bold">Menu Management</h1>
+                            <p className="text-muted">Manage the dishes available at your restaurant.</p>
+                        </div>
 
-                    <div className="list-group list-group-flush">
-                        {products.map(product => (
-                            <div key={product._id} className="list-group-item d-flex justify-content-between align-items-center py-3 bg-transparent border-bottom">
-                                <div className="text-body">
-                                    <h5 className="mb-1 fw-bold">{product.name}</h5>
-                                    <small className="text-muted">{product.price} ₪</small>
-                                </div>
-                                <div className="d-flex">
-                                    <button
-                                        className="btn btn-sm btn-outline-primary rounded-pill me-2 px-3"
-                                        onClick={() => navigate(`/owner/edit/${id}/menu/edit/${product._id}`)}
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        className="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                        onClick={() => handleDeleteProduct(product._id)}
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
+                        {/* Card Section */}
+                        <section className="card p-4 p-md-5 shadow-sm border-0 rounded-4">
+                            <div className="d-flex justify-content-between align-items-center mb-4">
+                                <h3 className="fw-bold m-0">Dishes</h3>
+                                <button
+                                    className="btn btn-primary rounded-pill px-4 fw-bold"
+                                    onClick={() => navigate(`/owner/edit/${id}/menu/add`)}
+                                >
+                                    + Add New Dish
+                                </button>
                             </div>
-                        ))}
-                    </div>
-                </section>
 
-                <div className="mt-4">
-                    <button
-                        className="btn btn-link text-body text-decoration-none fw-bold"
-                        onClick={() => navigate('/owner/dashboard')}
-                    >
-                        ← Back to Dashboard
-                    </button>
+                            <div className="list-group list-group-flush">
+                                {products.length > 0 ? (
+                                    products.map(product => (
+                                        <div key={product._id} className="list-group-item d-flex justify-content-between align-items-center py-3 bg-transparent border-bottom">
+                                            <div>
+                                               
+                                                <h5 className="mb-1 fw-bold bites-dish-name">{product.name}</h5>
+                                                <small className="bites-dish-price">{product.price} ₪</small>
+                                            </div>
+                                            <div className="d-flex">
+                                                <button
+                                                    className="btn btn-sm btn-outline-primary rounded-pill me-2 px-3"
+                                                    onClick={() => navigate(`/owner/edit/${id}/menu/edit/${product._id}`)}
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    className="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                                    onClick={() => handleDeleteProduct(product._id)}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-4">
+                                        <p className="text-muted mb-0">No dishes found. Click "+ Add New Dish" to get started.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+
+                        <div className="mt-4 text-center">
+                            {/* Back button - explicitly set to inherit color so it works with dark mode override */}
+                            <button
+                                className="btn btn-link text-decoration-none fw-bold"
+                                style={{ color: 'inherit' }}
+                                onClick={() => navigate('/owner/dashboard')}
+                            >
+                                ← Back to Dashboard
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
-
 
 export default RestaurantMenuManager;
