@@ -8,6 +8,7 @@ import './App.css';
 import ProtectedRoute from './components/ProtectedRoute';
 import RestaurantFeed from "./components/RestaurantFeed";
 import HomePage from './components/HomePage';
+import RestaurantSetupForm from './components/OwnerDashboard/RestaurantSetupForm';
 
 // Sub-component to handle conditional Navbar rendering based on the active path
 const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
@@ -75,6 +76,10 @@ return (
             {/* protected routes */}
             <Route element={<ProtectedRoute />}>
                 <Route path="/restaurants" element={<RestaurantFeed searchQuery={searchQuery} />} />
+         
+                
+                {/* --- new route for owner--- */}
+                <Route path="/owner/setup" element={<RestaurantSetupForm />} />
             </Route>
             
             {/* a 404 page for unknown routes*/}
