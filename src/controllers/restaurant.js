@@ -55,6 +55,7 @@ const getRestaurantById = async (req, res) => {
  * Updating fields of an existing restaurant
  */
 const updateRestaurant = async (req, res) => {
+    console.log("User ID from token:", req.user);
     try {
         const { phone } = req.body;
         // Phone number validation        
