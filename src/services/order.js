@@ -1,53 +1,48 @@
-const { v4: uuidv4 } = require('uuid');
-
-// In-memory array to store all orders in the system
-const orders = [];
+// Import the Mongoose model instead of using an in-memory array
+// Make sure the path exactly matches your model's filename
+const Order = require('../models/order'); 
 
 // Create a new order and link it to a specific user
-const createOrder = (userId, orderData) => {
-    const newOrder = {
-        id: uuidv4(),
-        userId: userId, // We save the user's ID inside the order to know who it belongs to
+const createOrder = async (userId, orderData) => {
+    // Create a new document instance using the Mongoose model
+    const newOrder = new Order({
+        userId: userId, 
         ...orderData
-    };
+    });
     
-    orders.push(newOrder);
-    return newOrder;
+    // Save the document to the MongoDB database and return it
+    return await newOrder.save();
 };
 
 // Fetch all orders that belong to a specific user
-const getOrdersByUserId = (userId) => {
-    // We use .filter() because a user might have multiple orders.
-    // It returns an array of all orders where the 'userId' matches.
-    return orders.filter(order => order.userId === userId);
+const getOrdersByUserId = async (userId) => {
+    // Mongoose finds all documents matching the provided userId
+    return await Order.find({ userId: userId });
 };
+
 // Fetch a specific order by its ID
-const getOrderById = (orderId) => {
-    return orders.find(order => order.id === orderId);
+const getOrderById = async (orderId) => {
+    // Retrieve a single document by its MongoDB ObjectId
+    return await Order.findById(orderId);
 };
 
 // Update a specific order's data
-const updateOrder = (orderId, updateData) => {
-    const order = getOrderById(orderId);
-    if (order) {
-        // We extract id and userId from updateData to prevent them from being overwritten accidentally
-        const { id, userId, ...safeData } = updateData;
-        
-        // Update the existing order object with the new safe data
-        Object.assign(order, safeData);
-    }
-    return order;
+const updateOrder = async (orderId, updateData) => {
+    // We extract id and userId from updateData to prevent them from being overwritten accidentally
+    const { id, userId, ...safeData } = updateData;
+    
+    // Find the document by ID and update it directly in the database
+    // { new: true } ensures we return the updated document, not the old one
+    return await Order.findByIdAndUpdate(orderId, safeData, { new: true });
 };
 
-// Delete a specific order from the array
-const deleteOrder = (orderId) => {
-    const index = orders.findIndex(order => order.id === orderId);
-    if (index !== -1) {
-        // Remove 1 item at the found index
-        orders.splice(index, 1);
-        return true;
-    }
-    return false;
+// Delete a specific order from the database
+const deleteOrder = async (orderId) => {
+    // Find the document by ID and remove it from MongoDB
+    const result = await Order.findByIdAndDelete(orderId);
+    
+    // Return true if a document was actually found and deleted
+    return result !== null; 
 };
 
 module.exports = {
@@ -55,6 +50,5 @@ module.exports = {
     getOrdersByUserId,
     getOrderById,
     updateOrder,
-    deleteOrder,
-    orders
+    deleteOrder
 };

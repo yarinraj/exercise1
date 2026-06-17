@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/cart';
 
 export const CartSidebar = ({ isOpen, onClose }) => {
-    const { cartItems, updateQuantity, removeFromCart, totalPrice, totalItems, clearCart } = useCart();
+    // FIX: Added 'activeRestaurantId' to the destructured variables from useCart
+    const { cartItems, updateQuantity, removeFromCart, totalPrice, totalItems, clearCart, activeRestaurantId } = useCart();
 
     const [isDark, setIsDark] = useState(false);
 
+    // Theme detection logic to seamlessly match the main app's dark/light mode
     useEffect(() => {
         const determineTheme = () => {
             const htmlAttr = document.documentElement.getAttribute('data-bs-theme') || document.documentElement.getAttribute('data-theme') || '';
@@ -18,6 +20,7 @@ export const CartSidebar = ({ isOpen, onClose }) => {
 
         determineTheme();
 
+        // Observer to listen for theme changes in real-time
         const observer = new MutationObserver(determineTheme);
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-bs-theme', 'data-theme'] });
         observer.observe(document.body, { attributes: true, attributeFilter: ['class', 'data-bs-theme', 'data-theme'] });
@@ -25,16 +28,72 @@ export const CartSidebar = ({ isOpen, onClose }) => {
         return () => observer.disconnect();
     }, []);
 
+    // Do not render the sidebar if it's not open
     if (!isOpen) return null;
+
+    // Handles the secure checkout process
+    const handleCheckout = async () => {
+        // 1. Retrieve the JWT token from local storage for authorization
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            alert('❌ You must be logged in to place an order.');
+            return;
+        }
+
+        if (cartItems.length === 0) return;
+
+        // 2. Prepare the payload for the backend
+        // FIX: Using activeRestaurantId directly from the CartContext instead of guessing from cartItems
+        const orderPayload = {
+            restaurantId: activeRestaurantId, 
+            products: cartItems.map(item => ({
+                productId: item._id, // Mapping the frontend item ID to what the backend expects
+                quantity: item.quantity,
+                price: item.price
+            }))
+        };
+
+        try {
+            // 3. Send the POST request to the orders API
+            const response = await fetch('http://localhost:8080/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // Attaching the JWT for security
+                },
+                body: JSON.stringify(orderPayload)
+            });
+
+            // 4. Handle success response
+            if (response.ok || response.status === 201) {
+                const data = await response.json();
+                alert('✅ Order placed successfully! Order ID: ' + data._id);
+                
+                // 5. Clean up: clear the cart and close the sidebar upon successful order
+                clearCart();
+                onClose();
+            } else {
+                // Handle backend validation errors gracefully
+                const errorData = await response.json().catch(() => null);
+                alert(`❌ Failed to place order: ${errorData?.error || 'Unknown error'}`);
+            }
+        } catch (error) {
+            // Handle network or unexpected errors
+            console.error('Checkout error:', error);
+            alert('❌ Server error. Please try again later.');
+        }
+    };
 
     return (
         <>
-            {/* Backdrop */}
+            {/* Backdrop overlay that closes the sidebar when clicked */}
             <div className="position-fixed top-0 start-0 w-100 h-100" 
                  style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1040, backdropFilter: 'blur(3px)' }}
                  onClick={onClose} 
             />
 
+            {/* Main Sidebar Container */}
             <div className="position-fixed top-0 end-0 h-100 d-flex flex-column shadow-lg"
                  style={{ 
                      width: '400px', 
@@ -45,7 +104,7 @@ export const CartSidebar = ({ isOpen, onClose }) => {
                      transition: 'background-color 0.2s ease, color 0.2s ease'
                  }}
             >
-                {/* Header */}
+                {/* Header Section: Cart Title and Close Button */}
                 <div className="p-4 d-flex justify-content-between align-items-center" 
                      style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)' }}>
                     <h5 className="mb-0 fw-bold d-flex align-items-center gap-2" style={{ color: isDark ? '#fff' : '#212529' }}>
@@ -57,15 +116,17 @@ export const CartSidebar = ({ isOpen, onClose }) => {
                     <button className="btn p-0 fs-4 opacity-75" onClick={onClose} style={{ border: 'none', background: 'none', color: isDark ? '#fff' : '#212529' }}>&times;</button>
                 </div>
 
-                {/* Cart Items List */}
+                {/* Cart Items List Area */}
                 <div className="flex-grow-1 overflow-auto p-4">
                     {cartItems.length === 0 ? (
+                        // Empty Cart State
                         <div className="text-center text-muted mt-5 py-5">
                             <div className="fs-1 mb-3">🍽️</div>
                             <p className="fw-bold mb-1">Your cart is empty</p>
                             <small>Add delicious items from a restaurant to start!</small>
                         </div>
                     ) : (
+                        // Render Cart Items
                         cartItems.map(item => (
                             <div key={item._id} className="d-flex justify-content-between align-items-center mb-4 p-3 rounded-3" 
                                  style={{ 
@@ -79,7 +140,7 @@ export const CartSidebar = ({ isOpen, onClose }) => {
                                     </span>
                                 </div>
 
-                                {/* Quantity Selector inside Cart */}
+                                {/* Quantity Selector Component */}
                                 <div className="d-flex align-items-center gap-2 rounded-2 p-1" 
                                      style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}>
                                     <button className="btn btn-sm border-0 py-0 px-2 fw-bold" 
@@ -91,7 +152,7 @@ export const CartSidebar = ({ isOpen, onClose }) => {
                                             onClick={() => updateQuantity(item._id, item.quantity + 1)}>+</button>
                                 </div>
 
-                                {/* Remove Button */}
+                                {/* Remove from Cart Button */}
                                 <button className="btn btn-sm text-danger ms-2 border-0" onClick={() => removeFromCart(item._id)}>
                                     🗑️
                                 </button>
@@ -100,7 +161,7 @@ export const CartSidebar = ({ isOpen, onClose }) => {
                     )}
                 </div>
 
-                {/* Footer Section */}
+                {/* Footer Section: Total Price and Checkout Buttons */}
                 {cartItems.length > 0 && (
                     <div className="p-4" 
                          style={{ 
@@ -116,13 +177,14 @@ export const CartSidebar = ({ isOpen, onClose }) => {
                             <button className="btn btn-outline-danger btn-sm px-3 rounded-3" onClick={clearCart} title="Clear Cart">
                                 Clear
                             </button>
+                            {/* Triggers the secure handleCheckout logic */}
                             <button className="btn flex-grow-1 fw-bold py-2 rounded-3 text-white shadow-sm"
                                     style={{ 
                                         backgroundColor: '#00c2e8',
                                         boxShadow: '0 4px 15px rgba(0, 194, 232, 0.3)',
                                         border: 'none'
                                     }}
-                                    onClick={() => alert('Proceeding to checkout... 🚀')}
+                                    onClick={handleCheckout}
                             >
                                 Secure Checkout ➔
                             </button>
