@@ -13,3 +13,61 @@
     height: 180px;
     object-fit: cover;
 }
+
+.hover-card {
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+    will-change: transform;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px) scale(1.02); 
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important; 
+}
+
+.restaurant-card-img {
+    height: 180px;
+    object-fit: cover;
+}
+
+.btn-primary {
+    background-color: #00c2e8;
+    border-color: #00c2e8;
+    color: #ffffff;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: #00a0c2;
+    border-color: #00a0c2;
+}
+
+/* Dark mode */
+body.dark-theme {
+    background-color: #121212 ;
+    color: #f8f9fa;
+}
+
+body.dark-theme .restaurant-card-title {
+    color: #f8f9fa;
+}
+
+body.dark-theme .hover-card {
+    background-color: #1e1e1e;
+    border: 1px solid #2d2d2d;
+}
+
+body.dark-theme .feed-title,
+body.dark-theme .restaurant-card-title {
+    color: #f8f9fa;
+}
+
+body.dark-theme .feed-subtitle,
+body.dark-theme .hover-card .text-muted,
+body.dark-theme .hover-card .text-secondary {
+    color: #a0a0a0;
+}
+
+body.dark-theme .hover-card .border-top {
+    border-top: 1px solid #2d2d2d;
+}

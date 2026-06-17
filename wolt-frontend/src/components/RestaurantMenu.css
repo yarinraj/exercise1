@@ -20,3 +20,11 @@
     font-size: 1.1rem;
     color: #0dcaf0; 
 }
+
+.restaurant-data {
+    color: #6c757d;
+}
+
+body.dark-theme .restaurant-data {
+    color: #a0a0a0;
+}

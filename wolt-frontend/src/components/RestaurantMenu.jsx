@@ -93,7 +93,7 @@ const RestaurantMenu = () => {
         <>
           <div className="text-center mb-5 pt-3">
             <h1 className="fw-bold">{restaurant.name}</h1>
-            <p className="text-muted mb-0">{restaurant.cuisine} • {restaurant.address}</p>
+            <p className="restaurant-data mb-0">{restaurant.cuisine} • {restaurant.address}</p>
           </div>
 
           <h3 className="fw-bold mb-5">Menu</h3>

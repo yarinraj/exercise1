@@ -21,7 +21,8 @@ const EditRestaurantForm = () => {
         address: '',
         image: '',       // Optional
         lat: '',         // Required
-        lng: ''          // Required
+        lng: '',
+        isPromoted: false
     });
 
     const [statusMessage, setStatusMessage] = useState({ text: '', type: '' });
@@ -44,7 +45,8 @@ const EditRestaurantForm = () => {
                     address: data.address || '',
                     image: data.image || '',
                     lat: data.lat || '',
-                    lng: data.lng || ''
+                    lng: data.lng || '',
+                    isPromoted: data.isPromoted || false
                 });
             } catch (error) {
                 setStatusMessage({ text: '❌ Error loading restaurant data.', type: 'alert-danger' });
@@ -55,8 +57,11 @@ const EditRestaurantForm = () => {
 
     // Handle input changes
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
     };
 
     // Handle form submission with validation
@@ -98,7 +103,8 @@ const EditRestaurantForm = () => {
                 address: formData.address,
                 image: formData.image,
                 lat: parseFloat(formData.lat),
-                lng: parseFloat(formData.lng)
+                lng: parseFloat(formData.lng),
+                isPromoted: formData.isPromoted
             };
 
             // Send PATCH request to update the restaurant
@@ -174,7 +180,47 @@ const EditRestaurantForm = () => {
 
                                 <FormInput name="phone" label="Phone Number (Optional)" type="tel" value={formData.phone} onChange={handleChange} required={false} />
                                 <FormInput name="image" label="Cover Image URL (Optional)" type="url" value={formData.image} onChange={handleChange} placeholder="https://example.com/cover.jpg" required={false} />
+                                {/* Premium Promotion Toggle - Dashboard Style */}
+                                <div className="mb-4">
+                                    <label className="wolt-label fw-bold text-white mb-2 text-uppercase small" style={{ letterSpacing: '0.5px' }}>
+                                        Restaurant Promotion
+                                    </label>
 
+                                    {formData.isPromoted ? (
+                                        <button
+                                            type="button"
+                                            className="btn w-100 fw-bold py-2 rounded-3 d-flex align-items-center justify-content-center gap-2"
+                                            style={{
+                                                backgroundColor: '#ffc107',
+                                                color: '#12161f',
+                                                border: 'none',
+                                                boxShadow: '0 4px 12px rgba(255, 193, 7, 0.2)'
+                                            }}
+                                            onClick={() => setFormData(prev => ({ ...prev, isPromoted: false }))}
+                                        >
+                                            ✅ Active Promotion (Click to Cancel)
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            className="btn w-100 fw-bold py-2 rounded-3 d-flex align-items-center justify-content-center gap-2"
+                                            style={{
+                                                backgroundColor: 'transparent',
+                                                color: '#ffc107',
+                                                border: '1px solid #ffc107',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                            onClick={() => setFormData(prev => ({ ...prev, isPromoted: true }))}
+                                        >
+                                            ⭐ Promote This Restaurant
+                                        </button>
+                                    )}
+                                    <div className="text-muted text-center mt-2 small" style={{ fontSize: '0.8rem' }}>
+                                        {formData.isPromoted
+                                            ? "This restaurant appears at the top of users' feeds."
+                                            : "Boost this restaurant to the top of search results."}
+                                    </div>
+                                </div>
                                 <button type="submit" className="btn btn-primary w-100 rounded-pill fw-bold mt-3 py-2">
                                     Save Changes
                                 </button>
