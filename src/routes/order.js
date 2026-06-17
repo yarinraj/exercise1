@@ -1,4 +1,3 @@
-console.log("Order routes initialized!");
 const express = require('express');
 const router = express.Router();
 
