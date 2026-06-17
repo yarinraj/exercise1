@@ -22,7 +22,7 @@ const HomePage = ({ user }) => {
                 /* Member Home Page: Shows personalized welcome and navigation */
                 <div className="container mt-5 text-center animate__animated animate__fadeIn">
                     <h1 className="display-4 fw-bold text-dark mb-3">
-                        Welcome back, {user.displayName || user.username || 'User'}! 👋
+                        Welcome {user.displayName || user.username || 'User'}! 👋
                     </h1>
                     <p className="lead text-secondary">This is your main Dashboard / Home Page.</p>
                     
