@@ -9,41 +9,35 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     });
 
     const navigate = useNavigate();
-    
-    //Created the reference for the search input
     const searchInputRef = useRef(null);
 
-    // Auto-focus logic that triggers safely when the component mounts or when the user logs in. At the end of the useEffect, added 'user' as a dependency so it focuses right after login
+    // Auto-focus logic for the search bar
     useEffect(() => {
         if (searchInputRef.current) {
             searchInputRef.current.focus();
         }
     }, [user]); 
 
-    // Check if a user is logged in and fetch their personal theme preference from localStorage
+    // Sync theme with user preference
     useEffect(() => {
         if (user && user.username) {
             const savedTheme = localStorage.getItem(`theme_${user.username}`);
             setIsDarkMode(savedTheme === 'dark');
         } else {
-            // Reset to light mode if no user is logged in
             setIsDarkMode(false);
         }
     }, [user]); 
 
-    // Apply or remove the dark theme class on the document body based on the current state
+    // Apply dark theme class to body
     React.useEffect(() => {
         if (isDarkMode) {
             document.body.classList.add('dark-theme');
         } else {
             document.body.classList.remove('dark-theme');
         }
-        return () => {
-            document.body.classList.remove('dark-theme');
-        };
+        return () => document.body.classList.remove('dark-theme');
     }, [isDarkMode]);
 
-    // Toggle the theme and save the preference specifically for the logged-in user
     const toggleTheme = () => {
         setIsDarkMode(prev => {
             const newMode = !prev;
@@ -54,71 +48,61 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
         });
     };
 
-    // Handle user logout: clear storage, reset theme, clear user state, and redirect to home
     const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    document.body.classList.remove('dark-theme');
-    window.location.href = '/'; 
-};
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        document.body.classList.remove('dark-theme');
+        window.location.href = '/'; 
+    };
 
-    // Determine the name to display in the navbar
     const displayName = user?.displayName || user?.username || 'User';
 
     return (
         <nav className="wolt-navbar">
+            {/* Logo Section */}
             <div className="navbar-left">
                 <span className="brand-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer', textDecoration: 'none', color: '#00c2e8' }}>
                     bites
                 </span>
             </div>
 
+            {/* SEARCH BAR - Always visible for both guests and logged-in users */}
+            <div className="navbar-center" style={{ flex: 1, maxWidth: '400px', margin: '0 20px' }}>
+                <div className="input-group">
+                    <span className="input-group-text text-muted">🔍</span>
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Search in bites..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        ref={searchInputRef} 
+                    />
+                </div>
+            </div>
+
+            {/* Conditional User Menu - Shows Login/Signup for guests, profile/logout for users */}
             {user ? (
-                <>
-                    <div className="navbar-center" style={{ flex: 1, maxWidth: '400px', margin: '0 20px' }}>
-                        <div className="input-group">
-                            <span className="input-group-text text-muted">🔍</span>
-                            <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Search in bites..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                ref={searchInputRef} 
-                            />
-                        </div>
-                    </div>
+                <div className="navbar-right">
+                    <button className="theme-toggle" onClick={toggleTheme}>
+                        <span className={`icon sun ${isDarkMode ? 'hidden' : ''}`}>☀️</span>
+                        <span className={`icon moon ${!isDarkMode ? 'hidden' : ''}`}>🌙</span>
+                    </button>
 
-                    <div className="navbar-right">
-                        {/* THEME TOGGLE */}
-                        <button className="theme-toggle" onClick={toggleTheme}>
-                            <span className={`icon sun ${isDarkMode ? 'hidden' : ''}`}>☀️</span>
-                            <span className={`icon moon ${!isDarkMode ? 'hidden' : ''}`}>🌙</span>
-                            <span className="knob"></span>
+                    <div className="user-menu">
+                        <span className="display-name">{displayName}</span>
+                        {user?.profileImage ? (
+                            <img src={user.profileImage} alt={displayName} className="profile-avatar" />
+                        ) : (
+                            <div className="profile-avatar avatar-placeholder">
+                                {displayName.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                        <button className="logout-button" onClick={handleLogout}>
+                            Logout
                         </button>
-
-                        {/* USER MENU */}
-                        <div className="user-menu">
-                            <span className="display-name">{displayName}</span>
-                            
-                            {user?.profileImage ? (
-                                <img
-                                    src={user.profileImage}
-                                    alt={displayName}
-                                    className="profile-avatar"
-                                />
-                            ) : (
-                                <div className="profile-avatar avatar-placeholder">
-                                    {displayName.charAt(0).toUpperCase()}
-                                </div>
-                            )}
-
-                            <button className="logout-button" onClick={handleLogout}>
-                                Logout
-                            </button>
-                        </div>
                     </div>
-                </>
+                </div>
             ) : (
                 <div className="navbar-right d-flex gap-2">
                     <Link to="/login" className="btn btn-outline-info rounded-pill px-4 fw-bold shadow-sm" style={{ borderWidth: '2px' }}>

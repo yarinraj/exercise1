@@ -68,10 +68,13 @@ const App = () => {
           <GlobalCartTrigger />
           <div className="main-content">
             <Routes>
-              {/* עכשיו כולם רואים את הפיד של המסעדות בעמוד הבית */}
+
               <Route path="/" element={<RestaurantFeed searchQuery={searchQuery} />} />
 
               {/* public routes */}
+              <Route path="/" element={<RestaurantFeed searchQuery={searchQuery} />} />
+              <Route path="/restaurants" element={<RestaurantFeed searchQuery={searchQuery} />} />
+              <Route path="/restaurant/:id" element={<RestaurantMenu />} />
               <Route
                 path="/login"
                 element={!user ? <Login setUser={setUser} /> : <Navigate to="/" />}
@@ -81,7 +84,7 @@ const App = () => {
                 element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />}
               />
 
-              {/* protected routes - כאן נשאיר רק מה שבאמת דורש הזדהות */}
+             
               <Route element={<ProtectedRoute />}>
                 <Route path="/restaurant/:id" element={<RestaurantMenu />} />
 
