@@ -134,50 +134,53 @@ const deleteRestaurantProduct = async (restaurantId, productId, ownerId) => {
     return true;
 };
 
-// Search function across restaurants and products
 const search = async (query) => {
-    const regex = new RegExp(query, 'i'); // Case insensitive regex
-    
-    // Find all restaurants where either the restaurant or its products match the query
+    if (!query || query.trim() === '') {
+        return { restaurants: await Restaurant.find({}), relatedProducts: [] };
+    }
+
+    const searchRegex = new RegExp(query.trim(), 'i');
+
+    // Find all restaurants where either the restaurant/it's products/it's cuisine match the query
     const dbRestaurants = await Restaurant.find({
         $or: [
-            { name: regex },
-            { description: regex },
-            { 'products.name': regex },
-            { 'products.description': regex }
+            { name: searchRegex },
+            { cuisine: searchRegex },
+            { description: searchRegex },
+            { 'products.name': searchRegex },
+            { 'products.description': searchRegex }
         ]
     });
 
-    const results = { 
-        restaurants: [],
-        products: []
-    };
-    
-    const lowerCaseQuery = query.toLowerCase();
+    const relatedProducts = [];
 
-    // Reconstruct the exact return structure the frontend expects
     dbRestaurants.forEach(restaurant => {
-        const matchRestaurantName = restaurant.name?.toLowerCase().includes(lowerCaseQuery);
-        const matchRestaurantDesc = restaurant.description?.toLowerCase().includes(lowerCaseQuery);
-        
-        if (matchRestaurantName || matchRestaurantDesc) {
-            results.restaurants.push(restaurant);
-        }
-        
         if (restaurant.products && Array.isArray(restaurant.products)) {
             restaurant.products.forEach(product => {
-                const matchProductName = product.name?.toLowerCase().includes(lowerCaseQuery);
-                const matchProductDesc = product.description?.toLowerCase().includes(lowerCaseQuery);
+                const matchName = product.name?.match(searchRegex);
+                const matchDesc = product.description?.match(searchRegex);
 
-                if (matchProductName || matchProductDesc) {
-                    results.products.push(product);
+                if (matchName || matchDesc) {
+                    relatedProducts.push({
+                        _id: product._id,
+                        name: product.name,
+                        description: product.description,
+                        price: product.price,
+                        image: product.image,
+                        restaurantName: restaurant.name,
+                        restaurantAddress: restaurant.address || 'Address unavailable'
+                    });
                 }
             });
         }
     });
 
-    return results;
+    return {
+        restaurants: dbRestaurants,
+        relatedProducts: relatedProducts
+    };
 };
+
 const getMyRestaurants = async (ownerId) => {
     return await Restaurant.find({ ownerId: ownerId });
 };

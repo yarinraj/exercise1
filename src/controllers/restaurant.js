@@ -247,7 +247,7 @@ const deleteProduct = async (req, res) => {
 const searchItems = async (req, res) => {
     try {
         // Take the url from the search word, URL (req.params.query)
-        const query = req.params.query;
+        const query = req.query.q || "";
 
         // Call to the search func  
         const searchResults = await restaurantService.search(query);
@@ -261,6 +261,7 @@ const searchItems = async (req, res) => {
         return res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
 };
+
 const getMyRestaurants = async (req, res) => {
     try {
        
