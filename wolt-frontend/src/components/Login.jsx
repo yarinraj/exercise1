@@ -37,7 +37,7 @@ useEffect(() => {
         // Clean up the history state so the message won't pop up again if the user refresh
         window.history.replaceState({}, document.title);
     }
-}, [location.key]);
+}, [location.key, location.state?.fromProtected]);
 
     // Decode JWT payload safely
     const decodeJwtPayload = (token) => {

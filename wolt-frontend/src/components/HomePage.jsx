@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './HomePage.css'; 
@@ -8,6 +9,13 @@ import './HomePage.css';
  * including a conditional link to the Owner Dashboard if the user is an owner.
  */
 const HomePage = ({ user }) => {
+
+    useEffect(() => {
+        if (!user) {
+            document.body.classList.remove('dark-theme');
+        }
+    }, [user]);
+
     return (
         <div className="home-page-container">
             {user ? (

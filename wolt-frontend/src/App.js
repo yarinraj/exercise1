@@ -6,8 +6,10 @@ import Navbar from './components/navbar';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import ProtectedRoute from './components/ProtectedRoute';
-import RestaurantFeed from "./components/RestaurantFeed";
 import HomePage from './components/HomePage';
+import RestaurantFeed from "./components/RestaurantFeed";
+import RestaurantMenu from './components/RestaurantMenu';
+
 import RestaurantSetupForm from './components/OwnerDashboard/RestaurantSetupForm';
 import OwnerDashboard from './components/OwnerDashboard/OwnerDashboard';
 import EditRestaurantForm from './components/OwnerDashboard/EditRestaurantForm';
@@ -81,6 +83,7 @@ return (
             {/* protected routes */}
             <Route element={<ProtectedRoute />}>
                 <Route path="/restaurants" element={<RestaurantFeed searchQuery={searchQuery} />} />
+                <Route path="/restaurant/:id" element={<RestaurantMenu />} /> 
          
                 
                 {/* --- new route for owner--- */}
