@@ -12,12 +12,13 @@ const isPasswordValid = (pwd) => {
 };
 const Register = ({ setUser }) => {
     const navigate = useNavigate();
-    
+
     // State hooks for tracking form input values
     const [username, setUsername] = useState('');
     const [displayName, setDisplayName] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [role, setRole] = useState('customer'); // Default role is 'customer'
     const [isPasswordTouched, setIsPasswordTouched] = useState(false);
     const [isConfirmTouched, setIsConfirmTouched] = useState(false);
     const isValidPassword = isPasswordValid(password);
@@ -28,7 +29,7 @@ const Register = ({ setUser }) => {
     // State hooks for tracking form submission and validation errors
     const [wasValidated, setWasValidated] = useState(false);
     const [generalError, setGeneralError] = useState('');
-    
+
     // Reference for the hidden file input element
     const fileInputRef = useRef(null);
 
@@ -99,7 +100,8 @@ const Register = ({ setUser }) => {
             username,
             password,
             displayName,
-            profileImage
+            profileImage,
+            role
         };
 
         try {
@@ -116,11 +118,12 @@ const Register = ({ setUser }) => {
                 const loggedInUser = {
                     username: username,
                     displayName: displayName,
-                    profileImage: profileImage 
+                    profileImage: profileImage,
+                    role: role
                 };
 
                 localStorage.setItem('user', JSON.stringify(loggedInUser));
-               
+
 
                 // Clear form fields
                 setUsername('');
@@ -155,7 +158,7 @@ const Register = ({ setUser }) => {
                     to="/login"
                     className="btn btn-outline-info rounded-pill px-4 fw-bold shadow-sm"
                     style={{ borderWidth: '2px', fontSize: '0.9rem' }}
->
+                >
                     Login
                 </Link>
             </div>
@@ -167,8 +170,8 @@ const Register = ({ setUser }) => {
                 <div className="bites-logo-container">
                     <div className="delivery-scooter">
                         <span className="scooter-mirror">🛵</span>
-                </div>
-                <div className="bites-logo-text">bites</div>
+                    </div>
+                    <div className="bites-logo-text">bites</div>
                 </div>
             </Link>
 
@@ -303,7 +306,28 @@ const Register = ({ setUser }) => {
                             </div>
                         )}
                     </div>
+                    <div className="role-toggle-wrapper">
+                        <label className="wolt-label">Sign up as:</label>
+                        <div className="custom-role-toggle">
+                            <div
+                                className={`role-option ${role === 'customer' ? 'active' : ''}`}
+                                onClick={() => setRole('customer')}
+                            >
+                                <span className="toggle-icon">🤤</span>
+                                <span className="toggle-text">Hungry Customer</span>
+                            </div>
 
+                            <div
+                                className={`role-option ${role === 'owner' ? 'active' : ''}`}
+                                onClick={() => setRole('owner')}
+                            >
+                                <span className="toggle-icon">🤵🏽‍♂️</span>
+                                <span className="toggle-text">Business Owner</span>
+                            </div>
+
+                            <div className={`toggle-slider ${role}`} />
+                        </div>
+                    </div>
                     <button type="submit" className="wolt-btn wolt-btn-block">
                         Register Now
                     </button>

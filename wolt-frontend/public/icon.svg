@@ -1,19 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
   <defs>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@700&amp;display=swap');
-      .bites-text {
+      
+      .logo-text {
         font-family: 'Fredoka', sans-serif;
+        font-size: 175px; 
         font-weight: 700;
-        font-style: italic;
         fill: #FFFFFF;
-        font-size: 195px; 
-        letter-spacing: -9px; 
+        text-anchor: middle;
       }
     </style>
+    
+    
+    <mask id="bite-effect">
+      <rect width="512" height="512" fill="white" />
+      <circle cx="490" cy="22" r="125" fill="black" />
+      <circle cx="445" cy="-15" r="45" fill="black" />
+      <circle cx="525" cy="75" r="45" fill="black" />
+    </mask>
   </defs>
-  
-  <rect width="512" height="512" rx="145" fill="#00c2e8" />
-  
-  <text x="256" y="315" text-anchor="middle" class="bites-text">bites</text>
+
+  <rect x="15" y="15" width="482" height="482" rx="110" fill="#00c2e8" mask="url(#bite-effect)" />
+
+  <text x="256" y="265" dominant-baseline="middle" class="logo-text">bites</text>
 </svg>

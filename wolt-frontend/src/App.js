@@ -10,6 +10,12 @@ import HomePage from './components/HomePage';
 import RestaurantFeed from "./components/RestaurantFeed";
 import RestaurantMenu from './components/RestaurantMenu';
 
+import RestaurantSetupForm from './components/OwnerDashboard/RestaurantSetupForm';
+import OwnerDashboard from './components/OwnerDashboard/OwnerDashboard';
+import EditRestaurantForm from './components/OwnerDashboard/EditRestaurantForm';
+import RestaurantMenuManager from './components/OwnerDashboard/RestaurantMenuManager';
+import AddDishForm from './components/OwnerDashboard/AddDishForm';
+import EditDishForm from './components/OwnerDashboard/EditDishForm';
 // Sub-component to handle conditional Navbar rendering based on the active path
 const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
   const location = useLocation();
@@ -18,6 +24,7 @@ const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
   // Routes where the Navbar should be completely hidden
   const authRoutes = ['/login', '/register', '/signup'];
   const shouldHideNavbar = authRoutes.includes(currentPath);
+
 
   return (
     <>
@@ -77,6 +84,16 @@ return (
             <Route element={<ProtectedRoute />}>
                 <Route path="/restaurants" element={<RestaurantFeed searchQuery={searchQuery} />} />
                 <Route path="/restaurant/:id" element={<RestaurantMenu />} /> 
+         
+                
+                {/* --- new route for owner--- */}
+                <Route path="/owner/setup" element={<RestaurantSetupForm />} />
+                <Route path="/owner/edit/:id/menu" element={<RestaurantMenuManager />} />
+                <Route path="/owner/edit/:id" element={<EditRestaurantForm />} />
+                <Route path="/owner/edit/:id/menu/add" element={<AddDishForm />} />
+                <Route path="/owner/edit/:id/menu/edit/:productId" element={<EditDishForm />} />
+
+                <Route path="/owner/dashboard" element={<OwnerDashboard />} />
             </Route>
             
             {/* a 404 page for unknown routes*/}
