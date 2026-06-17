@@ -238,6 +238,88 @@
     border-color: #444 !important;
 }
 
+.wolt-input.is-wolt-invalid {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.wolt-invalid-feedback {
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.register-card input[type="file"] {
+  display: none !important;
+}
+
+.bg-doodle-container {
+  position: absolute;
+  z-index: 1;
+  opacity: 0.16;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.3s ease;
+}
+
+.bg-doodle-container:hover {
+  opacity: 0.55;
+  transform: scale(1.35);
+}
+
+.bg-doodle-container:hover .bg-doodle-icon {
+  animation-play-state: paused;
+}
+
+.bg-doodle-icon {
+  display: inline-block;
+  user-select: none;
+  animation: woltFloaty infinite ease-in-out alternate;
+}
+
+.bg-doodle:nth-child(1) {
+  top: 15%;
+  left: 8%;
+  animation: floatSlowY 7s ease-in-out infinite alternate;
+}
+
+.bg-doodle:nth-child(2) {
+  top: 22%;
+  right: 10%;
+  animation: floatSlowX 8s ease-in-out infinite alternate;
+  animation-delay: 1s;
+}
+
+.bg-doodle:nth-child(3) {
+  bottom: 20%;
+  left: 12%;
+  animation: floatSlowX 6s ease-in-out infinite alternate;
+  animation-delay: 0.5s;
+}
+
+.bg-doodle:nth-child(4) {
+  bottom: 15%;
+  right: 8%;
+  animation: floatSlowY 9s ease-in-out infinite alternate;
+  animation-delay: 2s;
+}
+
+@keyframes woltFloaty {
+  0% {
+    transform: translateY(0) rotate(-3deg);
+  }
+
+  100% {
+    transform: translateY(-35px) rotate(5deg);
+  }
+}
+
+.register-card {
+  position: relative;
+  z-index: 10;
+}
+
 /* Add focus ring specifically for dark inputs to maintain accessibility */
 .dark .wolt-input:focus,
 .dark-theme .wolt-input:focus {
