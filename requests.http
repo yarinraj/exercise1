@@ -1,0 +1,21 @@
+### 1. Login (Get Token)
+POST http://localhost:8080/api/tokens
+Content-Type: application/json
+
+{
+  "username": "moran",
+  "password": "12345678a"
+}
+
+### 2. Create Restaurant
+### 2. Create Restaurant
+POST http://localhost:8080/api/restaurants/6a30169ebd2b0a99fda9bcef/dishes
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTMwMGQ0ODQ5NjQ0ZWE5OWVlNTYyZjUiLCJ1c2VybmFtZSI6Im1vcmFuIiwicm9sZSI6Im93bmVyIiwiaWF0IjoxNzgxNTM2OTU2fQ.28wzH8nrnG_fx924jwL1aD41x0QXHRj8ynLXhix6B7s
+
+{
+  "name": "Classic Burger",
+  "description": "Beef burger with lettuce and tomato",
+  "price": 59,
+  "image": "https://example.com/classic-burger.jpg"
+}
