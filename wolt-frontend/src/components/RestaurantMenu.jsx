@@ -56,32 +56,6 @@ const RestaurantMenu = () => {
         const restaurantData = await restaurantRes.json();
         let productsData = await productsRes.json();
 
-        // if (!productsData || productsData.length === 0) {
-        //   productsData = [
-        //     {
-        //       id: 'mock-1',
-        //       name: 'Classic Cheeseburger',
-        //       description: 'Juicy beef patty with melted cheddar cheese, fresh lettuce, tomato, and our secret Bites sauce in a toasted brioche bun.',
-        //       price: 52,
-        //       image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop&q=60' 
-        //     },
-        //     {
-        //       id: 'mock-2',
-        //       name: 'Crispy Chicken Wings',
-        //       description: '8 pieces of crispy golden wings tossed in your choice of spicy buffalo or sweet BBQ sauce, served with ranch dressing.',
-        //       price: 45,
-        //       image: '' 
-        //     },
-        //     {
-        //       id: 'mock-3',
-        //       name: 'Truffle Fries',
-        //       description: 'Golden crispy French fries tossed in aromatic white truffle oil, grated parmesan cheese, and fresh parsley.',
-        //       price: 28,
-        //       image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&auto=format&fit=crop&q=60' 
-        //     }
-        //   ];
-        // }
-
         setRestaurant(restaurantData);
         setProducts(productsData);
       } catch (err) {
@@ -135,7 +109,7 @@ const RestaurantMenu = () => {
         <>
           <div className="text-center mb-5 pt-3">
             <h1 className="fw-bold">{restaurant.name}</h1>
-            <p className="text-muted mb-0">{restaurant.cuisine} • {restaurant.address}</p>
+            <p className="restaurant-data mb-0">{restaurant.cuisine} • {restaurant.address}</p>
           </div>
 
           <h3 className="fw-bold mb-5">Menu</h3>

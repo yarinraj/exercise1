@@ -57,13 +57,11 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
 
     // Handle user logout: clear storage, reset theme, clear user state, and redirect to home
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        document.body.classList.remove('dark-theme');
-        setIsDarkMode(false);
-        setUser(null);
-        navigate('/');
-    };
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    document.body.classList.remove('dark-theme');
+    window.location.href = '/'; 
+};
 
     // Handle search, redirect to feed if necessary
     const handleSearch = (e) => {

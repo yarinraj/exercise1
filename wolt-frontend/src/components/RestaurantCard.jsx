@@ -34,7 +34,7 @@ const RestaurantCard = ({ restaurant }) => {
 
                 <div className="card-body d-flex flex-column">
                     <div className="d-flex justify-content-between align-items-center mb-2">
-                        <h5 className="card-title mb-0 text-dark fw-bold">{restaurant.name}</h5>
+                        <h5 className="card-title mb-0 restaurant-card-title fw-bold">{restaurant.name}</h5>
                         <span className="badge bg-primary text-wrap">{restaurant.cuisine || 'General'}</span>
                     </div>
 

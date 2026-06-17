@@ -19,7 +19,8 @@ const RestaurantSetupForm = () => {
         phone: '',       // Optional
         image: '',       // Optional
         lat: '',         // Required coordinate
-        lng: ''          // Required coordinate
+        lng: '',          // Required coordinate
+        isPromoted: false, // Optional, default to false
     });
 
     const [statusMessage, setStatusMessage] = useState({ text: '', type: '' });
@@ -114,7 +115,30 @@ const RestaurantSetupForm = () => {
                                 <FormInput name="description" label="Description (Optional)" type="text" value={formData.description} onChange={handleChange} required={false} />
                                 <FormInput name="phone" label="Phone Number (Optional)" type="text" value={formData.phone} onChange={handleChange} required={false} />
                                 <FormInput name="image" label="Cover Image URL (Optional)" type="url" value={formData.image} onChange={handleChange} placeholder="https://example.com/cover.jpg" required={false} />
-
+                                {/* Premium Promotion Feature Section */}
+                                <div className="card bg-light border-warning my-4 rounded-3 animate__animated animate__fadeIn">
+                                    <div className="card-body p-3">
+                                        <div className="form-check form-switch d-flex align-items-center justify-content-between p-0">
+                                            <div className="text-start me-3">
+                                                <label className="form-check-label fw-bold text-dark d-block" htmlFor="isPromoted">
+                                                    ⭐ Promote Your Restaurant
+                                                </label>
+                                                <small className="text-muted d-block mt-1 lh-sm">
+                                                    Notice: promoting your restaurant costs 199.90₪ a month.
+                                                </small>
+                                            </div>
+                                            <input
+                                                className="form-check-input ms-0"
+                                                type="checkbox"
+                                                id="isPromoted"
+                                                name="isPromoted"
+                                                checked={formData.isPromoted}
+                                                onChange={() => setFormData(prev => ({ ...prev, isPromoted: !prev.isPromoted }))}
+                                                style={{ width: '2.5em', height: '1.25em', cursor: 'pointer' }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                                 <button type="submit" className="btn btn-primary w-100 rounded-pill fw-bold py-2 mt-3">
                                     Create Restaurant
                                 </button>

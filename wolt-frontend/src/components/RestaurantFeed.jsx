@@ -12,7 +12,7 @@ const RestaurantFeed = ({ searchQuery }) => {
     const [userLocation, setUserLocation] = useState(null);
     const [locationDenied, setLocationDenied] = useState(false);
     const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
-
+    const [maxDistance, setMaxDistance] = useState(10);
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -73,13 +73,13 @@ const RestaurantFeed = ({ searchQuery }) => {
 
     const getRealDistance = (lat1, lon1, lat2, lon2) => {
         if (!lat1 || !lon1 || !lat2 || !lon2) return null;
-        const R = 6371; 
+        const R = 6371;
         const dLat = (lat2 - lat1) * (Math.PI / 180);
         const dLon = (lon2 - lon1) * (Math.PI / 180);
-        const a = 
+        const a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2); 
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+            Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return parseFloat((R * c).toFixed(1));
     };
 
@@ -90,7 +90,7 @@ const RestaurantFeed = ({ searchQuery }) => {
                 message: "Location access is required to view nearby restaurants. Please enable permissions in browser settings.",
                 type: 'warning'
             });
-            return; 
+            return;
         }
         setActiveFilter(filterType);
     }; 
@@ -111,13 +111,13 @@ const RestaurantFeed = ({ searchQuery }) => {
                 if (locationDenied || restaurant.calculatedDistance === null) {
                     return false;
                 }
-                if (restaurant.calculatedDistance > 5) {
-                    return false; 
+                if (restaurant.calculatedDistance > maxDistance) {
+                    return false;
                 }
             }
-            
+
             if (activeFilter === 'promoted' && restaurant.isPromoted !== true) {
-                return false; 
+                return false;
             }
             
             return true; 
@@ -140,10 +140,10 @@ const RestaurantFeed = ({ searchQuery }) => {
     return (
         <div className="container p-4">
             {toast.show && (
-                <Toast 
-                    message={toast.message} 
-                    type={toast.type} 
-                    onClose={() => setToast({ ...toast, show: false })} 
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast({ ...toast, show: false })}
                 />
             )}
 
@@ -154,19 +154,57 @@ const RestaurantFeed = ({ searchQuery }) => {
                 </div>
                 <span className="badge bg-secondary p-2">{filteredRestaurants.length} Places Found</span>
             </div>
-            
+
             {/* filtering buttons */}
             <div className="d-flex gap-2 mb-4">
-                <button className={`btn rounded-pill fw-bold px-4 ${activeFilter === 'all' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => handleFilterClick('all')}>All Places</button>
-                <button className={`btn rounded-pill fw-bold px-4 ${activeFilter === 'nearby' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => handleFilterClick('nearby')}>📍 Nearby</button>
-                <button className={`btn rounded-pill fw-bold px-4 ${activeFilter === 'promoted' ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => handleFilterClick('promoted')}>⭐ Promoted</button>
+                <button
+                    className={`btn rounded-pill fw-bold px-4 ${activeFilter === 'all' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                    onClick={() => handleFilterClick('all')}
+                >
+                    All Places
+                </button>
+                <button
+                    className={`btn rounded-pill fw-bold px-4 ${activeFilter === 'nearby' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                    onClick={() => handleFilterClick('nearby')}
+                >
+                    📍 Nearby
+                </button>
+                <button
+                    className={`btn rounded-pill fw-bold px-4 ${activeFilter === 'promoted' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                    onClick={() => handleFilterClick('promoted')}
+                >
+                    ⭐ Promoted
+                </button>
             </div>
-            
+
             {activeFilter === 'nearby' && !locationDenied && (
-                <div className="text-start mb-3 animate__animated animate__fadeIn">
-                    <small className="text-muted fw-semibold bg-light px-3 py-1.5 rounded-pill border">
-                        Filtered to 5 km max from your location
-                    </small>
+                <div className="text-start mb-4 animate__animated animate__fadeIn">
+                    <div className="d-inline-flex align-items-center bg-light px-3 py-2 rounded-pill border shadow-sm">
+                        <span className="text-muted fw-semibold me-1">Showing restaurants within</span>
+
+                        <select
+                            value={maxDistance}
+                            onChange={(e) => setMaxDistance(Number(e.target.value))}
+                            className="form-select-sm border-0 bg-transparent text-primary fw-bold p-0 pe-3"
+                            style={{
+                                cursor: 'pointer',
+                                outline: 'none',
+                                width: 'auto',
+                                fontSize: '0.9rem',
+                                backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3e%3cpath fill=\'none\' stroke=\'%23009de0\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'m2 5 6 6 6-6\'/%3e%3c/svg%3e")',
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right center',
+                                backgroundSize: '10px',
+                                appearance: 'none'
+                            }}
+                        >
+                            <option value={5}>5 km</option>
+                            <option value={10}>10 km</option>
+                            <option value={20}>20 km</option>
+                        </select>
+
+                        <span className="text-muted fw-semibold ms-1">from you</span>
+                    </div>
                 </div>
             )}
 
@@ -174,19 +212,19 @@ const RestaurantFeed = ({ searchQuery }) => {
             <div className="row">
                 {filteredRestaurants.length > 0 ? (
                     filteredRestaurants.map((restaurant) => (
-                        <RestaurantCard 
-                            key={restaurant._id || restaurant.id} 
+                        <RestaurantCard
+                            key={restaurant._id || restaurant.id}
                             restaurant={{
                                 ...restaurant,
-                                distance: restaurant.calculatedDistance !== null 
-                                    ? `${restaurant.calculatedDistance} km` 
+                                distance: restaurant.calculatedDistance !== null
+                                    ? `${restaurant.calculatedDistance} km`
                                     : "Location unavailable"
-                            }} 
+                            }}
                         />
                     ))
                 ) : (
                     <div className="text-center p-5 w-100">
-                        <p className="text-muted fs-5">No restaurants match your search or category criteria.</p>
+                        <p className="text-muted fs-5 feed-subtitle">No restaurants match your search or category criteria.</p>
                     </div>
                 )}
             </div>
