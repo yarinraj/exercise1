@@ -137,8 +137,8 @@ const RestaurantFeed = ({ searchQuery }) => {
 
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <div className="text-start mb-4">
-                    <h2 className="fw-bold m-0 text-dark">Restaurants:</h2>
-                    <p className="text-muted m-0">Explore our curated list of available kitchens</p>
+                    <h2 className="fw-bold m-0 feed-title">Restaurants:</h2>
+                    <p className="m-0 feed-subtitle">Explore our curated list of available kitchens</p>
                 </div>
                 <span className="badge bg-secondary p-2">{filteredRestaurants.length} Places Found</span>
             </div>
@@ -189,7 +189,7 @@ const RestaurantFeed = ({ searchQuery }) => {
                     ))
                 ) : (
                     <div className="text-center p-5 w-100">
-                        <p className="text-muted fs-5">No restaurants match your search or category criteria.</p>
+                        <p className="text-muted fs-5 feed-subtitle">No restaurants match your search or category criteria.</p>
                     </div>
                 )}
             </div>

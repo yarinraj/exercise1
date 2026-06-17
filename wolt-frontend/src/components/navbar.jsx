@@ -40,13 +40,11 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        document.body.classList.remove('dark-theme');
-        setIsDarkMode(false);
-        setUser(null);
-        navigate('/');
-    };
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    document.body.classList.remove('dark-theme');
+    window.location.href = '/'; 
+};
 
     const displayName = user?.displayName || user?.username || 'User';
 
@@ -66,7 +64,7 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
                             <input
                                 type="text"
                                 className="form-control"
-                                placeholder="Search restaurants or cuisines..."
+                                placeholder="Search in bites..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 ref={searchInputRef} 
