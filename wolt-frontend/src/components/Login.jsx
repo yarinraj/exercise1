@@ -179,7 +179,7 @@ useEffect(() => {
 
             <div className="register-card">
                 <div className="register-header">
-                    <h2 className="register-title">Welcome Back!</h2>
+                    <h2 className="register-title">Welcome!</h2>
                     <p className="register-subtitle">
                         Log in to continue your delicious journey.
                     </p>
