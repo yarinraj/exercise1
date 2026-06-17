@@ -7,7 +7,7 @@ const RestaurantMenu = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { cartItems, addToCart, updateQuantity } = useCart();
-  
+
   const [restaurant, setRestaurant] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,13 +15,14 @@ const RestaurantMenu = () => {
 
   const [isDark, setIsDark] = useState(false);
 
+  // Theme detection logic
   useEffect(() => {
     const determineTheme = () => {
       const htmlAttr = document.documentElement.getAttribute('data-bs-theme') || document.documentElement.getAttribute('data-theme') || '';
       const bodyAttr = document.body.getAttribute('data-bs-theme') || document.body.getAttribute('data-theme') || '';
       const classes = [...document.body.classList, ...document.documentElement.classList];
       const hasDarkClass = classes.some(c => c.toLowerCase().includes('dark'));
-      
+
       setIsDark(htmlAttr.includes('dark') || bodyAttr.includes('dark') || hasDarkClass);
     };
 
@@ -34,6 +35,7 @@ const RestaurantMenu = () => {
     return () => observer.disconnect();
   }, []);
 
+  // Fetch restaurant and menu data
   useEffect(() => {
     const fetchMenuData = async () => {
       setLoading(true);
@@ -73,6 +75,7 @@ const RestaurantMenu = () => {
     if (id) fetchMenuData();
   }, [id, navigate]);
 
+  // Loading State
   if (loading) {
     return (
       <div className="container mt-5 text-center">
@@ -84,97 +87,149 @@ const RestaurantMenu = () => {
   }
 
   return (
-    <div className="container mt-5">
+    <div className="restaurant-page-wrapper pb-5">
+      {/* Toast Notification positioned absolutely */}
       {toast.show && (
-        <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
+        <div className="position-fixed top-0 start-50 translate-middle-x p-3" style={{ zIndex: 1060 }}>
+          <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
+        </div>
       )}
 
       {restaurant && (
         <>
-          <div className="text-center mb-5 pt-3">
-            <h1 className="fw-bold">{restaurant.name}</h1>
-            <p className="restaurant-data mb-0">{restaurant.cuisine} • {restaurant.address}</p>
+          {/* HERO BANNER SECTION
+            Takes 1/3 of the screen height (33vh) and spans full width.
+            Implements the fallback logo logic if the restaurant has no image.
+          */}
+          <div
+            className="w-100 shadow-sm"
+            style={{
+              height: '33vh',
+              backgroundColor: (restaurant.image && restaurant.image.trim() !== '') ? 'transparent' : (isDark ? '#1a1d24' : '#f8f9fa'),
+              borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              overflow: 'hidden'
+            }}
+          >
+            <img
+              src={(restaurant.image && restaurant.image.trim() !== '') ? restaurant.image : '/icon.svg'}
+              alt={restaurant.name}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: (restaurant.image && restaurant.image.trim() !== '') ? 'cover' : 'contain',
+                padding: (restaurant.image && restaurant.image.trim() !== '') ? '0' : '2rem'
+              }}
+            />
           </div>
 
-          <h3 className="fw-bold mb-5">Menu</h3>
+          {/* MAIN CONTENT CONTAINER */}
+          <div className="container mt-4">
 
-          <div className="row">
-            {products.map((product) => {
-              const hasImage = product.image && product.image.trim() !== "";
-              const cartItem = cartItems.find(item => 
-                (product._id && item._id === product._id) || (product.id && item.id === product.id)
-              );
+            {/* Restaurant Title & Info */}
+            <div className="text-center mb-5">
+              <h1 className="fw-bold display-5" style={{ color: isDark ? '#fff' : '#212529' }}>{restaurant.name}</h1>
+              <p className="mb-0" style={{ color: isDark ? '#adb5bd' : '#6c757d', fontSize: '1.1rem' }}>
+                {restaurant.cuisine} • {restaurant.address}
+              </p>
+            </div>
 
-              return (
-                <div key={product._id || product.id || Math.random().toString()} className="col-md-6 mb-3">
-                  <div className="card h-100 shadow-sm p-3 content-card"
-                    style={{
-                      borderRadius: '16px',
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-                      border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.06)',
-                      transition: 'transform 0.2s, box-shadow 0.2s'
-                    }}>
-                    <div className="d-flex justify-content-between align-items-start gap-2 h-100">
+            <h3 className="fw-bold mb-4" style={{ color: isDark ? '#fff' : '#212529' }}>Menu</h3>
 
-                      <div className="d-flex flex-column h-100 flex-grow-1" style={{ maxWidth: hasImage ? '72%' : '100%' }}>
-                        <h5 className="fw-bold mb-1" style={{ color: isDark ? '#fff' : '#212529' }}>{product.name}</h5>
-                        <p className="text-muted small mb-3 text-truncate-3" style={{ lineHeight: '1.4' }}>
-                          {product.description}
-                        </p>
-                        <div className="fw-bold mt-auto fs-5" style={{ color: '#00c2e8' }}>₪{product.price}</div>
-                      </div>
+            {/* Menu Products Grid */}
+            <div className="row">
+              {products.map((product) => {
+                const hasImage = product.image && product.image.trim() !== "";
+                const cartItem = cartItems.find(item =>
+                  (product._id && item._id === product._id) || (product.id && item.id === product.id)
+                );
 
-                      <div className="d-flex flex-column align-items-center justify-content-between flex-shrink-0" style={{ width: '110px' }}>
-                        {hasImage ? (
-                          <div className="position-relative mb-2">
-                            <img src={product.image} alt={product.name} style={{ width: '110px', height: '110px', objectFit: 'cover', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.15)' }} />
+                return (
+                  <div key={product._id || product.id || Math.random().toString()} className="col-md-6 mb-3">
+                    <div className="card h-100 shadow-sm p-3 content-card"
+                      style={{
+                        borderRadius: '16px',
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                        border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.06)',
+                        transition: 'transform 0.2s, box-shadow 0.2s'
+                      }}>
+                      <div className="d-flex justify-content-between align-items-start gap-2 h-100">
+
+                        <div className="d-flex flex-column h-100 flex-grow-1" style={{ maxWidth: hasImage ? '72%' : '100%' }}>
+                          <h5 className="fw-bold mb-1" style={{ color: isDark ? '#fff' : '#212529' }}>{product.name}</h5>
+                          <p className="text-muted small mb-3 text-truncate-3" style={{ lineHeight: '1.4' }}>
+                            {product.description}
+                          </p>
+                          <div className="fw-bold mt-auto fs-5" style={{ color: '#00c2e8' }}>₪{product.price}</div>
+                        </div>
+
+                        <div className="d-flex flex-column align-items-center justify-content-between flex-shrink-0" style={{ width: '110px' }}>
+
+                          {/* Product Image or Fallback Logo */}
+                          <div className="position-relative mb-2 d-flex align-items-center justify-content-center"
+                            style={{
+                              width: '110px',
+                              height: '110px',
+                              backgroundColor: hasImage ? 'transparent' : (isDark ? 'rgba(255,255,255,0.05)' : '#f8f9fa'),
+                              borderRadius: '12px',
+                              boxShadow: hasImage ? '0 4px 10px rgba(0,0,0,0.15)' : 'inset 0 0 0 1px rgba(0,0,0,0.05)'
+                            }}>
+                            <img
+                              src={hasImage ? product.image : '/icon.svg'}
+                              alt={product.name}
+                              style={{
+                                width: hasImage ? '100%' : '50%', // Logo is slightly smaller to sit nicely in the box
+                                height: hasImage ? '100%' : '50%',
+                                objectFit: hasImage ? 'cover' : 'contain',
+                                borderRadius: hasImage ? '12px' : '0'
+                              }}
+                            />
                           </div>
-                        ) : (
-                          <div style={{ height: '70px' }}></div>
-                        )}
-
-                        <div className="w-100 mt-auto d-flex justify-content-center">
-                          {cartItem ? (
-                            <div className="d-flex align-items-center justify-content-between rounded-pill p-1 w-100"
-                              style={{ 
-                                backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', 
-                                border: isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.08)' 
-                              }}>
+                          <div className="w-100 mt-auto d-flex justify-content-center">
+                            {cartItem ? (
+                              <div className="d-flex align-items-center justify-content-between rounded-pill p-1 w-100"
+                                style={{
+                                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                                  border: isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0,0,0,0.08)'
+                                }}>
+                                <button
+                                  className="btn btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center fw-bold"
+                                  style={{ width: '28px', height: '28px', backgroundColor: 'transparent', border: 'none', color: isDark ? '#fff' : '#212529' }}
+                                  onClick={() => updateQuantity(cartItem._id || cartItem.id, cartItem.quantity - 1)}
+                                >
+                                  —
+                                </button>
+                                <span className="fw-bold small px-1" style={{ color: isDark ? '#fff' : '#212529' }}>{cartItem.quantity}</span>
+                                <button
+                                  className="btn btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center fw-bold"
+                                  style={{ width: '28px', height: '28px', backgroundColor: 'transparent', border: 'none', color: '#00c2e8' }}
+                                  onClick={() => updateQuantity(cartItem._id || cartItem.id, cartItem.quantity + 1)}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            ) : (
                               <button
-                                className="btn btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center fw-bold"
-                                style={{ width: '28px', height: '28px', backgroundColor: 'transparent', border: 'none', color: isDark ? '#fff' : '#212529' }}
-                                onClick={() => updateQuantity(cartItem._id || cartItem.id, cartItem.quantity - 1)}
-                              >
-                                —
-                              </button>
-                              <span className="fw-bold small px-1" style={{ color: isDark ? '#fff' : '#212529' }}>{cartItem.quantity}</span>
-                              <button
-                                className="btn btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center fw-bold"
-                                style={{ width: '28px', height: '28px', backgroundColor: 'transparent', border: 'none', color: '#00c2e8' }}
-                                onClick={() => updateQuantity(cartItem._id || cartItem.id, cartItem.quantity + 1)}
+                                className="btn rounded-circle d-flex align-items-center justify-content-center p-0 shadow-sm"
+                                style={{ width: '36px', height: '36px', backgroundColor: '#00c2e8', border: 'none', color: '#fff', fontSize: '1.2rem', transition: 'transform 0.2s' }}
+                                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                onClick={() => addToCart(product, id)}
                               >
                                 +
                               </button>
-                            </div>
-                          ) : (
-                            <button
-                              className="btn rounded-circle d-flex align-items-center justify-content-center p-0 shadow-sm"
-                              style={{ width: '36px', height: '36px', backgroundColor: '#00c2e8', border: 'none', color: '#fff', fontSize: '1.2rem', transition: 'transform 0.2s' }}
-                              onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                              onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                              onClick={() => addToCart(product, id)}
-                            >
-                              +
-                            </button>
-                          )}
+                            )}
+                          </div>
                         </div>
-                      </div>
 
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </>
       )}
