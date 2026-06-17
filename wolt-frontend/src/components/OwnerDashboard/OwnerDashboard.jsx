@@ -38,6 +38,43 @@ const OwnerDashboard = () => {
         fetchMyRestaurants();
     }, []);
 
+    // Handle toggling the promotion status of a restaurant
+    const handleTogglePromote = async (id, currentStatus) => {
+        // Confirmation message with the dynamic notice
+        const message = currentStatus
+            ? "Are you sure you want to stop promoting this restaurant?"
+            : "Notice: Promoting your restaurant costs 199.90₪ a month. Would you like to activate premium promotion?";
+
+        if (!window.confirm(message)) return;
+
+        try {
+            const token = localStorage.getItem('token');
+
+            // Sending a PATCH request to update only the isPromoted field
+            const response = await fetch(`http://localhost:8080/api/restaurants/${id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ isPromoted: !currentStatus })
+            });
+
+            if (response.ok) {
+                // Update local state immediately to reflect in UI
+                setRestaurant(prevRestaurants =>
+                    prevRestaurants.map(res =>
+                        res._id === id ? { ...res, isPromoted: !currentStatus } : res
+                    )
+                );
+            } else {
+                alert('Failed to update promotion status. Please check your backend routes.');
+            }
+        } catch (error) {
+            console.error('Promotion toggle error:', error);
+        }
+    };
+
     // Handle restaurant deletion
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this restaurant?")) return;
@@ -74,46 +111,71 @@ const OwnerDashboard = () => {
                         {restaurant && restaurant.length > 0 ? (
                             restaurant.map((res) => (
                                 <div key={res._id} className="col-md-4 mb-3">
-                                    <div className="card h-100 border-0 shadow-sm">
-                                        
+                                    <div className="card h-100 border-0 shadow-sm position-relative overflow-hidden">
+                                        {/* Golden Premium Badge for Promoted Restaurants */}
+                                        {res.isPromoted && (
+                                            <span
+                                                className="badge bg-warning text-dark position-absolute fw-bold shadow-sm"
+                                                style={{ top: '10px', right: '10px', zIndex: 2, fontSize: '0.8rem' }}
+                                            >
+                                                ⭐ Promoted
+                                            </span>
+                                        )}
                                         {/* Dynamic Image Rendering */}
                                         {/* Uses the app logo (/icon.svg) with tailored styling if the image is missing */}
                                         <img
                                             src={(res.image && res.image.trim() !== '') ? res.image : '/icon.svg'}
                                             className="card-img-top"
                                             alt={res.name}
-                                            style={{ 
-                                                height: '150px', 
+                                            style={{
+                                                height: '150px',
                                                 objectFit: (res.image && res.image.trim() !== '') ? 'cover' : 'contain',
                                                 backgroundColor: (res.image && res.image.trim() !== '') ? 'transparent' : '#f8f9fa',
                                                 padding: (res.image && res.image.trim() !== '') ? '0' : '20px'
                                             }}
                                         />
-                                        
-                                        <div className="card-body">
-                                            <h5 className="card-title">{res.name}</h5>
-                                            <p className="card-text text-muted">{res.cuisine}</p>
 
-                                            {/* Action buttons for Edit, Menu, and Delete */}
-                                            <div className="d-flex justify-content-between align-items-center mt-3">
-                                                <button
-                                                    className="btn btn-sm btn-outline-primary rounded-pill px-3"
-                                                    onClick={() => navigate(`/owner/edit/${res._id}`)}
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    className="btn btn-sm btn-outline-secondary rounded-pill px-3"
-                                                    onClick={() => navigate(`/owner/edit/${res._id}/menu`)}
-                                                >
-                                                    Menu
-                                                </button>
-                                                <button
-                                                    className="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                                    onClick={() => handleDelete(res._id)}
-                                                >
-                                                    Delete
-                                                </button>
+                                        <div className="card-body d-flex flex-column justify-content-between">
+                                            <div>
+                                                <h5 className="card-title fw-bold">{res.name}</h5>
+                                                <p className="card-text text-muted mb-3">{res.cuisine}</p>
+                                            </div>
+
+                                            <div>
+                                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                                    <button
+                                                        className="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                                        onClick={() => navigate(`/owner/edit/${res._id}`)}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                                                        onClick={() => navigate(`/owner/edit/${res._id}/menu`)}
+                                                    >
+                                                        Menu
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                                        onClick={() => handleDelete(res._id)}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+
+                                                <div className="mt-2">
+                                                    <button
+                                                        type="button"
+                                                        className={`btn btn-sm w-100 rounded-pill fw-bold py-2 ${res.isPromoted
+                                                                ? 'btn-warning text-dark shadow-sm'
+                                                                : 'btn-outline-warning text-dark'
+                                                            }`}
+                                                        onClick={() => handleTogglePromote(res._id, res.isPromoted)}
+                                                        style={{ fontSize: '0.85rem' }} 
+                                                    >
+                                                        {res.isPromoted ? '❌ Cancel Promotion' : '⭐ Promote'}
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
