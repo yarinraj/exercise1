@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import Register from './components/register';
 import Login from './components/Login'; 
 import Navbar from './components/navbar';
+import { GlobalCartTrigger } from './components/GlobalCartTrigger';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -16,6 +17,8 @@ import EditRestaurantForm from './components/OwnerDashboard/EditRestaurantForm';
 import RestaurantMenuManager from './components/OwnerDashboard/RestaurantMenuManager';
 import AddDishForm from './components/OwnerDashboard/AddDishForm';
 import EditDishForm from './components/OwnerDashboard/EditDishForm';
+import { CartProvider } from './context/cart';
+
 // Sub-component to handle conditional Navbar rendering based on the active path
 const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
   const location = useLocation();
@@ -53,6 +56,7 @@ const App = () => {
 
 return (
     <Router>
+      <CartProvider>
       <div className="App">
         {/* NavigationLayout dynamically decides whether to display the Navbar */}
         <NavigationLayout 
@@ -61,7 +65,7 @@ return (
           searchQuery={searchQuery} 
           setSearchQuery={setSearchQuery} 
         />
-
+        <GlobalCartTrigger />
         <div className="main-content">
           <Routes>
             <Route path="/" element={<HomePage user={user} />} />
@@ -101,14 +105,15 @@ return (
               <div className="d-flex align-items-center justify-content-center error-page-container">
                   <div className="text-center d-flex flex-column align-items-center justify-content-center shadow-sm bg-white rounded-circle error-circle-card">
                       <h2 className="fw-bold mb-2 fs-1 error-title">404</h2>
-                      <p className="text-muted small mb-3 px-4 error-text">העמוד שחיפשת לא קיים</p>
-                      <a href="/" className="btn text-white fw-bold px-4 py-2 rounded-pill shadow-sm error-btn-home">חזרה לעמוד הבית</a>
+                      <p className="text-muted small mb-3 px-4 error-text">page not found</p>
+                      <a href="/" className="btn text-white fw-bold px-4 py-2 rounded-pill shadow-sm error-btn-home">back to home page</a>
                   </div>
               </div>
             } />
           </Routes>
         </div>
       </div>
+      </CartProvider>
     </Router>
   );
 }
