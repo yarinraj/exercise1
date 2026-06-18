@@ -1,6 +1,87 @@
 .home-page-container {
-    min-height: 80vh;
-    padding-top: 20px;
+    position: relative;
+    min-height: calc(100vh - 80px);
+    padding: 24px;
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    overflow: hidden;
+}
+
+/* full layer above the background */
+.home-hero-layout {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* text above the logo, without white background */
+.home-title-card {
+    position: absolute;
+    top: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: min(720px, 86vw);
+    padding: 26px 34px;
+    border-radius: 26px;
+
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: none;
+
+    text-align: center;
+    pointer-events: auto;
+}
+
+.home-title-card h1 {
+    color: #202125;
+    margin-bottom: 12px;
+    text-shadow: 0 3px 14px rgba(255, 255, 255, 0.95);
+}
+
+.home-title-card p {
+    color: #5f6872;
+    margin-bottom: 0;
+    text-shadow: 0 2px 10px rgba(255, 255, 255, 0.95);
+}
+
+/* no spacing element needed anymore */
+.home-logo-space {
+    display: none;
+}
+
+/* buttons below the logo, stacked vertically */
+.home-actions-card {
+    position: absolute;
+    left: 50%;
+    bottom: 95px;
+    transform: translateX(-50%);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    padding: 0;
+
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: none;
+
+    pointer-events: auto;
+}
+
+.home-actions-card .btn {
+    min-width: 230px;
+}
+
+.home-page-container .btn {
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18) !important;
 }
 
 .guest-actions-wrapper {
@@ -17,5 +98,47 @@
 }
 
 .home-welcome-content {
-    margin-top: 80px;
+    margin-top: 0;
+}
+
+/* Dark mode support */
+body.dark-theme .home-title-card,
+body.dark-theme .home-actions-card {
+    background: transparent;
+    color: #ffffff;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+body.dark-theme .home-title-card h1,
+body.dark-theme .home-title-card p {
+    color: #ffffff !important;
+    text-shadow: 0 3px 14px rgba(0, 0, 0, 0.75);
+}
+
+/* Mobile adjustment */
+@media (max-width: 768px) {
+    .home-title-card {
+        top: 32px;
+        width: min(620px, 90vw);
+        padding: 20px 22px;
+    }
+
+    .home-title-card h1 {
+        font-size: 2rem;
+    }
+
+    .home-title-card p {
+        font-size: 1rem;
+    }
+
+    .home-actions-card {
+        bottom: 42px;
+        width: min(520px, 90vw);
+        gap: 10px;
+    }
+
+    .home-actions-card .btn {
+        min-width: 220px;
+    }
 }
