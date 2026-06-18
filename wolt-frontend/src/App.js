@@ -19,24 +19,28 @@ import AddDishForm from './components/OwnerDashboard/AddDishForm';
 import EditDishForm from './components/OwnerDashboard/EditDishForm';
 import { CartProvider } from './context/cart';
 
-// Sub-component to handle conditional Navbar rendering based on the active path
+// Sub-component to handle conditional Navbar and Cart rendering based on the active path
 const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
   const location = useLocation();
-  // Normalize path to lowercase and remove trailing slashes for precise matching
   const currentPath = location.pathname.toLowerCase().replace(/\/$/, "");
-  // Routes where the Navbar should be completely hidden
   const authRoutes = ['/login', '/register', '/signup'];
-  const shouldHideNavbar = authRoutes.includes(currentPath);
+  
+  // Changed the variable name to be more generic
+  const shouldHideElements = authRoutes.includes(currentPath);
 
   return (
     <>
-      {!shouldHideNavbar && (
-        <Navbar
-          user={user}
-          setUser={setUser}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-        />
+      {!shouldHideElements && (
+        <>
+          <Navbar
+            user={user}
+            setUser={setUser}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+          {/* FIX: Moved GlobalCartTrigger here so it hides on Login/Register pages */}
+          <GlobalCartTrigger />
+        </>
       )}
     </>
   );
@@ -65,7 +69,7 @@ const App = () => {
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
           />
-          <GlobalCartTrigger />
+         
           <div className="main-content">
             <Routes>
 
