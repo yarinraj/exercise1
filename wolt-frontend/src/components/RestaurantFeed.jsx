@@ -13,6 +13,7 @@ const RestaurantFeed = ({ searchQuery }) => {
     const [locationDenied, setLocationDenied] = useState(false);
     const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
     const [maxDistance, setMaxDistance] = useState(10);
+
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -119,6 +120,13 @@ const RestaurantFeed = ({ searchQuery }) => {
             if (activeFilter === 'promoted' && restaurant.isPromoted !== true) {
                 return false;
             }
+
+            if (activeFilter === 'top') {
+                const rating = restaurant.averageRating ?? restaurant.rating ?? 0;
+                if (rating < 4.0) {
+                    return false;
+                }
+            }
             
             return true; 
         });
@@ -174,6 +182,12 @@ const RestaurantFeed = ({ searchQuery }) => {
                     onClick={() => handleFilterClick('promoted')}
                 >
                     ⭐ Promoted
+                </button>
+                <button
+                    className={`btn rounded-pill fw-bold px-4 ${activeFilter === 'top' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                    onClick={() => handleFilterClick('top')}
+                >
+                    🏆 Top Rated
                 </button>
             </div>
 

@@ -1,5 +1,4 @@
 // Import the Mongoose model instead of using an in-memory array
-// Make sure the path exactly matches your model's filename
 const Order = require('../models/order'); 
 
 // Create a new order and link it to a specific user

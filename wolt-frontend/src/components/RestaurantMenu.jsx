@@ -2,7 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Toast from './Toast';
 import { useCart } from '../context/cart';
+import { navigate } from 'react-router-dom';
+const rateRestaurantAPI = async (restaurantId, ratingValue) => {
+  try {
+    const token = localStorage.getItem('token');
 
+    if (!token) {
+      throw new Error("Only logged in users can rate restaurants. Please log in.");
+    }
+
+    const response = await fetch(`/api/restaurants/${restaurantId}/rate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ rating: ratingValue })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to submit rating");
+    }
+
+    return data;
+
+  } catch (error) {
+    console.error("Error in rateRestaurant API call:", error.message);
+    throw error;
+  }
+};
 const RestaurantMenu = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -15,6 +45,7 @@ const RestaurantMenu = () => {
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
 
   const [isDark, setIsDark] = useState(false);
+  const [hoverRating, setHoverRating] = useState(0);
 
   // Theme detection logic
   useEffect(() => {
@@ -75,7 +106,38 @@ const RestaurantMenu = () => {
 
     if (id) fetchMenuData();
   }, [id, navigate]);
+  const handleRatingSubmit = async (ratingValue) => {
+    // check if user is logged in by verifying the presence of a token in localStorage
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setToast({
+        show: true,
+        message: 'Only logged in users can rate restaurants. Redirecting to login...',
+        type: 'error'
+      });
 
+      // navigate to the login page after a short delay to allow the user to read the toast message
+      setTimeout(() => {
+        navigate('/login');
+      }, 2500);
+
+      return;
+    }
+    try {
+      const data = await rateRestaurantAPI(id, ratingValue);
+
+      // Update local state dynamically so the UI updates without a full page reload
+      setRestaurant(prev => ({
+        ...prev,
+        averageRating: data.averageRating,
+        ratings: data.ratings// increment total ratings count visually
+      }));
+
+      setToast({ show: true, message: 'Thank you! Rating submitted successfully.', type: 'success' });
+    } catch (error) {
+      setToast({ show: true, message: error.message, type: 'error' });
+    }
+  };
   // Loading State
   if (loading) {
     return (
@@ -135,6 +197,72 @@ const RestaurantMenu = () => {
               <p className="mb-0" style={{ color: isDark ? '#adb5bd' : '#6c757d', fontSize: '1.1rem' }}>
                 {restaurant.cuisine} • {restaurant.address}
               </p>
+              <div className="d-flex align-items-center justify-content-center gap-2 mt-2">
+                <div className="d-flex align-items-center">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    // 1. Calculate how much this specific star should be filled (0 to 100%)
+                    let fillPercentage = 0;
+
+                    if (hoverRating) {
+                      // If hovering, behave normally with whole stars
+                      fillPercentage = hoverRating >= star ? 100 : 0;
+                    } else {
+                      // If not hovering, calculate precise decimal fill
+                      const avg = restaurant.averageRating || 0;
+                      if (avg >= star) {
+                        fillPercentage = 100; // Fully filled star
+                      } else if (avg > star - 1) {
+                        fillPercentage = (avg - (star - 1)) * 100; // Partially filled star (e.g., 0.3 -> 30%)
+                      }
+                    }
+
+                    return (
+                      <div
+                        key={star}
+                        style={{
+                          position: 'relative',
+                          display: 'inline-block',
+                          cursor: 'pointer',
+                          fontSize: '1.6rem',
+                          // Base background color (the empty gray star)
+                          color: isDark ? 'rgba(255,255,255,0.2)' : '#e4e5e9',
+                          userSelect: 'none',
+                          lineHeight: '1'
+                        }}
+                        onClick={() => handleRatingSubmit(star)}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                      >
+                        {/* Background Layer: Empty Star */}
+                        <span>★</span>
+
+                        {/* Foreground Layer: Filled Star (Clipped by width percentage) */}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: `${fillPercentage}%`,
+                            overflow: 'hidden',
+                            color: '#ffc107', // Gold color
+                            whiteSpace: 'nowrap',
+                            transition: hoverRating ? 'none' : 'width 0.2s ease' // Smooth animation only when rating loads
+                          }}
+                        >
+                          ★
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <span className="fw-bold" style={{ color: isDark ? '#fff' : '#212529', fontSize: '1.05rem', lineHeight: '1' }}>
+                  {restaurant.averageRating ? restaurant.averageRating.toFixed(1) : "0.0"}
+                </span>
+                <span style={{ color: isDark ? '#747a80' : '#8c9399', fontSize: '0.95rem', lineHeight: '1' }}>
+                  ({restaurant.ratings ? restaurant.ratings.length : 0} ratings)
+                </span>
+              </div>
             </div>
 
             <h3 className="fw-bold mb-4" style={{ color: isDark ? '#fff' : '#212529' }}>Menu</h3>
