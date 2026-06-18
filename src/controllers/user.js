@@ -81,7 +81,6 @@ const getUser = async (req, res) => {
     }
 };
 // Function to handle user login (POST /api/users/login)
-// Function to handle user login (POST /api/users/login)
 const login = async (req, res) => {
     try {
         const { username, password } = req.body;

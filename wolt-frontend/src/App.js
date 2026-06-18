@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './components/HomePage';
 import RestaurantFeed from "./components/RestaurantFeed";
 import RestaurantMenu from './components/RestaurantMenu';
+import PastOrders from './components/PastOrders'
 
 import RestaurantSetupForm from './components/OwnerDashboard/RestaurantSetupForm';
 import OwnerDashboard from './components/OwnerDashboard/OwnerDashboard';
@@ -95,6 +96,7 @@ const App = () => {
 
               {/* --- PROTECTED ROUTES (Logged-in users only) --- */}
               <Route element={<ProtectedRoute />}>
+                <Route path="/past-orders" element={<PastOrders />} />
                 {/* Owner routes */}
                 <Route path="/owner/setup" element={<RestaurantSetupForm />} />
                 <Route path="/owner/edit/:id/menu" element={<RestaurantMenuManager />} />

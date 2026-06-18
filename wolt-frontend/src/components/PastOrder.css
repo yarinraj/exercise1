@@ -1,0 +1,90 @@
+/* Container layout for English LTR */
+.past-orders-container {
+    max-width: 600px;
+    direction: ltr;
+}
+
+/* Page heading */
+.past-orders-title {
+    color: #212529;
+}
+
+/* Main Wolt-style order card */
+.order-card {
+    background-color: #ffffff;
+}
+
+/* Restaurant logo wrapping */
+.restaurant-logo-wrapper {
+    width: 75px;
+    height: 75px;
+    border-radius: 16px;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    flex-shrink: 0;
+}
+
+.restaurant-logo-img {
+    object-fit: cover;
+}
+
+/* Shortcut image list styling when accordion is closed */
+.shortcut-images-container {
+    padding: 4px 0;
+}
+
+.product-shortcut-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    border: 1px solid #eee;
+}
+
+.product-shortcut-img {
+    object-fit: cover;
+}
+
+/* More items indicator (...) */
+.more-items-indicator {
+    width: 50px;
+    height: 50px;
+}
+
+/* Detailed product row when accordion is expanded */
+.product-detail-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    flex-shrink: 0;
+}
+
+.product-detail-img {
+    object-fit: cover;
+}
+
+/* Action buttons custom colors */
+.btn-show-items,
+.btn-show-items:hover, 
+.btn-show-items:active, 
+.btn-show-items:focus {
+    background-color: #e2f7fc;
+    color: #00c2e8;
+    border: none;
+}
+
+.btn-visit-restaurant,
+.btn-visit-restaurant:hover, 
+.btn-visit-restaurant:active, 
+.btn-visit-restaurant:focus {
+    background-color: #00c2e8;
+    border: none;
+}
+
+.line {
+    border-top: 1px dashed #e0e0e0;
+    margin: 12px 0;
+}
