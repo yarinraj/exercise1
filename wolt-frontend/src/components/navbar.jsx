@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import './navbar.css';
+import { useCart } from '../context/cart';
 
 function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
+    const { clearCart } = useCart();
     const [isDarkMode, setIsDarkMode] = React.useState(() => {
         const savedTheme = localStorage.getItem('theme');
         return savedTheme === 'dark';
@@ -54,6 +56,9 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('cartItems');
+        localStorage.removeItem('cart');
+        clearCart();
         document.body.classList.remove('dark-theme');
         window.location.href = '/'; 
     };

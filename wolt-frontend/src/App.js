@@ -28,7 +28,6 @@ const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
   const authRoutes = ['/login', '/register', '/signup'];
   const shouldHideNavbar = authRoutes.includes(currentPath);
 
-
   return (
     <>
       {!shouldHideNavbar && (
@@ -46,6 +45,7 @@ const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
 const App = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState(null);
+  
   // Check if a user session already exists on page load
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -69,12 +69,17 @@ const App = () => {
           <div className="main-content">
             <Routes>
 
-              <Route path="/" element={<RestaurantFeed searchQuery={searchQuery} />} />
-
-              {/* public routes */}
-              <Route path="/" element={<RestaurantFeed searchQuery={searchQuery} />} />
+              {/* --- PUBLIC ROUTES --- */}
+              {/* 1. Main Home Page */}
+              <Route path="/" element={<HomePage user={user} />} />
+              
+              {/* 2. Restaurant Feed (Open to all users and guests) */}
               <Route path="/restaurants" element={<RestaurantFeed searchQuery={searchQuery} />} />
+              
+              {/* 3. Specific Restaurant Menu (Open to all users and guests) */}
               <Route path="/restaurant/:id" element={<RestaurantMenu />} />
+              
+              {/* 4. Login and Registration */}
               <Route
                 path="/login"
                 element={!user ? <Login setUser={setUser} /> : <Navigate to="/" />}
@@ -84,11 +89,9 @@ const App = () => {
                 element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />}
               />
 
-             
+              {/* --- PROTECTED ROUTES (Logged-in users only) --- */}
               <Route element={<ProtectedRoute />}>
-                <Route path="/restaurant/:id" element={<RestaurantMenu />} />
-
-                {/* owner routes */}
+                {/* Owner routes */}
                 <Route path="/owner/setup" element={<RestaurantSetupForm />} />
                 <Route path="/owner/edit/:id/menu" element={<RestaurantMenuManager />} />
                 <Route path="/owner/edit/:id" element={<EditRestaurantForm />} />
@@ -97,7 +100,7 @@ const App = () => {
                 <Route path="/owner/dashboard" element={<OwnerDashboard />} />
               </Route>
 
-              {/* a 404 page for unknown routes*/}
+              {/* --- 404 PAGE --- */}
               <Route path="*" element={
                 <div className="d-flex align-items-center justify-content-center error-page-container">
                   <div className="text-center d-flex flex-column align-items-center justify-content-center shadow-sm bg-white rounded-circle error-circle-card">
@@ -107,6 +110,7 @@ const App = () => {
                   </div>
                 </div>
               } />
+              
             </Routes>
           </div>
         </div>

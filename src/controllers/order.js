@@ -5,10 +5,14 @@ const cppGateway = require('../services/cppGateway');
 
 /**
  * Create a new order
- * Assumes authMiddleware has already authenticated the user and set req.user
+ * Supports both authenticated users (req.user exists) and guest users
  */
 const createOrder = async (req, res) => {
-    const user = req.user; 
+    // --- GUEST SUPPORT LOGIC ---
+    // If req.user exists (from authMiddleware), use their ID.
+    // Otherwise, generate a temporary guest ID based on the current timestamp.
+    const userId = req.user ? req.user.userId : `guest_user_${Date.now()}`; 
+    
     const { restaurantId, products } = req.body;
 
     try {
@@ -38,17 +42,19 @@ const createOrder = async (req, res) => {
         return res.status(400).json({ error: error.message });
     }
 
-    // Create the order
-    const newOrder = await orderService.createOrder(user.userId, req.body);
+    // Create the order using the determined userId (real or guest)
+    const newOrder = await orderService.createOrder(userId, req.body);
     
     // Gateway communication to sync with C++ server
     try {
-        await cppGateway.sendPostInteraction(user.userId, req.body.products);
+        // Using 'userId' here ensures it works for both registered users and guests
+        await cppGateway.sendPostInteraction(userId, req.body.products);
     } catch (cppError) {
         console.error("Warning: Could not sync order with C++ server:", cppError.message);
     }
     
-    res.set('Location', `/api/orders/${newOrder.id}`);
+    // Return the new order ID (supporting both MongoDB _id and custom id)
+    res.set('Location', `/api/orders/${newOrder.id || newOrder._id}`);
     return res.status(201).json(newOrder);
 };
 
