@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Register from './components/register';
-import Login from './components/Login'; 
+import Login from './components/Login';
 import Navbar from './components/navbar';
 import { GlobalCartTrigger } from './components/GlobalCartTrigger';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -32,11 +32,11 @@ const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
   return (
     <>
       {!shouldHideNavbar && (
-        <Navbar 
-          user={user} 
-          setUser={setUser} 
-          searchQuery={searchQuery} 
-          setSearchQuery={setSearchQuery} 
+        <Navbar
+          user={user}
+          setUser={setUser}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
         />
       )}
     </>
@@ -54,65 +54,62 @@ const App = () => {
     }
   }, []);
 
-return (
+  return (
     <Router>
       <CartProvider>
-      <div className="App">
-        {/* NavigationLayout dynamically decides whether to display the Navbar */}
-        <NavigationLayout 
-          user={user} 
-          setUser={setUser} 
-          searchQuery={searchQuery} 
-          setSearchQuery={setSearchQuery} 
-        />
-        <GlobalCartTrigger />
-        <div className="main-content">
-          <Routes>
-            <Route path="/" element={<HomePage user={user} />} />
+        <div className="App">
+          {/* NavigationLayout dynamically decides whether to display the Navbar */}
+          <NavigationLayout
+            user={user}
+            setUser={setUser}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+          <GlobalCartTrigger />
+          <div className="main-content">
+            <Routes>
 
-            {/* public routes */}
-            <Route 
-              path="/login" 
-              element={!user ? <Login setUser={setUser} /> : <Navigate to="/" />} 
-            />
-            <Route 
-              path="/register" 
-              element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />} 
-            />
-            <Route 
-              path="/signup" 
-              element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />} 
-            />
+              <Route path="/" element={<RestaurantFeed searchQuery={searchQuery} />} />
 
-            {/* protected routes */}
-            <Route element={<ProtectedRoute />}>
-                <Route path="/restaurants" element={<RestaurantFeed searchQuery={searchQuery} />} />
-                <Route path="/restaurant/:id" element={<RestaurantMenu />} /> 
-         
-                
-                {/* --- new route for owner--- */}
+              {/* public routes */}
+              <Route path="/" element={<RestaurantFeed searchQuery={searchQuery} />} />
+              <Route path="/restaurants" element={<RestaurantFeed searchQuery={searchQuery} />} />
+              <Route path="/restaurant/:id" element={<RestaurantMenu />} />
+              <Route
+                path="/login"
+                element={!user ? <Login setUser={setUser} /> : <Navigate to="/" />}
+              />
+              <Route
+                path="/register"
+                element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />}
+              />
+
+             
+              <Route element={<ProtectedRoute />}>
+                <Route path="/restaurant/:id" element={<RestaurantMenu />} />
+
+                {/* owner routes */}
                 <Route path="/owner/setup" element={<RestaurantSetupForm />} />
                 <Route path="/owner/edit/:id/menu" element={<RestaurantMenuManager />} />
                 <Route path="/owner/edit/:id" element={<EditRestaurantForm />} />
                 <Route path="/owner/edit/:id/menu/add" element={<AddDishForm />} />
                 <Route path="/owner/edit/:id/menu/edit/:productId" element={<EditDishForm />} />
-
                 <Route path="/owner/dashboard" element={<OwnerDashboard />} />
-            </Route>
-            
-            {/* a 404 page for unknown routes*/}
-            <Route path="*" element={
-              <div className="d-flex align-items-center justify-content-center error-page-container">
+              </Route>
+
+              {/* a 404 page for unknown routes*/}
+              <Route path="*" element={
+                <div className="d-flex align-items-center justify-content-center error-page-container">
                   <div className="text-center d-flex flex-column align-items-center justify-content-center shadow-sm bg-white rounded-circle error-circle-card">
-                      <h2 className="fw-bold mb-2 fs-1 error-title">404</h2>
-                      <p className="text-muted small mb-3 px-4 error-text">page not found</p>
-                      <a href="/" className="btn text-white fw-bold px-4 py-2 rounded-pill shadow-sm error-btn-home">back to home page</a>
+                    <h2 className="fw-bold mb-2 fs-1 error-title">404</h2>
+                    <p className="text-muted small mb-3 px-4 error-text">page not found</p>
+                    <a href="/" className="btn text-white fw-bold px-4 py-2 rounded-pill shadow-sm error-btn-home">back to home page</a>
                   </div>
-              </div>
-            } />
-          </Routes>
+                </div>
+              } />
+            </Routes>
+          </div>
         </div>
-      </div>
       </CartProvider>
     </Router>
   );
