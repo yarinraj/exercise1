@@ -111,6 +111,7 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
                 <div className="navbar-right">
                     {/* Theme Toggle Button */}
                     <button className="theme-toggle" onClick={toggleTheme}>
+                        <span className="knob"></span>
                         <span className={`icon sun ${isDarkMode ? 'hidden' : ''}`}>☀️</span>
                         <span className={`icon moon ${!isDarkMode ? 'hidden' : ''}`}>🌙</span>
                     </button>
