@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import './navbar.css';
+import { useCart } from '../context/cart';
 
 function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
+    const { clearCart } = useCart();
     const [isDarkMode, setIsDarkMode] = React.useState(() => {
         const savedTheme = localStorage.getItem('theme');
         return savedTheme === 'dark';
@@ -51,13 +53,21 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
         });
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        document.body.classList.remove('dark-theme');
-        window.location.href = '/'; 
-    };
+   const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    document.body.classList.remove('dark-theme');
+    setIsDarkMode(false);
+    setUser(null);
 
+    window.dispatchEvent(
+        new CustomEvent('auth-changed', {
+            detail: { type: 'logout' }
+        })
+    );
+
+    navigate('/');
+};
     // --- Smart Search Handler ---
     const handleSearch = (e) => {
         const value = e.target.value;
@@ -65,7 +75,7 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
 
         // If typing and NOT on the home/feed page, redirect there immediately
         if (value.trim() !== '' && location.pathname !== '/' && location.pathname !== '/restaurants') {
-            navigate('/');
+            navigate('/restaurants');
         }
     };
 
@@ -101,6 +111,7 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
                 <div className="navbar-right">
                     {/* Theme Toggle Button */}
                     <button className="theme-toggle" onClick={toggleTheme}>
+                        <span className="knob"></span>
                         <span className={`icon sun ${isDarkMode ? 'hidden' : ''}`}>☀️</span>
                         <span className={`icon moon ${!isDarkMode ? 'hidden' : ''}`}>🌙</span>
                     </button>

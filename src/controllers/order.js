@@ -5,53 +5,69 @@ const cppGateway = require('../services/cppGateway');
 
 /**
  * Create a new order
- * Assumes authMiddleware has already authenticated the user and set req.user
+ * Supports both authenticated users (req.user exists) and guest users
  */
 const createOrder = async (req, res) => {
-    const user = req.user; 
+    const userId = req.user?.userId
+        ? req.user.userId.toString()
+        : `guest_user_${Date.now()}`;
+
     const { restaurantId, products } = req.body;
 
     try {
-        // 1. Validate restaurant ID
         if (!restaurantId) {
             return res.status(400).json({ error: "Restaurant ID is required" });
         }
-      
-        await restaurantService.getRestaurantById(restaurantId);
 
-        // 2. Validate products array
+        const restaurant = await restaurantService.getRestaurantById(restaurantId);
+
         if (!products || !Array.isArray(products) || products.length === 0) {
             return res.status(400).json({ error: "Products array is required and cannot be empty" });
         }
 
-        // 3. Verify products exist in the restaurant's menu
+        const orderProducts = [];
+
         for (const item of products) {
             const productId = item.id || item.productId;
-      
-            await restaurantService.getProductFromRestaurant(restaurantId, productId);
+
+            const product = await restaurantService.getProductFromRestaurant(
+                restaurantId,
+                productId
+            );
+
+            orderProducts.push({
+                productId: product._id.toString(),
+                name: product.name,
+                quantity: item.quantity,
+                price: product.price
+            });
         }
+
+        const orderData = {
+            restaurantId,
+            restaurantName: restaurant.name,
+            products: orderProducts
+        };
+
+        const newOrder = await orderService.createOrder(userId, orderData);
+
+        try {
+            await cppGateway.sendPostInteraction(userId, orderProducts);
+        } catch (cppError) {
+            console.error("Warning: Could not sync order with C++ server:", cppError.message);
+        }
+
+        res.set('Location', `/api/orders/${newOrder.id || newOrder._id}`);
+        return res.status(201).json(newOrder);
 
     } catch (error) {
         if (error.message === "Not Found") {
             return res.status(404).json({ error: "Restaurant or product not found" });
         }
+
         return res.status(400).json({ error: error.message });
     }
-
-    // Create the order
-    const newOrder = await orderService.createOrder(user.userId, req.body);
-    
-    // Gateway communication to sync with C++ server
-    try {
-        await cppGateway.sendPostInteraction(user.userId, req.body.products);
-    } catch (cppError) {
-        console.error("Warning: Could not sync order with C++ server:", cppError.message);
-    }
-    
-    res.set('Location', `/api/orders/${newOrder.id}`);
-    return res.status(201).json(newOrder);
 };
-
 /**
  * Get all orders for the authenticated user
  */
@@ -102,13 +118,13 @@ const deleteOrder = async (req, res) => {
 
     if (!order) return res.status(404).json({ error: "Order not found" });
     if (order.userId !== user.userId) return res.status(403).json({ error: "Forbidden: Access denied" });
-    
+
     try {
         await cppGateway.deleteOrderInteraction(user.userId, order.products);
     } catch (cppError) {
         console.error("Warning: Could not sync deletion with C++ server:", cppError.message);
     }
-    
+
     await orderService.deleteOrder(orderId);
     res.status(204).send();
 };

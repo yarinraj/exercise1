@@ -70,7 +70,7 @@
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: white;
+    background: rgb(236, 236, 240);
     top: 3px;
     left: 3px;
     transition: transform 0.3s ease;
@@ -107,12 +107,12 @@
 }
 
 body.dark-theme {
-    background-color: #0B1020;
+    background-color: #030e1f !important;
     color: #EAF0FF;
 }
 
 body.dark-theme .wolt-navbar {
-    background-color: #05070A;
+    background-color: #010915;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
 }
 
@@ -131,10 +131,11 @@ body.dark-theme .nav-login-btn {
 }
 
 body.dark-theme .theme-toggle {
-    background: #0B1020;
+    background: #05152d;
 }
 
 body.dark-theme .theme-toggle .knob {
+    background: #222e42;
     transform: translateX(28px);
 }
 .avatar-placeholder {
@@ -186,14 +187,14 @@ body.dark-theme .theme-toggle .knob {
 }
 /* Dark mode form card adjustments */
 body.dark-theme .card {
-    background-color: #12192A !important; 
+    background-color: #09182d !important; 
     border: 1px solid #1E293B !important;
     color: #EAF0FF !important;
 }
 
 /* Dark mode inputs adjustments */
 body.dark-theme .form-control {
-    background-color: #0B1020 !important;
+    background-color: #09182d !important;
     color: #EAF0FF !important;
     border: 1px solid #1E293B !important;
 }

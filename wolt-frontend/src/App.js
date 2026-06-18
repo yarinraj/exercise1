@@ -19,25 +19,28 @@ import AddDishForm from './components/OwnerDashboard/AddDishForm';
 import EditDishForm from './components/OwnerDashboard/EditDishForm';
 import { CartProvider } from './context/cart';
 
-// Sub-component to handle conditional Navbar rendering based on the active path
+// Sub-component to handle conditional Navbar and Cart rendering based on the active path
 const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
   const location = useLocation();
-  // Normalize path to lowercase and remove trailing slashes for precise matching
   const currentPath = location.pathname.toLowerCase().replace(/\/$/, "");
-  // Routes where the Navbar should be completely hidden
   const authRoutes = ['/login', '/register', '/signup'];
-  const shouldHideNavbar = authRoutes.includes(currentPath);
-
+  
+  // Changed the variable name to be more generic
+  const shouldHideElements = authRoutes.includes(currentPath);
 
   return (
     <>
-      {!shouldHideNavbar && (
-        <Navbar
-          user={user}
-          setUser={setUser}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-        />
+      {!shouldHideElements && (
+        <>
+          <Navbar
+            user={user}
+            setUser={setUser}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+          {/* FIX: Moved GlobalCartTrigger here so it hides on Login/Register pages */}
+          <GlobalCartTrigger />
+        </>
       )}
     </>
   );
@@ -46,6 +49,7 @@ const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
 const App = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState(null);
+  
   // Check if a user session already exists on page load
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -65,16 +69,21 @@ const App = () => {
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
           />
-          <GlobalCartTrigger />
+         
           <div className="main-content">
             <Routes>
 
-              <Route path="/" element={<RestaurantFeed searchQuery={searchQuery} />} />
-
-              {/* public routes */}
-              <Route path="/" element={<RestaurantFeed searchQuery={searchQuery} />} />
+              {/* --- PUBLIC ROUTES --- */}
+              {/* 1. Main Home Page */}
+              <Route path="/" element={<HomePage user={user} />} />
+              
+              {/* 2. Restaurant Feed (Open to all users and guests) */}
               <Route path="/restaurants" element={<RestaurantFeed searchQuery={searchQuery} />} />
+              
+              {/* 3. Specific Restaurant Menu (Open to all users and guests) */}
               <Route path="/restaurant/:id" element={<RestaurantMenu />} />
+              
+              {/* 4. Login and Registration */}
               <Route
                 path="/login"
                 element={!user ? <Login setUser={setUser} /> : <Navigate to="/" />}
@@ -84,11 +93,9 @@ const App = () => {
                 element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />}
               />
 
-             
+              {/* --- PROTECTED ROUTES (Logged-in users only) --- */}
               <Route element={<ProtectedRoute />}>
-                <Route path="/restaurant/:id" element={<RestaurantMenu />} />
-
-                {/* owner routes */}
+                {/* Owner routes */}
                 <Route path="/owner/setup" element={<RestaurantSetupForm />} />
                 <Route path="/owner/edit/:id/menu" element={<RestaurantMenuManager />} />
                 <Route path="/owner/edit/:id" element={<EditRestaurantForm />} />
@@ -97,7 +104,7 @@ const App = () => {
                 <Route path="/owner/dashboard" element={<OwnerDashboard />} />
               </Route>
 
-              {/* a 404 page for unknown routes*/}
+              {/* --- 404 PAGE --- */}
               <Route path="*" element={
                 <div className="d-flex align-items-center justify-content-center error-page-container">
                   <div className="text-center d-flex flex-column align-items-center justify-content-center shadow-sm bg-white rounded-circle error-circle-card">
@@ -107,6 +114,7 @@ const App = () => {
                   </div>
                 </div>
               } />
+              
             </Routes>
           </div>
         </div>
