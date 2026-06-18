@@ -19,6 +19,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './components/HomePage';
 import RestaurantFeed from './components/RestaurantFeed';
 import RestaurantMenu from './components/RestaurantMenu';
+import PastOrders from './components/PastOrders'
 
 import RestaurantSetupForm from './components/OwnerDashboard/RestaurantSetupForm';
 import OwnerDashboard from './components/OwnerDashboard/OwnerDashboard';
@@ -28,6 +29,7 @@ import AddDishForm from './components/OwnerDashboard/AddDishForm';
 import EditDishForm from './components/OwnerDashboard/EditDishForm';
 
 import { CartProvider } from './context/cart';
+import PastOrders from './components/PastOrders';
 
 // Sub-component to handle conditional Navbar and Cart rendering based on the active path
 const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
@@ -132,29 +134,31 @@ const AppContent = ({ user, setUser, searchQuery, setSearchQuery }) => {
             element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />}
           />
 
-          {/* --- PROTECTED ROUTES - logged-in users only --- */}
-          <Route element={<ProtectedRoute />}>
-            {/* Owner routes */}
-            <Route path="/owner/setup" element={<RestaurantSetupForm />} />
-            <Route path="/owner/dashboard" element={<OwnerDashboard />} />
+       {/* --- PROTECTED ROUTES - logged-in users only --- */}
+<Route element={<ProtectedRoute />}>
+  <Route path="/past-orders" element={<PastOrders />} />
 
-            <Route path="/owner/edit/:id" element={<EditRestaurantForm />} />
+  {/* Owner routes */}
+  <Route path="/owner/setup" element={<RestaurantSetupForm />} />
+  <Route path="/owner/dashboard" element={<OwnerDashboard />} />
 
-            <Route
-              path="/owner/edit/:id/menu"
-              element={<RestaurantMenuManager />}
-            />
+  <Route path="/owner/edit/:id" element={<EditRestaurantForm />} />
 
-            <Route
-              path="/owner/edit/:id/menu/add"
-              element={<AddDishForm />}
-            />
+  <Route
+    path="/owner/edit/:id/menu"
+    element={<RestaurantMenuManager />}
+  />
 
-            <Route
-              path="/owner/edit/:id/menu/edit/:productId"
-              element={<EditDishForm />}
-            />
-          </Route>
+  <Route
+    path="/owner/edit/:id/menu/add"
+    element={<AddDishForm />}
+  />
+
+  <Route
+    path="/owner/edit/:id/menu/edit/:productId"
+    element={<EditDishForm />}
+  />
+</Route>
 
           {/* --- 404 PAGE --- */}
           <Route

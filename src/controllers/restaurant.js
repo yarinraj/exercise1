@@ -24,8 +24,8 @@ const getRestaurants = async (req, res) => {
 const createRestaurant = async (req, res) => {
     try {
         // Extract the user ID from the decoded JWT (placed there by authMiddleware)
-        const ownerId = req.user.userId; 
-        
+        const ownerId = req.user.userId;
+
         const newRestaurant = await restaurantService.createRestaurant(req.body, ownerId);
         res.set('Location', `/api/restaurants/${newRestaurant._id}`);
         return res.status(201).json(newRestaurant);
@@ -65,11 +65,11 @@ const updateRestaurant = async (req, res) => {
                 return res.status(400).json({ error: "Phone must contain only numbers and be up to 10 digits long" });
             }
         }
-        
+
         // Extract ownerId to ensure only the creator can update
         const ownerId = req.user.userId;
         const updated = await restaurantService.updateRestaurant(req.params.id, req.body, ownerId);
-        
+
         return res.status(204).send();
     } catch (error) {
         if (error.message === "Not Found or Unauthorized") {
@@ -180,7 +180,7 @@ const updateProduct = async (req, res) => {
         const ownerId = req.user.userId;
         // Updating the product details in the service
         const updated = await restaurantService.updateRestaurantProduct(restaurantId, productId, req.body, ownerId);
-        
+
         // Gateway interaction - sending an update interaction to the C++ server
         try {
             const token = req.headers.authorization;
@@ -188,7 +188,7 @@ const updateProduct = async (req, res) => {
                 const user = await userService.getUserById(token);
                 if (user) {
                     console.log(`[Gateway] Sending POST interaction for User: ${user.id}, Product: ${productId}`);
-                    await cppGateway.sendPostInteraction(user.id, productId); 
+                    await cppGateway.sendPostInteraction(user.id, productId);
                 }
             }
         } catch (cppError) {
@@ -216,7 +216,7 @@ const deleteProduct = async (req, res) => {
         const ownerId = req.user.userId;
         // Deleting the product from the restaurant's menu in the service
         await restaurantService.deleteRestaurantProduct(restaurantId, productId, ownerId);
-        
+
         // Gateway interaction - sending a delete interaction to the C++ server
         try {
             const token = req.headers.authorization;
@@ -239,6 +239,62 @@ const deleteProduct = async (req, res) => {
         return res.status(500).json({ error: "Internal Server Error" });
     }
 };
+/**
+ * Dealing with the request: POST /api/restaurants/:id/rate
+ * Allows authenticated users to rate a restaurant (1-5) and recalculates the average
+ */
+const rateRestaurant = async (req, res) => {
+    try {
+        const restaurantId = req.params.id;
+        const userId = req.user.userId; // Extracted from JWT token by authMiddleware
+        const { rating } = req.body;
+
+        // 1. Validate rating value (must be a number between 1 and 5)
+        if (!rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
+            return res.status(400).json({ error: "Rating must be a number between 1 and 5" });
+        }
+
+        // 2. Find the restaurant
+        const restaurant = await Restaurant.findById(restaurantId);
+        if (!restaurant) {
+            return res.status(404).json({ error: "Restaurant Not Found" });
+        }
+
+        // 3. Check if this specific user has already rated this restaurant
+        const existingRatingIndex = restaurant.ratings.findIndex(
+            (r) => r.userId.toString() === userId.toString()
+        );
+
+        if (existingRatingIndex !== -1) {
+            // If already rated - update the existing rating
+            restaurant.ratings[existingRatingIndex].rating = Number(rating);
+        } else {
+            // If new user - add the new rating to the array
+            restaurant.ratings.push({ userId, rating: Number(rating) });
+        }
+
+        // 4. Recalculate the average rating
+        const totalRatings = restaurant.ratings.length;
+        const sumOfRatings = restaurant.ratings.reduce((sum, item) => sum + item.rating, 0);
+
+        // Round to 1 decimal place (e.g., 4.3)
+        restaurant.averageRating = Math.round((sumOfRatings / totalRatings) * 10) / 10;
+
+        // 5. Save the updated restaurant document
+        await restaurant.save();
+
+        // 6. Return the updated data (Crucial for frontend state sync)
+        return res.status(200).json({
+            message: "Rating updated successfully",
+            averageRating: restaurant.averageRating,
+            ratings: restaurant.ratings // Optionally return the full ratings array for frontend use
+        });
+
+    } catch (error) {
+        console.error("Error in rateRestaurant:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+};
 
 /**
  * Dealing with the request: GET /api/search/:query
@@ -255,17 +311,17 @@ const searchItems = async (req, res) => {
         // Return 200 with ok
         return res.status(200).json(searchResults);
 
-  } catch (error) {
+    } catch (error) {
         // Check if the server died 
-        console.error("Error in searchItems:", error); 
+        console.error("Error in searchItems:", error);
         return res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
 };
 
 const getMyRestaurants = async (req, res) => {
     try {
-       
-        const ownerId = req.user.userId || req.user.id; 
+
+        const ownerId = req.user.userId || req.user.id;
         const restaurants = await Restaurant.find({ ownerId: ownerId });
         res.status(200).json(restaurants);
     } catch (error) {
@@ -283,7 +339,8 @@ module.exports = {
     createProduct,
     getProductById,
     updateProduct,
-    deleteProduct, 
+    deleteProduct,
+    rateRestaurant,
     searchItems,
     getMyRestaurants
 };

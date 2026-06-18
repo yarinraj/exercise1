@@ -10,7 +10,7 @@ const User = require('../models/user');
 // Route for registration
 router.post('/', userController.registerUser);
 
-// Route for checking username (MUST BE ABOVE /:id)
+// Route for checking username 
 router.get('/check-username/:username', async (req, res) => {
     try {
         const { username } = req.params;
