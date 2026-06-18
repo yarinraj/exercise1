@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import './navbar.css';
 import { useCart } from '../context/cart';
-import SearchOverlay from './SearchOverlay'; 
+import SearchOverlay from './SearchOverlay';
 
 function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     const { clearCart } = useCart();
@@ -18,9 +18,9 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     const searchInputRef = useRef(null);
 
     useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const urlQuery = searchParams.get('q');
-    
+        const searchParams = new URLSearchParams(location.search);
+        const urlQuery = searchParams.get('q');
+
         if (location.pathname === '/search-results' && urlQuery) {
             setSearchQuery(urlQuery);
         }
@@ -33,7 +33,7 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
         } else {
             setIsDarkMode(false);
         }
-    }, [user]); 
+    }, [user]);
 
     useEffect(() => {
         if (isDarkMode) {
@@ -69,53 +69,53 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     };
 
     const handleKeyDown = async (e) => {
-    if (e.key !== 'Enter') return;
+        if (e.key !== 'Enter') return;
 
-    e.preventDefault();
+        e.preventDefault();
 
-    const queryStr = searchQuery.trim();
+        const queryStr = searchQuery.trim();
 
-    if (!queryStr) return;
+        if (!queryStr) return;
 
-    const savedSearches = localStorage.getItem('recent_searches');
-    let currentSearches = savedSearches ? JSON.parse(savedSearches) : [];
+        const savedSearches = localStorage.getItem('recent_searches');
+        let currentSearches = savedSearches ? JSON.parse(savedSearches) : [];
 
-    currentSearches = [
-        queryStr,
-        ...currentSearches.filter((s) => s !== queryStr)
-    ].slice(0, 5);
+        currentSearches = [
+            queryStr,
+            ...currentSearches.filter((s) => s !== queryStr)
+        ].slice(0, 5);
 
-    localStorage.setItem('recent_searches', JSON.stringify(currentSearches));
+        localStorage.setItem('recent_searches', JSON.stringify(currentSearches));
 
-    try {
-        const response = await fetch(
-            `/api/restaurants/search?q=${encodeURIComponent(queryStr)}`
-        );
+        try {
+            const response = await fetch(
+                `/api/restaurants/search?q=${encodeURIComponent(queryStr)}`
+            );
 
-        if (!response.ok) {
-            console.error('Search failed:', response.status);
-            return;
-        }
-
-        const data = await response.json();
-
-        const restaurants = data.restaurants || [];
-
-        if (restaurants.length === 1) {
-            const restaurant = restaurants[0];
-            const restaurantId = restaurant._id || restaurant.id;
-
-            if (restaurantId) {
-                setIsSearchActive(false);
-                navigate(`/restaurant/${restaurantId}`);
+            if (!response.ok) {
+                console.error('Search failed:', response.status);
+                return;
             }
-        }
 
-        // If there are 0 restaurants or more than 1, do nothing.
-    } catch (error) {
-        console.error('Search enter error:', error);
-    }
-};
+            const data = await response.json();
+
+            const restaurants = data.restaurants || [];
+
+            if (restaurants.length === 1) {
+                const restaurant = restaurants[0];
+                const restaurantId = restaurant._id || restaurant.id;
+
+                if (restaurantId) {
+                    setIsSearchActive(false);
+                    navigate(`/restaurant/${restaurantId}`);
+                }
+            }
+
+            // If there are 0 restaurants or more than 1, do nothing.
+        } catch (error) {
+            console.error('Search enter error:', error);
+        }
+    };
 
     const clearSearchInput = (e) => {
         e.stopPropagation();
@@ -143,7 +143,7 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
                             value={searchQuery}
                             onChange={handleSearchChange}
                             onKeyDown={handleKeyDown}
-                            ref={searchInputRef} 
+                            ref={searchInputRef}
                         />
                         {searchQuery && (
                             <button className="clear-search-btn" onClick={clearSearchInput}>
@@ -154,6 +154,17 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
                 </div>
                 {user ? (
                     <div className="navbar-right">
+                        {user && (
+                            <button
+                                type="button"
+                                className="past-orders-button"
+                                onClick={() => navigate('/past-orders')}
+                                title="Past Orders"
+                            >
+                                🛒
+                            </button>
+                        )}
+
                         <button className="theme-toggle" onClick={toggleTheme}>
                             <span className="knob"></span>
                             <span className={`icon sun ${isDarkMode ? 'hidden' : ''}`}>☀️</span>
@@ -187,10 +198,13 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
             </nav>
 
             {isSearchActive && (
-                <SearchOverlay 
+                <SearchOverlay
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
-                    onClose={() => setIsSearchActive(false)}
+                    onClose={() => {
+                        setIsSearchActive(false);
+                        setSearchQuery('');
+                    }}
                 />
             )}
         </>
