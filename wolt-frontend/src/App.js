@@ -19,8 +19,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './components/HomePage';
 import RestaurantFeed from './components/RestaurantFeed';
 import RestaurantMenu from './components/RestaurantMenu';
-import PastOrders from './components/PastOrders';
-
 import RestaurantSetupForm from './components/OwnerDashboard/RestaurantSetupForm';
 import OwnerDashboard from './components/OwnerDashboard/OwnerDashboard';
 import EditRestaurantForm from './components/OwnerDashboard/EditRestaurantForm';
@@ -29,6 +27,7 @@ import AddDishForm from './components/OwnerDashboard/AddDishForm';
 import EditDishForm from './components/OwnerDashboard/EditDishForm';
 
 import { CartProvider } from './context/cart';
+import SearchResultsPage from './components/SearchResultsPage'; 
 
 // Sub-component to handle conditional Navbar and Cart rendering based on the active path
 const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
@@ -56,7 +55,6 @@ const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
   );
 };
 
-// This component is inside Router, so it can use useLocation
 const AppContent = ({ user, setUser, searchQuery, setSearchQuery }) => {
   const location = useLocation();
   const currentPath = location.pathname.toLowerCase().replace(/\/$/, '');
@@ -65,8 +63,6 @@ const AppContent = ({ user, setUser, searchQuery, setSearchQuery }) => {
   const isAuthPage = authRoutes.includes(currentPath);
 
   // Login/Register pages:
-  // no Navbar, no CartTrigger, no main-content wrapper.
-  // This lets auth.css control the page background fully.
   if (isAuthPage) {
     return (
       <div className="App auth-app">
@@ -85,6 +81,9 @@ const AppContent = ({ user, setUser, searchQuery, setSearchQuery }) => {
             path="/signup"
             element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />}
           />
+  
+          <Route path="/search-results" element={<SearchResultsPage />} />
+
         </Routes>
       </div>
     );
