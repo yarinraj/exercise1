@@ -1,43 +1,30 @@
 const express = require('express');
-
 const router = express.Router();
-
-
-
-// Import the order controller we just created
 
 const orderController = require('../controllers/order');
 
-// Import the auth middleware to protect these routes
+// authMiddleware protects order history.
+// optionalAuthMiddleware allows guest checkout but detects logged-in users.
+const {
+    authMiddleware,
+    optionalAuthMiddleware
+} = require('../middleware/authMiddleware');
 
-const { authMiddleware, isOwner } = require('../middleware/authMiddleware');
+// Create order
+// Guests can checkout without token.
+// Logged-in users will have req.user attached if they send a valid token.
+router.post('/', optionalAuthMiddleware, orderController.createOrder);
 
-
-
-// Route to handle creating a new order (POST)
-
-// Removed authMiddleware here so guests can checkout securely!
-
-router.post('/', orderController.createOrder);
-
-
-
-// Route to handle fetching all orders for the logged-in user (GET)
-
+// Get all orders for the logged-in user
 router.get('/', authMiddleware, orderController.getOrders);
 
-// Route to fetch a specific order by its ID
-
+// Get a specific order by ID
 router.get('/:id', authMiddleware, orderController.getOrderById);
 
-// Route to update a specific order by ID (PATCH)
-
+// Update a specific order by ID
 router.patch('/:id', authMiddleware, orderController.updateOrder);
 
-// Route to delete a specific order by ID (delete)
-
+// Delete a specific order by ID
 router.delete('/:id', authMiddleware, orderController.deleteOrder);
-
-
 
 module.exports = router;

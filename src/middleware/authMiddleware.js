@@ -30,8 +30,26 @@ const isOwner = (req, res, next) => {
     });
   }
 };
+const optionalAuthMiddleware = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    // Guest user: continue without req.user
+    if (!token) {
+        return next();
+    }
+
+    try {
+        const decoded = jwt.verify(token, 'my_super_secret_key');
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(403).json({ error: "Invalid or expired token." });
+    }
+};
 
 module.exports = {
     authMiddleware,
+     optionalAuthMiddleware,
     isOwner
 };
