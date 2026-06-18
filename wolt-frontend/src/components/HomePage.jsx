@@ -30,7 +30,7 @@ const HomePage = ({ user }) => {
                 <div className="home-hero-layout animate__animated animate__fadeIn">
                     <div className="home-title-card">
                         <h1 className="display-4 fw-bold mb-3">
-                            Welcome {user.displayName || user.username || 'User'}! 
+                            Welcome {user.displayName || user.username || 'User'}!
                         </h1>
 
                         <p className="lead mb-0">
@@ -62,9 +62,9 @@ const HomePage = ({ user }) => {
                 <div className="home-hero-layout animate__animated animate__fadeIn">
                     <div className="home-title-card">
                         <h1 className="display-4 fw-bold mb-3">
-                           <h1 className="display-4 fw-bold mb-3">
-    Welcome!
-</h1>
+                            <h1 className="display-4 fw-bold mb-3">
+                                Welcome!
+                            </h1>
                         </h1>
 
                         <p className="lead mb-0">
