@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './searchOverlay.css';
 
 function SearchOverlay({ searchQuery, setSearchQuery, onClose }) {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+
     
     const [recentSearches, setRecentSearches] = useState([]);
     const [liveResults, setLiveResults] = useState({ restaurants: [], items: [] });
@@ -17,14 +17,7 @@ function SearchOverlay({ searchQuery, setSearchQuery, onClose }) {
         }
     }, []);
 
-    useEffect(() => {
-        const searchParams = new URLSearchParams(window.location.search);
-        const urlQuery = searchParams.get('q');
-        if (urlQuery && (!searchQuery || searchQuery.trim() === '')) {
-            setSearchQuery(urlQuery);
-        }
-    }, []); 
-
+    
     useEffect(() => {
         if (!searchQuery || searchQuery.trim() === '') {
             setLiveResults({ restaurants: [], items: [] });
@@ -92,7 +85,43 @@ const mappedItems = rawItems.map(product => {
         onClose();
         navigate(url);
     };
+    const handleEnterSearch = () => {
+    const queryStr = searchQuery.trim();
 
+    if (!queryStr) return;
+
+    saveSearch(queryStr);
+
+    const restaurants = liveResults.restaurants || [];
+
+    if (restaurants.length === 1) {
+        const restaurant = restaurants[0];
+        const restaurantId = restaurant._id || restaurant.id;
+
+        if (restaurantId) {
+            onClose();
+            navigate(`/restaurant/${restaurantId}`);
+        }
+    }
+};
+useEffect(() => {
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleEnterSearch();
+        }
+
+        if (e.key === 'Escape') {
+            onClose();
+        }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+    };
+}, [searchQuery, liveResults]);
     const isQueryEmpty = !searchQuery || searchQuery.trim() === '';
 
     return (

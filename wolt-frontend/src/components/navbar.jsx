@@ -68,18 +68,52 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
         setSearchQuery(e.target.value);
     };
 
-    const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && searchQuery.trim() !== '') {
-        const queryStr = searchQuery.trim();
+    const handleKeyDown = async (e) => {
+    if (e.key !== 'Enter') return;
 
-        const savedSearches = localStorage.getItem('recent_searches');
-        let currentSearches = savedSearches ? JSON.parse(savedSearches) : [];
-        
-        currentSearches = [queryStr, ...currentSearches.filter(s => s !== queryStr)].slice(0, 5);
-        localStorage.setItem('recent_searches', JSON.stringify(currentSearches));
+    e.preventDefault();
 
-        setIsSearchActive(false); 
-        navigate(`/search-results?q=${encodeURIComponent(queryStr)}&target=venues`);
+    const queryStr = searchQuery.trim();
+
+    if (!queryStr) return;
+
+    const savedSearches = localStorage.getItem('recent_searches');
+    let currentSearches = savedSearches ? JSON.parse(savedSearches) : [];
+
+    currentSearches = [
+        queryStr,
+        ...currentSearches.filter((s) => s !== queryStr)
+    ].slice(0, 5);
+
+    localStorage.setItem('recent_searches', JSON.stringify(currentSearches));
+
+    try {
+        const response = await fetch(
+            `/api/restaurants/search?q=${encodeURIComponent(queryStr)}`
+        );
+
+        if (!response.ok) {
+            console.error('Search failed:', response.status);
+            return;
+        }
+
+        const data = await response.json();
+
+        const restaurants = data.restaurants || [];
+
+        if (restaurants.length === 1) {
+            const restaurant = restaurants[0];
+            const restaurantId = restaurant._id || restaurant.id;
+
+            if (restaurantId) {
+                setIsSearchActive(false);
+                navigate(`/restaurant/${restaurantId}`);
+            }
+        }
+
+        // If there are 0 restaurants or more than 1, do nothing.
+    } catch (error) {
+        console.error('Search enter error:', error);
     }
 };
 

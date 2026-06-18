@@ -25,9 +25,9 @@ import EditRestaurantForm from './components/OwnerDashboard/EditRestaurantForm';
 import RestaurantMenuManager from './components/OwnerDashboard/RestaurantMenuManager';
 import AddDishForm from './components/OwnerDashboard/AddDishForm';
 import EditDishForm from './components/OwnerDashboard/EditDishForm';
-
+import PastOrders from './components/PastOrders';
 import { CartProvider } from './context/cart';
-import SearchResultsPage from './components/SearchResultsPage'; 
+import SearchResultsPage from './components/SearchResultsPage';
 
 // Sub-component to handle conditional Navbar and Cart rendering based on the active path
 const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
@@ -81,7 +81,7 @@ const AppContent = ({ user, setUser, searchQuery, setSearchQuery }) => {
             path="/signup"
             element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />}
           />
-  
+
           <Route path="/search-results" element={<SearchResultsPage />} />
 
         </Routes>
@@ -112,6 +112,10 @@ const AppContent = ({ user, setUser, searchQuery, setSearchQuery }) => {
           />
 
           <Route path="/restaurant/:id" element={<RestaurantMenu />} />
+          <Route
+            path="/search-results"
+            element={<SearchResultsPage searchQuery={searchQuery} />}
+          />
 
           {/* fallback redirects for auth pages if reached from regular branch */}
           <Route
