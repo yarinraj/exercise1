@@ -6,6 +6,8 @@ It combines a modern **Node.js/Express Web Server** (built using the **MVC patte
 
 The Node.js API handles user management, orders, and restaurants, while seamlessly communicating with the C++ server via a dedicated TCP Socket Gateway to synchronize user interactions and recommendation data[cite: 1]. All data managed by the Express server is stored in-memory as volatile collections and resets upon server restart[cite: 1].
 
+The system now includes an interactive React.js Frontend Web Application that delivers a smooth, single-page application (SPA) experience using asynchronous data fetching, dynamic component rendering, and custom state management. All data is now persistently managed using a local MongoDB Database container instead of volatile collections.
+
 ---
 
 ## Version Control and Branch Management
@@ -25,6 +27,11 @@ The web server strictly follows the Model-View-Controller design pattern to ensu
 - `include/` & `src/` (C++ Portion) — Highly optimized recommendation engine core from Exercise 2[cite: 1].
 - `data/` — Persistent files and evaluation data for the recommendation logic[cite: 1].
 
+- **`wolt-frontend/src/` (Frontend Portion):**
+  - `components/` — Modular, isolated UI building blocks (e.g., Navbar, ProductCard, SearchOverlay).
+  - `context/` — Global state providers (e.g., Cart context handling item actions and quantities).
+  - `App.js` — Core router initializing public paths, protected feeds, and global layouts.
+
 ---
 
 ## Tech Stack
@@ -33,6 +40,17 @@ The web server strictly follows the Model-View-Controller design pattern to ensu
 - Testing Suite: CMake + GoogleTest (C++)[cite: 1]
 - Containerization: Docker & Docker-Compose[cite: 1]
 
+---
+## Key App Features & Frontend UX
+- **Authentic Wolt Style UX:** Designed with a clean modern interface matching premium product standards, complete with dynamic product displays, full-screen interactive overlay search bars, and an absolute tracking side-cart.
+- **Bulletproof Asset Fallbacks:** Seamless image protection. If any asset fails to load, background error boundary listeners (`onError`) intercept the failure and replace the broken image with a clean local `icon.svg` vector placeholder automatically.
+- **Interactive Search Navigation:** Clicking any relative search-result item instantly resolves its owning restaurant context, guiding users fluidly to the targeted restaurant menu view.
+- **Global Theme Support (Dark & Light Mode):** Fully integrated dynamic theme switching. Toggling the theme navbar switcher changes the application's global design layout tokens dynamically across all cards, modals, and containers.
+
+## Client Validation & Security Workflows
+- **Form Validation:** Registration and Login views contain strictly enforced client-side validation logic. Fields provide dynamic error feedback ensuring minimum password criteria (at least 8 alphanumeric characters), email formatting patterns, and required photo inputs before hitting network routes.
+- **Session Protection via JWT:** Upon verified credentials login, the user receives a unique **JSON Web Token (JWT)** from the server token service endpoint (`POST /api/tokens`). 
+- **Protected Actions:** Public routes are open to guest visitors. However, sensitive application interactions (such as viewing personal profile feeds or triggering order submissions) require appending the saved JWT string inside the HTTP request authentication headers to verify current identity records.
 ---
 
 ## Quick Start (Running the Integrated System)
@@ -43,15 +61,27 @@ To build and spin up both the Node.js API and the C++ backend inside a shared ne
 docker-compose up --build
 ```
 
-### Option 2: Local Execution
-1) Start the C++ Recommendation Server: Ensure the C++ TCP server is compiled and running on port 8000[cite: 1].
-2) Start the Node.js API Server:
-```bash
-npm install
-npm start
-```
-The API server will run on port 3000 or port 8080 by default[cite: 1].
+### Option 2: Local Execution (Using 3 Separate Terminals)
+To run the entire system locally without Docker, open **3 separate terminal windows** and run the following commands in parallel:
 
+Terminal 1: C++ Recommendation Server
+Run the compiled C++ TCP backend server:
+```bash
+./my_program.exe ./app.out 5005
+```
+Terminal 2: Node.js Backend API Server
+Navigate to the root folder (or backend directory), install dependencies, and start the Express server:
+```bash
+    npm install
+    node app.js
+```
+Terminal 3: React Frontend Client
+Navigate into the frontend directory, install web client dependencies, and start the React application:
+```bash
+    cd wolt-frontend
+    npm install
+    npm start
+```
 ---
 
 ## Main RESTful API Endpoints
