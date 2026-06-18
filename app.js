@@ -11,6 +11,7 @@ const restaurantRoutes = require('./src/routes/restaurant');
 const userRoutes = require('./src/routes/user');
 const tokenRoutes = require('./src/routes/token');
 const orderRoutes = require('./src/routes/order');
+const recommendationRoutes = require('./src/routes/recommendation');
 const restaurantController = require('./src/controllers/restaurant');
 
 const app = express();
@@ -53,7 +54,7 @@ app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/tokens', tokenRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
-
+app.use('/api/recommendations', recommendationRoutes);
 // Search route
 app.get('/api/search/:query', restaurantController.searchItems);
 
