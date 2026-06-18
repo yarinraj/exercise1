@@ -74,16 +74,16 @@ const App = () => {
             <Routes>
 
               {/* --- PUBLIC ROUTES --- */}
-              {/* 1. Main Home Page */}
+              {/* Main Home Page */}
               <Route path="/" element={<HomePage user={user} />} />
               
-              {/* 2. Restaurant Feed (Open to all users and guests) */}
+              {/* Restaurant Feed (Open to all users and guests) */}
               <Route path="/restaurants" element={<RestaurantFeed searchQuery={searchQuery} />} />
               
-              {/* 3. Specific Restaurant Menu (Open to all users and guests) */}
+              {/* Specific Restaurant Menu (Open to all users and guests) */}
               <Route path="/restaurant/:id" element={<RestaurantMenu />} />
               
-              {/* 4. Login and Registration */}
+              {/* Login and Registration */}
               <Route
                 path="/login"
                 element={!user ? <Login setUser={setUser} /> : <Navigate to="/" />}

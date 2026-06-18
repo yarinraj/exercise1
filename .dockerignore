@@ -1,0 +1,16 @@
+# Node dependencies
+node_modules
+npm-debug.log
+
+# C++ Compilation outputs & Local Executables
+*.exe
+*.out
+*.o
+build/
+.vscode/
+
+# Environment and Git secrets
+.git
+.env
+
+wolt-frontend/
