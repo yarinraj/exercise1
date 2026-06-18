@@ -185,30 +185,25 @@ body.dark-theme .theme-toggle .knob {
 .wolt-navbar .form-control {
     background-color: #f8f9fa !important;
 }
-/* Dark mode form card adjustments */
 body.dark-theme .card {
     background-color: #09182d !important; 
     border: 1px solid #1E293B !important;
     color: #EAF0FF !important;
 }
 
-/* Dark mode inputs adjustments */
 body.dark-theme .form-control {
     background-color: #09182d !important;
     color: #EAF0FF !important;
     border: 1px solid #1E293B !important;
 }
 
-/* Dark mode labels adjustments */
 body.dark-theme label {
     color: #A0AEC0 !important;
 }
 
-/* Fix placeholders in dark mode */
 body.dark-theme .form-control::placeholder {
     color: #4A5568 !important;
 }
-/* Dark mode text readability fixes */
 body.dark-theme .card-title, 
 body.dark-theme .restaurant-name {
     color: #ffffff !important; 
@@ -223,13 +218,114 @@ body.dark-theme .restaurant-details {
     color: #b0b8c6 !important; 
 }
 
-/* Fix for icons if they look dark */
 body.dark-theme .fa, 
 body.dark-theme .icon {
     color: #8899a6 !important;
 }
-/* Fix for dark mode subtitle readability */
 body.dark-theme .restaurant-setup-subtitle,
 body.dark-theme p {
     color: #a0aec0 !important; 
+}
+
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 24px;
+    padding: 4px 16px;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.search-icon {
+    margin-right: 8px;
+    color: #7e7e7e;
+    font-size: 16px;
+}
+
+.clear-search-btn:hover {
+    background: #d8dadf;
+}
+
+.search-focused .search-wrapper {
+    background-color: #ffffff;
+    border-color: #00c2e8;
+    box-shadow: 0 0 0 2px rgba(0, 194, 232, 0.2);
+}
+
+.navbar-center {
+    flex: 1;
+    max-width: 300px; 
+    margin: 0 20px;
+    transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1); 
+}
+
+.navbar-center:focus-within,
+.navbar-center.search-focused {
+    max-width: 480px; 
+}
+
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 24px;
+    padding: 6px 16px;
+    width: 100%;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.navbar-center:focus-within .search-wrapper,
+.navbar-center.search-focused .search-wrapper {
+    background-color: #ffffff;
+    border-color: #00c2e8;
+    box-shadow: 0 2px 8px rgba(0, 194, 232, 0.15);
+}
+
+.search-input {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 4px 0;
+    width: 100%;
+    font-size: 14px;
+    color: #202125;
+}
+
+.clear-search-btn {
+    background-color: #202125; 
+    color: #ffffff;            
+    border: none;
+    border-radius: 50%;       
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;           
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 8px;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+
+body.dark-theme .search-wrapper {
+    background-color: #09182d;
+    border-color: #1e293b;
+}
+
+body.dark-theme .search-input {
+    color: #ffffff !important;
+}
+
+body.dark-theme .clear-search-btn {
+    background: #1e293b;
+    color: #b0b8c6;
 }

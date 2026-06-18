@@ -1,29 +1,31 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import './navbar.css';
 import { useCart } from '../context/cart';
+import SearchOverlay from './SearchOverlay'; 
 
 function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     const { clearCart } = useCart();
-    const [isDarkMode, setIsDarkMode] = React.useState(() => {
+    const [isDarkMode, setIsDarkMode] = useState(() => {
         const savedTheme = localStorage.getItem('theme');
         return savedTheme === 'dark';
     });
 
+    const [isSearchActive, setIsSearchActive] = useState(false);
+
     const navigate = useNavigate();
     const location = useLocation();
-    
-    // Created the reference for the search input
     const searchInputRef = useRef(null);
 
-    // Auto-focus logic for the search bar
     useEffect(() => {
-        if (searchInputRef.current) {
-            searchInputRef.current.focus();
+    const searchParams = new URLSearchParams(location.search);
+    const urlQuery = searchParams.get('q');
+    
+        if (location.pathname === '/search-results' && urlQuery) {
+            setSearchQuery(urlQuery);
         }
-    }, [user]); 
+    }, [location.pathname, location.search, setSearchQuery]);
 
-    // Sync theme with user preference
     useEffect(() => {
         if (user && user.username) {
             const savedTheme = localStorage.getItem(`theme_${user.username}`);
@@ -33,8 +35,7 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
         }
     }, [user]); 
 
-    // Apply dark theme class to body
-    React.useEffect(() => {
+    useEffect(() => {
         if (isDarkMode) {
             document.body.classList.add('dark-theme');
         } else {
@@ -53,94 +54,112 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
         });
     };
 
-   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    document.body.classList.remove('dark-theme');
-    setIsDarkMode(false);
-    setUser(null);
-
-    window.dispatchEvent(
-        new CustomEvent('auth-changed', {
-            detail: { type: 'logout' }
-        })
-    );
-
-    navigate('/');
-};
-    // --- Smart Search Handler ---
-    const handleSearch = (e) => {
-        const value = e.target.value;
-        setSearchQuery(value);
-
-        // If typing and NOT on the home/feed page, redirect there immediately
-        if (value.trim() !== '' && location.pathname !== '/' && location.pathname !== '/restaurants') {
-            navigate('/restaurants');
-        }
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        document.body.classList.remove('dark-theme');
+        setIsDarkMode(false);
+        setUser(null);
+        window.dispatchEvent(new CustomEvent('auth-changed', { detail: { type: 'logout' } }));
+        navigate('/');
     };
 
-    // Determine the name to display in the navbar
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
+    };
+
+    const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim() !== '') {
+        const queryStr = searchQuery.trim();
+
+        const savedSearches = localStorage.getItem('recent_searches');
+        let currentSearches = savedSearches ? JSON.parse(savedSearches) : [];
+        
+        currentSearches = [queryStr, ...currentSearches.filter(s => s !== queryStr)].slice(0, 5);
+        localStorage.setItem('recent_searches', JSON.stringify(currentSearches));
+
+        setIsSearchActive(false); 
+        navigate(`/search-results?q=${encodeURIComponent(queryStr)}&target=venues`);
+    }
+};
+
+    const clearSearchInput = (e) => {
+        e.stopPropagation();
+        setSearchQuery('');
+        if (searchInputRef.current) searchInputRef.current.focus();
+    };
+
     const displayName = user?.displayName || user?.username || 'User';
 
     return (
-        <nav className="wolt-navbar">
-            {/* Logo Section */}
-            <div className="navbar-left">
-                <span className="brand-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer', textDecoration: 'none', color: '#00c2e8' }}>
-                    bites
-                </span>
-            </div>
-
-            {/* SINGLE SEARCH BAR - Always visible and uses the smart handleSearch */}
-            <div className="navbar-center" style={{ flex: 1, maxWidth: '400px', margin: '0 20px' }}>
-                <div className="input-group">
-                    <input
-                        type="text"
-                        className="form-control"
-                        placeholder="🔍 Search restaurants or cuisines..."
-                        value={searchQuery}
-                        style={{ borderRadius: '20px' }}
-                        onChange={handleSearch}
-                        ref={searchInputRef} 
-                    />
+        <>
+            <nav className="wolt-navbar">
+                <div className="navbar-left">
+                    <span className="brand-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer', textDecoration: 'none', color: '#00c2e8' }}>
+                        bites
+                    </span>
                 </div>
-            </div>
-
-            {/* Conditional User Menu - Shows Login/Signup for guests, profile/logout for users */}
-            {user ? (
-                <div className="navbar-right">
-                    {/* Theme Toggle Button */}
-                    <button className="theme-toggle" onClick={toggleTheme}>
-                        <span className="knob"></span>
-                        <span className={`icon sun ${isDarkMode ? 'hidden' : ''}`}>☀️</span>
-                        <span className={`icon moon ${!isDarkMode ? 'hidden' : ''}`}>🌙</span>
-                    </button>
-
-                    <div className="user-menu">
-                        <span className="display-name">{displayName}</span>
-                        {user?.profileImage ? (
-                            <img src={user.profileImage} alt={displayName} className="profile-avatar" />
-                        ) : (
-                            <div className="profile-avatar avatar-placeholder">
-                                {displayName.charAt(0).toUpperCase()}
-                            </div>
+                <div className={`navbar-center ${isSearchActive ? 'search-focused' : ''}`}>
+                    <div className="search-wrapper" onClick={() => setIsSearchActive(true)}>
+                        <span className="search-icon">🔍</span>
+                        <input
+                            type="text"
+                            className="form-control search-input"
+                            placeholder="Search restaurants, cuisines or dishes..."
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                            onKeyDown={handleKeyDown}
+                            ref={searchInputRef} 
+                        />
+                        {searchQuery && (
+                            <button className="clear-search-btn" onClick={clearSearchInput}>
+                                ✕
+                            </button>
                         )}
-                        <button className="logout-button" onClick={handleLogout}>
-                            Logout
-                        </button>
                     </div>
                 </div>
-            ) : (
-                <div className="navbar-right d-flex gap-2">
-                    <Link to="/login" className="btn btn-outline-info rounded-pill px-4 fw-bold shadow-sm" style={{ borderWidth: '2px' }}>
-                        Login
-                    </Link>
-                    <Link to="/register" className="btn btn-info text-white rounded-pill px-4 fw-bold shadow-sm">
-                        Sign up
-                    </Link>
-                </div>
+                {user ? (
+                    <div className="navbar-right">
+                        <button className="theme-toggle" onClick={toggleTheme}>
+                            <span className="knob"></span>
+                            <span className={`icon sun ${isDarkMode ? 'hidden' : ''}`}>☀️</span>
+                            <span className={`icon moon ${!isDarkMode ? 'hidden' : ''}`}>🌙</span>
+                        </button>
+
+                        <div className="user-menu">
+                            <span className="display-name">{displayName}</span>
+                            {user?.profileImage ? (
+                                <img src={user.profileImage} alt={displayName} className="profile-avatar" />
+                            ) : (
+                                <div className="profile-avatar avatar-placeholder">
+                                    {displayName.charAt(0).toUpperCase()}
+                                </div>
+                            )}
+                            <button className="logout-button" onClick={handleLogout}>
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="navbar-right d-flex gap-2">
+                        <Link to="/login" className="btn btn-outline-info rounded-pill px-4 fw-bold shadow-sm" style={{ borderWidth: '2px' }}>
+                            Login
+                        </Link>
+                        <Link to="/register" className="btn btn-info text-white rounded-pill px-4 fw-bold shadow-sm">
+                            Sign up
+                        </Link>
+                    </div>
+                )}
+            </nav>
+
+            {isSearchActive && (
+                <SearchOverlay 
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    onClose={() => setIsSearchActive(false)}
+                />
             )}
-        </nav>
+        </>
     );
 }
 

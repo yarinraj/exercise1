@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Toast from './Toast';
 import { useCart } from '../context/cart';
 
 const RestaurantMenu = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { cartItems, addToCart, updateQuantity } = useCart();
 

@@ -228,18 +228,6 @@ const RestaurantFeed = ({ searchQuery }) => {
                     </div>
                 )}
             </div>
-
-            {searchQuery && searchQuery.trim() !== '' && relatedProducts.length > 0 && (
-                <div className="mt-0 text-start mb-5">
-                    <hr style={{ opacity: 0.15, marginTop: '15px', marginBottom: '15px' }} />
-                    <h3 className="fw-bold text-dark mb-1">Related Items:</h3>
-                    <div className="row g-4 mt-2">
-                        {relatedProducts.map((product) => (
-                            <ProductCard key={product._id} product={product} />
-                        ))}
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

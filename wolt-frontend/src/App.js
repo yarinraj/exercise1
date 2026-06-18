@@ -10,7 +10,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './components/HomePage';
 import RestaurantFeed from "./components/RestaurantFeed";
 import RestaurantMenu from './components/RestaurantMenu';
-
 import RestaurantSetupForm from './components/OwnerDashboard/RestaurantSetupForm';
 import OwnerDashboard from './components/OwnerDashboard/OwnerDashboard';
 import EditRestaurantForm from './components/OwnerDashboard/EditRestaurantForm';
@@ -18,6 +17,7 @@ import RestaurantMenuManager from './components/OwnerDashboard/RestaurantMenuMan
 import AddDishForm from './components/OwnerDashboard/AddDishForm';
 import EditDishForm from './components/OwnerDashboard/EditDishForm';
 import { CartProvider } from './context/cart';
+import SearchResultsPage from './components/SearchResultsPage'; 
 
 // Sub-component to handle conditional Navbar and Cart rendering based on the active path
 const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
@@ -38,7 +38,6 @@ const NavigationLayout = ({ user, setUser, searchQuery, setSearchQuery }) => {
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
           />
-          {/* FIX: Moved GlobalCartTrigger here so it hides on Login/Register pages */}
           <GlobalCartTrigger />
         </>
       )}
@@ -92,6 +91,8 @@ const App = () => {
                 path="/register"
                 element={!user ? <Register setUser={setUser} /> : <Navigate to="/" />}
               />
+
+              <Route path="/search-results" element={<SearchResultsPage />} />
 
               {/* --- PROTECTED ROUTES (Logged-in users only) --- */}
               <Route element={<ProtectedRoute />}>
