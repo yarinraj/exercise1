@@ -11,7 +11,7 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     const navigate = useNavigate();
     const location = useLocation();
     
-    //Created the reference for the search input
+    // Created the reference for the search input
     const searchInputRef = useRef(null);
 
     // Auto-focus logic for the search bar
@@ -58,13 +58,14 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
         window.location.href = '/'; 
     };
 
-    // Handle search, redirect to feed if necessary
+    // --- Smart Search Handler ---
     const handleSearch = (e) => {
         const value = e.target.value;
         setSearchQuery(value);
 
-        if (value.trim() !== '' && location.pathname !== '/restaurants') {
-            navigate('/restaurants');
+        // If typing and NOT on the home/feed page, redirect there immediately
+        if (value.trim() !== '' && location.pathname !== '/' && location.pathname !== '/restaurants') {
+            navigate('/');
         }
     };
 
@@ -80,16 +81,16 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
                 </span>
             </div>
 
-            {/* SEARCH BAR - Always visible for both guests and logged-in users */}
+            {/* SINGLE SEARCH BAR - Always visible and uses the smart handleSearch */}
             <div className="navbar-center" style={{ flex: 1, maxWidth: '400px', margin: '0 20px' }}>
                 <div className="input-group">
-                    <span className="input-group-text text-muted">🔍</span>
                     <input
                         type="text"
                         className="form-control"
-                        placeholder="Search in bites..."
+                        placeholder="🔍 Search restaurants or cuisines..."
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{ borderRadius: '20px' }}
+                        onChange={handleSearch}
                         ref={searchInputRef} 
                     />
                 </div>
@@ -97,20 +98,12 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
 
             {/* Conditional User Menu - Shows Login/Signup for guests, profile/logout for users */}
             {user ? (
-                <>
-                    <div className="navbar-center" style={{ flex: 1, maxWidth: '400px', margin: '0 20px' }}>
-                        <div className="input-group">
-                            <input
-                                type="text"
-                                className="form-control"
-                                placeholder="🔍   Search restaurants or cuisines..."
-                                value={searchQuery}
-                                style={{ borderRadius: '20px 20px 20px 20px' }}
-                                onChange={handleSearch}
-                                ref={searchInputRef} 
-                            />
-                        </div>
-                    </div>
+                <div className="navbar-right">
+                    {/* Theme Toggle Button */}
+                    <button className="theme-toggle" onClick={toggleTheme}>
+                        <span className={`icon sun ${isDarkMode ? 'hidden' : ''}`}>☀️</span>
+                        <span className={`icon moon ${!isDarkMode ? 'hidden' : ''}`}>🌙</span>
+                    </button>
 
                     <div className="user-menu">
                         <span className="display-name">{displayName}</span>
