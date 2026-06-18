@@ -2,10 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/cart';
 
 export const CartSidebar = ({ isOpen, onClose }) => {
-    // FIX: Added 'activeRestaurantId' to the destructured variables from useCart
-    const { cartItems, updateQuantity, removeFromCart, totalPrice, totalItems, clearCart, activeRestaurantId } = useCart();
+    const { 
+        cartItems, 
+        updateQuantity, 
+        removeFromCart, 
+        totalPrice, 
+        totalItems, 
+        clearCart, 
+        activeRestaurantId,
+        addToCart 
+    } = useCart();
 
     const [isDark, setIsDark] = useState(false);
+    const [recommendations, setRecommendations] = useState([]);
+    const [loadingRecs, setLoadingRecs] = useState(false);
 
     // Theme detection logic to seamlessly match the main app's dark/light mode
     useEffect(() => {
@@ -20,7 +30,6 @@ export const CartSidebar = ({ isOpen, onClose }) => {
 
         determineTheme();
 
-        // Observer to listen for theme changes in real-time
         const observer = new MutationObserver(determineTheme);
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-bs-theme', 'data-theme'] });
         observer.observe(document.body, { attributes: true, attributeFilter: ['class', 'data-bs-theme', 'data-theme'] });
@@ -28,70 +37,151 @@ export const CartSidebar = ({ isOpen, onClose }) => {
         return () => observer.disconnect();
     }, []);
 
-    // Do not render the sidebar if it's not open
+    // Fetch recommendations and ensure they only belong to the active restaurant
+    useEffect(() => {
+        const fetchRecommendations = async () => {
+            if (!isOpen || cartItems.length === 0 || !activeRestaurantId) {
+                setRecommendations([]);
+                return;
+            }
+
+            try {
+                setLoadingRecs(true);
+                const token = localStorage.getItem('token');
+                const currentProductId = cartItems[0]._id || cartItems[0].id;
+                
+                // 1. Fetch the active restaurant FIRST to get the definitive list of valid products
+                const restaurantResponse = await fetch(`http://localhost:8080/api/restaurants/${activeRestaurantId}`);
+                let validRestaurantProducts = [];
+                if (restaurantResponse.ok) {
+                    const restaurantData = await restaurantResponse.json();
+                    validRestaurantProducts = restaurantData.products || [];
+                }
+                
+                const cartIds = new Set(cartItems.map(item => item._id || item.id));
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                // 2. Fetch recommendations from the C++ backend gateway
+                const response = await fetch(
+                    `http://localhost:8080/api/recommendations?productId=${currentProductId}&restaurantId=${activeRestaurantId}`, 
+                    { headers }
+                );
+
+                let finalRecommendations = [];
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Handle the specific JSON structure: {"success": true, "recommendedIds": [...]}
+                    let recIds = [];
+                    if (data.success && Array.isArray(data.recommendedIds)) {
+                        recIds = data.recommendedIds;
+                    } else if (Array.isArray(data)) {
+                        recIds = data.map(item => typeof item === 'object' ? (item._id || item.id) : item);
+                    }
+
+                    // 3. Absolute Filter: Map the recommended IDs only to products that exist in THIS restaurant
+                    finalRecommendations = validRestaurantProducts.filter(prod => 
+                        recIds.includes(prod._id || prod.id) && !cartIds.has(prod._id || prod.id)
+                    );
+                }
+
+                // 4. Smart Fallback: If C++ returned empty or no matches found, fallback to this restaurant's items
+                if (finalRecommendations.length === 0) {
+                    finalRecommendations = validRestaurantProducts.filter(prod => !cartIds.has(prod._id || prod.id));
+                }
+
+                // Set up to 3 recommendations
+                setRecommendations(finalRecommendations.slice(0, 3));
+
+            } catch (error) {
+                console.error("Failed fetching recommendations:", error);
+            } finally {
+                setLoadingRecs(false);
+            }
+        };
+
+        fetchRecommendations();
+    }, [isOpen, cartItems.length, activeRestaurantId]);
+
+    // Robust wrapper to guarantee the product is recognized as belonging to the current restaurant
+    const handleAddRecommendation = (prod) => {
+        if (!addToCart) return;
+
+        let enrichedProduct = { ...prod };
+
+        if (cartItems.length > 0) {
+            // Extract the first item in the cart to mirror its restaurant structure exactly
+            const referenceItem = cartItems[0];
+            
+            enrichedProduct = {
+                ...enrichedProduct,
+                restaurantId: referenceItem.restaurantId || activeRestaurantId,
+                restaurant: referenceItem.restaurant || activeRestaurantId,
+                // Covering edge cases where the key might be slightly different
+                restaurant_id: referenceItem.restaurant_id
+            };
+        } else {
+            enrichedProduct.restaurantId = activeRestaurantId;
+            enrichedProduct.restaurant = activeRestaurantId;
+        }
+
+        // Pass the enriched product, and also pass activeRestaurantId as a second argument 
+        // in case your Context API signature expects addToCart(item, restaurantId)
+        addToCart(enrichedProduct, activeRestaurantId);
+    };
+
     if (!isOpen) return null;
 
     // Handles the secure checkout process
-   // Handles the secure checkout process for both users and guests
     const handleCheckout = async () => {
         if (cartItems.length === 0) return;
 
-        // 1. Retrieve the JWT token from local storage (might be null for guests)
         const token = localStorage.getItem('token');
         
-     
-
-        // 2. Prepare the payload for the backend
         const orderPayload = {
             restaurantId: activeRestaurantId, 
             products: cartItems.map(item => ({
-                productId: item._id, 
+                productId: item._id || item.id, 
                 quantity: item.quantity,
                 price: item.price
             }))
         };
 
-        // 3. Setup dynamic headers
         const requestHeaders = {
             'Content-Type': 'application/json'
         };
         
-        // Only attach the Authorization header if the user is actually logged in
         if (token) {
             requestHeaders['Authorization'] = `Bearer ${token}`;
         }
 
         try {
-            // 4. Send the POST request to the orders API
             const response = await fetch('http://localhost:8080/api/orders', {
                 method: 'POST',
-                headers: requestHeaders, // Using the dynamic headers
+                headers: requestHeaders,
                 body: JSON.stringify(orderPayload)
             });
 
-            // 5. Handle success response
             if (response.ok || response.status === 201) {
                 const data = await response.json();
-                alert('✅ Order placed successfully! Order ID: ' + (data._id || data.id));
-                
-                // Clean up: clear the cart and close the sidebar upon successful order
+                alert('Order placed successfully! Order ID: ' + (data._id || data.id));
                 clearCart();
                 onClose();
             } else {
-                // Handle backend validation errors gracefully
                 const errorData = await response.json().catch(() => null);
-                alert(`❌ Failed to place order: ${errorData?.error || 'Unknown error'}`);
+                alert(`Failed to place order: ${errorData?.error || 'Unknown error'}`);
             }
         } catch (error) {
-            // Handle network or unexpected errors
             console.error('Checkout error:', error);
-            alert('❌ Server error. Please try again later.');
+            alert('Server error. Please try again later.');
         }
     };
 
     return (
         <>
-            {/* Backdrop overlay that closes the sidebar when clicked */}
+            {/* Backdrop overlay */}
             <div className="position-fixed top-0 start-0 w-100 h-100" 
                  style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1040, backdropFilter: 'blur(3px)' }}
                  onClick={onClose} 
@@ -108,11 +198,11 @@ export const CartSidebar = ({ isOpen, onClose }) => {
                      transition: 'background-color 0.2s ease, color 0.2s ease'
                  }}
             >
-                {/* Header Section: Cart Title and Close Button */}
+                {/* Header Section */}
                 <div className="p-4 d-flex justify-content-between align-items-center" 
                      style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)' }}>
                     <h5 className="mb-0 fw-bold d-flex align-items-center gap-2" style={{ color: isDark ? '#fff' : '#212529' }}>
-                        🛒 Your Cart 
+                        Your Cart 
                         <span className="badge rounded-pill fs-6" style={{ backgroundColor: '#00c2e8', color: '#fff' }}>
                             {totalItems}
                         </span>
@@ -123,49 +213,94 @@ export const CartSidebar = ({ isOpen, onClose }) => {
                 {/* Cart Items List Area */}
                 <div className="flex-grow-1 overflow-auto p-4">
                     {cartItems.length === 0 ? (
-                        // Empty Cart State
                         <div className="text-center text-muted mt-5 py-5">
-                            <div className="fs-1 mb-3">🍽️</div>
                             <p className="fw-bold mb-1">Your cart is empty</p>
                             <small>Add delicious items from a restaurant to start!</small>
                         </div>
                     ) : (
-                        // Render Cart Items
-                        cartItems.map(item => (
-                            <div key={item._id} className="d-flex justify-content-between align-items-center mb-4 p-3 rounded-3" 
-                                 style={{ 
-                                     backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', 
-                                     border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' 
-                                 }}>
-                                <div style={{ flex: 1 }}>
-                                    <h6 className="mb-1 fw-bold text-truncate" style={{ maxWidth: '180px', color: isDark ? '#fff' : '#212529' }}>{item.name}</h6>
-                                    <span className="fw-bold small" style={{ color: '#00c2e8' }}>
-                                        ₪{(item.price * item.quantity).toFixed(2)}
-                                    </span>
-                                </div>
+                        <>
+                            {/* List of current items in the cart */}
+                            {cartItems.map(item => (
+                                <div key={item._id || item.id} className="d-flex justify-content-between align-items-center mb-4 p-3 rounded-3" 
+                                     style={{ 
+                                         backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', 
+                                         border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' 
+                                     }}>
+                                    <div style={{ flex: 1 }}>
+                                        <h6 className="mb-1 fw-bold text-truncate" style={{ maxWidth: '180px', color: isDark ? '#fff' : '#212529' }}>{item.name}</h6>
+                                        <span className="fw-bold small" style={{ color: '#00c2e8' }}>
+                                            ₪{(item.price * item.quantity).toFixed(2)}
+                                        </span>
+                                    </div>
 
-                                {/* Quantity Selector Component */}
-                                <div className="d-flex align-items-center gap-2 rounded-2 p-1" 
-                                     style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}>
-                                    <button className="btn btn-sm border-0 py-0 px-2 fw-bold" 
-                                            style={{ color: isDark ? '#fff' : '#212529', backgroundColor: 'transparent' }}
-                                            onClick={() => updateQuantity(item._id, item.quantity - 1)}>-</button>
-                                    <span className="fw-bold px-1" style={{ minWidth: '20px', textAlign: 'center', fontSize: '0.9rem', color: isDark ? '#fff' : '#212529' }}>{item.quantity}</span>
-                                    <button className="btn btn-sm border-0 py-0 px-2 fw-bold" 
-                                            style={{ color: isDark ? '#fff' : '#212529', backgroundColor: 'transparent' }}
-                                            onClick={() => updateQuantity(item._id, item.quantity + 1)}>+</button>
-                                </div>
+                                    <div className="d-flex align-items-center gap-2 rounded-2 p-1" 
+                                         style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}>
+                                        <button className="btn btn-sm border-0 py-0 px-2 fw-bold" 
+                                                style={{ color: isDark ? '#fff' : '#212529', backgroundColor: 'transparent' }}
+                                                onClick={() => updateQuantity(item._id || item.id, item.quantity - 1)}>-</button>
+                                        <span className="fw-bold px-1" style={{ minWidth: '20px', textAlign: 'center', fontSize: '0.9rem', color: isDark ? '#fff' : '#212529' }}>{item.quantity}</span>
+                                        <button className="btn btn-sm border-0 py-0 px-2 fw-bold" 
+                                                style={{ color: isDark ? '#fff' : '#212529', backgroundColor: 'transparent' }}
+                                                onClick={() => updateQuantity(item._id || item.id, item.quantity + 1)}>+</button>
+                                    </div>
 
-                                {/* Remove from Cart Button */}
-                                <button className="btn btn-sm text-danger ms-2 border-0" onClick={() => removeFromCart(item._id)}>
-                                    🗑️
-                                </button>
-                            </div>
-                        ))
+                                    <button className="btn btn-sm text-danger ms-2 border-0" onClick={() => removeFromCart(item._id || item.id)}>
+                                        Remove
+                                    </button>
+                                </div>
+                            ))}
+
+                            {/* Smart recommendations section with thumbnails */}
+                            {recommendations.length > 0 && !loadingRecs && (
+                                <div className="mt-5 pt-2 animate__animated animate__fadeIn">
+                                    <h6 className="fw-bold mb-3 d-flex align-items-center gap-2" style={{ color: isDark ? '#fff' : '#212529' }}>
+                                        Recommended for you
+                                    </h6>
+                                    <div className="d-flex flex-column gap-2">
+                                        {recommendations.map(prod => (
+                                            <div key={prod._id || prod.id} 
+                                                 className="d-flex justify-content-between align-items-center p-2 rounded-3"
+                                                 style={{ 
+                                                     backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+                                                     border: isDark ? '1px dashed rgba(255,255,255,0.1)' : '1px dashed rgba(0,0,0,0.1)'
+                                                 }}
+                                            >
+                                                {/* Layout combining image, name, and price */}
+                                                <div className="d-flex align-items-center gap-2" style={{ flex: 1, textAlign: 'left' }}>
+                                                    {prod.image && (
+                                                        <img 
+                                                            src={prod.image} 
+                                                            alt={prod.name} 
+                                                            className="rounded-2" 
+                                                            style={{ width: '42px', height: '42px', objectFit: 'cover' }}
+                                                        />
+                                                    )}
+                                                    <div className="text-start">
+                                                        <span className="d-block fw-semibold small text-truncate" style={{ maxWidth: '160px', color: isDark ? '#f1f5f9' : '#334155' }}>
+                                                            {prod.name}
+                                                        </span>
+                                                        <small className="fw-bold" style={{ color: '#00c2e8' }}>₪{prod.price}</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Quick add button calls the new wrapper function */}
+                                                <button 
+                                                    className="btn btn-sm rounded-pill px-3 fw-bold text-white shadow-sm"
+                                                    style={{ backgroundColor: '#00c2e8', fontSize: '0.8rem', border: 'none' }}
+                                                    onClick={() => handleAddRecommendation(prod)}
+                                                >
+                                                    + Add
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
 
-                {/* Footer Section: Total Price and Checkout Buttons */}
+                {/* Footer Section */}
                 {cartItems.length > 0 && (
                     <div className="p-4" 
                          style={{ 
@@ -181,7 +316,6 @@ export const CartSidebar = ({ isOpen, onClose }) => {
                             <button className="btn btn-outline-danger btn-sm px-3 rounded-3" onClick={clearCart} title="Clear Cart">
                                 Clear
                             </button>
-                            {/* Triggers the secure handleCheckout logic */}
                             <button className="btn flex-grow-1 fw-bold py-2 rounded-3 text-white shadow-sm"
                                     style={{ 
                                         backgroundColor: '#00c2e8',
@@ -190,7 +324,7 @@ export const CartSidebar = ({ isOpen, onClose }) => {
                                     }}
                                     onClick={handleCheckout}
                             >
-                                Secure Checkout ➔
+                                Finish order🍽️ 
                             </button>
                         </div>
                     </div>
