@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import Toast from '../components/Toast';
 
 const CartContext = createContext();
 
@@ -27,7 +28,7 @@ const getUserCartKey = () => {
 
 const getEmptyCart = () => ({
     cartItems: [],
-    activeRestaurantId: null,
+    activeRestaurantId: null
 });
 
 const loadCartFromStorage = (key) => {
@@ -42,7 +43,7 @@ const loadCartFromStorage = (key) => {
 
         return {
             cartItems: parsedCart.cartItems || [],
-            activeRestaurantId: parsedCart.activeRestaurantId || null,
+            activeRestaurantId: parsedCart.activeRestaurantId || null
         };
     } catch {
         return getEmptyCart();
@@ -54,7 +55,7 @@ const saveCartToStorage = (key, cartItems, activeRestaurantId) => {
         key,
         JSON.stringify({
             cartItems,
-            activeRestaurantId,
+            activeRestaurantId
         })
     );
 };
@@ -87,6 +88,29 @@ export const CartProvider = ({ children }) => {
         const key = getUserCartKey();
         return loadCartFromStorage(key).activeRestaurantId;
     });
+
+    const [toast, setToast] = useState({
+        show: false,
+        message: '',
+        type: 'info'
+    });
+
+    const [pendingCartReplacement, setPendingCartReplacement] = useState(null);
+
+    const showToast = (message, type = 'info') => {
+        setToast({
+            show: true,
+            message,
+            type
+        });
+    };
+
+    const closeToast = () => {
+        setToast((prev) => ({
+            ...prev,
+            show: false
+        }));
+    };
 
     const loadCartForCurrentUser = () => {
         const newKey = getUserCartKey();
@@ -142,14 +166,10 @@ export const CartProvider = ({ children }) => {
 
     const addToCart = (product, restaurantId) => {
         if (activeRestaurantId && activeRestaurantId !== restaurantId) {
-            const confirmClear = window.confirm(
-                'You already have items from another restaurant in your cart. Clear cart and add this item?'
-            );
-
-            if (confirmClear) {
-                setCartItems([{ ...product, quantity: 1 }]);
-                setActiveRestaurantId(restaurantId);
-            }
+            setPendingCartReplacement({
+                product,
+                restaurantId
+            });
 
             return;
         }
@@ -162,6 +182,8 @@ export const CartProvider = ({ children }) => {
             const existingItem = prev.find((item) => item._id === product._id);
 
             if (existingItem) {
+                showToast('Dish quantity updated in cart.', 'success');
+
                 return prev.map((item) =>
                     item._id === product._id
                         ? { ...item, quantity: item.quantity + 1 }
@@ -169,8 +191,27 @@ export const CartProvider = ({ children }) => {
                 );
             }
 
+            showToast('Dish added to cart.', 'success');
+
             return [...prev, { ...product, quantity: 1 }];
         });
+    };
+
+    const confirmReplaceCart = () => {
+        if (!pendingCartReplacement) return;
+
+        const { product, restaurantId } = pendingCartReplacement;
+
+        setCartItems([{ ...product, quantity: 1 }]);
+        setActiveRestaurantId(restaurantId);
+        setPendingCartReplacement(null);
+
+        showToast('Cart cleared and new dish added.', 'success');
+    };
+
+    const cancelReplaceCart = () => {
+        setPendingCartReplacement(null);
+        showToast('Your existing cart was kept.', 'info');
     };
 
     const updateQuantity = (productId, newQuantity) => {
@@ -198,12 +239,15 @@ export const CartProvider = ({ children }) => {
 
             return updated;
         });
+
+        showToast('Dish removed from cart.', 'info');
     };
 
-    const clearCart = () => {
-        setCartItems([]);
-        setActiveRestaurantId(null);
-    };
+   const clearCart = () => {
+    setCartItems([]);
+    setActiveRestaurantId(null);
+    showToast('Cart cleared.', 'info');
+};
 
     const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -223,9 +267,62 @@ export const CartProvider = ({ children }) => {
                 totalItems,
                 totalPrice,
                 activeRestaurantId,
+                showToast
             }}
         >
             {children}
+
+            {toast.show && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={closeToast}
+                />
+            )}
+
+            {pendingCartReplacement && (
+                <div
+                    className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                    style={{
+                        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                        zIndex: 9998
+                    }}
+                >
+                    <div
+                        className="bg-white rounded-4 shadow p-4 text-center"
+                        style={{
+                            width: 'min(440px, 90vw)'
+                        }}
+                    >
+                        <h4 className="fw-bold mb-3 text-dark">
+                            Replace current cart?
+                        </h4>
+
+                        <p className="text-muted mb-4">
+                            You already have items from another restaurant in your cart.
+                            To order from this restaurant, your current cart needs to be cleared.
+                        </p>
+
+                        <div className="d-flex gap-3 justify-content-center">
+                            <button
+                                type="button"
+                                className="btn btn-outline-secondary rounded-pill px-4 fw-bold"
+                                onClick={cancelReplaceCart}
+                            >
+                                Keep Cart
+                            </button>
+
+                            <button
+                                type="button"
+                                className="btn btn-primary rounded-pill px-4 fw-bold"
+                                onClick={confirmReplaceCart}
+                            >
+                                Clear and Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </CartContext.Provider>
     );
 };
