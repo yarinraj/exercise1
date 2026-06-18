@@ -9,6 +9,10 @@ const { authMiddleware, isOwner } = require('../middleware/authMiddleware');
 // Public route
 router.get('/', restaurantController.getRestaurants);
 
+// Route for searching across restaurants and products
+// router.get('/search/:query', restaurantController.searchItems);
+router.get('/search', restaurantController.searchItems);
+
 // Route for creating new restaurant: POST /api/restaurants
 // Protected route: Only authenticated owners can create a restaurant
 router.post('/', authMiddleware, isOwner, restaurantController.createRestaurant);
@@ -22,8 +26,8 @@ router.get(
   restaurantController.getMyRestaurants
 );
 
-// Route for searching across restaurants and products
-router.get('/search/:query', restaurantController.searchItems);
+
+
 
 // Route for getting a specific restaurant: GET /api/restaurants/:id
 // Public route

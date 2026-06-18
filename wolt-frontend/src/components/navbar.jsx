@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import './navbar.css';
-import { useNavigate, Link } from 'react-router-dom';
 
 function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     const [isDarkMode, setIsDarkMode] = React.useState(() => {
@@ -9,6 +9,7 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     });
 
     const navigate = useNavigate();
+    const location = useLocation();
     
     //Created the reference for the search input
     const searchInputRef = useRef(null);
@@ -62,6 +63,16 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     window.location.href = '/'; 
 };
 
+    // Handle search, redirect to feed if necessary
+    const handleSearch = (e) => {
+        const value = e.target.value;
+        setSearchQuery(value);
+
+        if (value.trim() !== '' && location.pathname !== '/restaurants') {
+            navigate('/restaurants');
+        }
+    };
+
     // Determine the name to display in the navbar
     const displayName = user?.displayName || user?.username || 'User';
 
@@ -77,13 +88,13 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
                 <>
                     <div className="navbar-center" style={{ flex: 1, maxWidth: '400px', margin: '0 20px' }}>
                         <div className="input-group">
-                            <span className="input-group-text text-muted">🔍</span>
                             <input
                                 type="text"
                                 className="form-control"
-                                placeholder="Search in bites..."
+                                placeholder="🔍   Search restaurants or cuisines..."
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={{ borderRadius: '20px 20px 20px 20px' }}
+                                onChange={handleSearch}
                                 ref={searchInputRef} 
                             />
                         </div>
