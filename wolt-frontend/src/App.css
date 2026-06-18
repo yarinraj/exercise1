@@ -1,7 +1,46 @@
 .App {
   text-align: center;
+  min-height: 100vh;
 }
 
+/* Regular app pages */
+.App.regular-app {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(0, 194, 232, 0.08), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(0, 194, 232, 0.06), transparent 35%),
+    #f8f5ef;
+}
+
+.App.regular-app .main-content {
+  min-height: calc(100vh - 80px);
+  background: transparent;
+}
+
+/* Login / Register pages */
+.App.auth-app {
+  min-height: 100vh;
+  background: #ffffff !important;
+}
+
+/* Home page has its own image background */
+.home-page-container {
+  background-color: transparent;
+}
+
+/* Dark mode only for regular pages */
+body.dark-theme .App.regular-app {
+  background:
+    radial-gradient(circle at top left, rgba(0, 194, 232, 0.10), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(0, 194, 232, 0.08), transparent 35%),
+    #12161f;
+}
+
+body.dark-theme .App.regular-app .main-content {
+  background: transparent;
+}
+
+/* React default classes - safe to keep */
 .App-logo {
   height: 40vmin;
   pointer-events: none;
@@ -28,45 +67,67 @@
   color: #61dafb;
 }
 
+/* 404 page */
 .error-page-container {
-    min-height: 90vh;
-    background-color: #f8f9fa;
+  min-height: 90vh;
+  background:
+    radial-gradient(circle at top left, rgba(0, 194, 232, 0.10), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(0, 194, 232, 0.08), transparent 35%),
+    #f8f5ef;
 }
 
 .error-circle-card {
-    width: 400px;
-    height: 400px;
-    padding: 4rem;
+  width: 400px;
+  height: 400px;
+  padding: 4rem;
 }
+
 .error-title {
-    color: #009de0;
+  color: #009de0;
 }
 
 .error-text {
-    max-width: 320px;
+  max-width: 320px;
 }
 
 .error-btn-home {
-    background-color: #009de0;
-    border: none;
-    font-size: 0.9rem;
-    transition: background-color 0.2s, transform 0.1s;
-    margin-top: 10px;
+  background-color: #009de0;
+  border: none;
+  font-size: 0.9rem;
+  transition: background-color 0.2s, transform 0.1s;
+  margin-top: 10px;
 }
 
 .error-btn-home:hover {
-    background-color: #007bb0;
-    color: white;
+  background-color: #007bb0;
+  color: white;
 }
 
 .error-btn-home:active {
-    transform: scale(0.98);
+  transform: scale(0.98);
+}
+
+body.dark-theme .error-page-container {
+  background:
+    radial-gradient(circle at top left, rgba(0, 194, 232, 0.10), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(0, 194, 232, 0.08), transparent 35%),
+    #12161f;
+}
+
+body.dark-theme .error-circle-card {
+  background-color: #1e1e1e !important;
+  color: #ffffff;
+}
+
+body.dark-theme .error-text {
+  color: #cbd5e1 !important;
 }
 
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
