@@ -70,7 +70,7 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
 
         // If typing and NOT on the home/feed page, redirect there immediately
         if (value.trim() !== '' && location.pathname !== '/' && location.pathname !== '/restaurants') {
-            navigate('/');
+            navigate('/restaurants');
         }
     };
 

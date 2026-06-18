@@ -40,10 +40,17 @@ const HomePage = ({ user }) => {
                     </div>
                 </div>
             ) : (
-                /* Guest Home Page: Shows generic welcome for non-authenticated users */
+                /* Guest Home Page: Shows generic welcome and the restaurants button for non-authenticated users */
                 <div className="container text-center home-welcome-content animate__animated animate__fadeIn">
                     <h1 className="display-4 fw-bold mb-3">Welcome to bites Home Page!</h1>
                     <p className="lead text-secondary">This page is public and visible to everyone.</p>
+                    
+                    {/* FIX: Added the explore button for guest users as well */}
+                    <div className="mt-4 d-flex justify-content-center gap-3">
+                        <Link to="/restaurants" className="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm">
+                               Go to Restaurants Feed
+                        </Link>
+                    </div>
                 </div>
             )}
         </div>

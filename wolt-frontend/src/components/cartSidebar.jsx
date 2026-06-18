@@ -32,45 +32,49 @@ export const CartSidebar = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     // Handles the secure checkout process
+   // Handles the secure checkout process for both users and guests
     const handleCheckout = async () => {
-        // 1. Retrieve the JWT token from local storage for authorization
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-            alert('❌ You must be logged in to place an order.');
-            return;
-        }
-
         if (cartItems.length === 0) return;
 
+        // 1. Retrieve the JWT token from local storage (might be null for guests)
+        const token = localStorage.getItem('token');
+        
+     
+
         // 2. Prepare the payload for the backend
-        // FIX: Using activeRestaurantId directly from the CartContext instead of guessing from cartItems
         const orderPayload = {
             restaurantId: activeRestaurantId, 
             products: cartItems.map(item => ({
-                productId: item._id, // Mapping the frontend item ID to what the backend expects
+                productId: item._id, 
                 quantity: item.quantity,
                 price: item.price
             }))
         };
 
+        // 3. Setup dynamic headers
+        const requestHeaders = {
+            'Content-Type': 'application/json'
+        };
+        
+        // Only attach the Authorization header if the user is actually logged in
+        if (token) {
+            requestHeaders['Authorization'] = `Bearer ${token}`;
+        }
+
         try {
-            // 3. Send the POST request to the orders API
+            // 4. Send the POST request to the orders API
             const response = await fetch('http://localhost:8080/api/orders', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` // Attaching the JWT for security
-                },
+                headers: requestHeaders, // Using the dynamic headers
                 body: JSON.stringify(orderPayload)
             });
 
-            // 4. Handle success response
+            // 5. Handle success response
             if (response.ok || response.status === 201) {
                 const data = await response.json();
-                alert('✅ Order placed successfully! Order ID: ' + data._id);
+                alert('✅ Order placed successfully! Order ID: ' + (data._id || data.id));
                 
-                // 5. Clean up: clear the cart and close the sidebar upon successful order
+                // Clean up: clear the cart and close the sidebar upon successful order
                 clearCart();
                 onClose();
             } else {
