@@ -53,16 +53,21 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
         });
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('cartItems');
-        localStorage.removeItem('cart');
-        clearCart();
-        document.body.classList.remove('dark-theme');
-        window.location.href = '/'; 
-    };
+   const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    document.body.classList.remove('dark-theme');
+    setIsDarkMode(false);
+    setUser(null);
 
+    window.dispatchEvent(
+        new CustomEvent('auth-changed', {
+            detail: { type: 'logout' }
+        })
+    );
+
+    navigate('/');
+};
     // --- Smart Search Handler ---
     const handleSearch = (e) => {
         const value = e.target.value;

@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import FormInput from './common/FormInput';
 import BackgroundDoodles from './common/BackgroundDoodles';
 import './common/auth.css';
-import Toast from './Toast'; 
+import Toast from './Toast';
 
 const Login = ({ setUser }) => {
     const navigate = useNavigate();
@@ -19,25 +19,25 @@ const Login = ({ setUser }) => {
     const [wasValidated, setWasValidated] = useState(false);
     const [generalError, setGeneralError] = useState('');
 
-useEffect(() => {
-    setUsername('');
-    setPassword('');
-    setWasValidated(false);
-    setGeneralError('');
-}, [location.key]);
+    useEffect(() => {
+        setUsername('');
+        setPassword('');
+        setWasValidated(false);
+        setGeneralError('');
+    }, [location.key]);
 
-useEffect(() => {
-    if (location.state?.fromProtected) {
-        setToast({
-            show: true,
-            message: 'Authorized for logged-in users only',
-            type: 'info'
-        });
-        
-        // Clean up the history state so the message won't pop up again if the user refresh
-        window.history.replaceState({}, document.title);
-    }
-}, [location.key, location.state?.fromProtected]);
+    useEffect(() => {
+        if (location.state?.fromProtected) {
+            setToast({
+                show: true,
+                message: 'Authorized for logged-in users only',
+                type: 'info'
+            });
+
+            // Clean up the history state so the message won't pop up again if the user refresh
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.key, location.state?.fromProtected]);
 
     // Decode JWT payload safely
     const decodeJwtPayload = (token) => {
@@ -130,6 +130,11 @@ useEffect(() => {
             // Store the full user locally and update the app state
             localStorage.setItem('user', JSON.stringify(loggedInUser));
             setUser(loggedInUser);
+            window.dispatchEvent(
+                new CustomEvent('auth-changed', {
+                    detail: { type: 'login' }
+                })
+            );
 
             // Redirect to the home page
             navigate('/');
@@ -137,14 +142,14 @@ useEffect(() => {
             setGeneralError('Login failed. Please try again.');
         }
     };
-    
+
     return (
         <div className="container register-page-container">
             {toast.show && (
-                <Toast 
-                    message={toast.message} 
-                    type={toast.type} 
-                    onClose={() => setToast({ ...toast, show: false })} 
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast({ ...toast, show: false })}
                 />
             )}
 
@@ -168,7 +173,7 @@ useEffect(() => {
             {/* Background decorative elements */}
             <BackgroundDoodles />
 
-          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <div className="bites-logo-container">
                     <div className="delivery-scooter">
                         <span className="scooter-mirror">🛵</span>
@@ -202,7 +207,7 @@ useEffect(() => {
                         required
                         wasValidated={wasValidated}
                         isValid={username !== ''}
-                            autoComplete="off"
+                        autoComplete="off"
 
                     />
 
@@ -215,7 +220,7 @@ useEffect(() => {
                         required
                         wasValidated={wasValidated}
                         isValid={password !== ''}
-                         autoComplete="new-password"
+                        autoComplete="new-password"
                     />
 
                     <button type="submit" className="wolt-btn wolt-btn-block">
