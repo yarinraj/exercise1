@@ -71,3 +71,25 @@ body.dark-theme .hover-card .text-secondary {
 body.dark-theme .hover-card .border-top {
     border-top: 1px solid #2d2d2d;
 }
+
+.restaurant-rating-badge {
+    background-color: #ededf2;
+    color: #1e293b;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); 
+    border: 1px solid transparent;
+}
+
+body.dark-theme .restaurant-rating-badge {
+    background-color: #1e293b; 
+    color: #ededf2; 
+    box-shadow: none; 
+    border: 1px solid #334155; 
+}
+
+.restaurant-rating-count {
+    color: #64748b;
+}
+
+body.dark-theme .restaurant-rating-count {
+    color: #94a3b8; 
+}
