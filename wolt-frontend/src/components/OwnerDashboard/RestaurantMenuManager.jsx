@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import BackgroundDoodles from '../common/BackgroundDoodles';
+import Toast from '../Toast';
 import '../common/auth.css';
 
 /**
@@ -10,58 +11,179 @@ import '../common/auth.css';
 const RestaurantMenuManager = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+
     const [products, setProducts] = useState([]);
+
+    const [toast, setToast] = useState({
+        show: false,
+        message: '',
+        type: 'info'
+    });
+
+    const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+    const showToast = (message, type = 'info') => {
+        setToast({
+            show: true,
+            message,
+            type
+        });
+    };
+
+    const closeToast = () => {
+        setToast((prev) => ({
+            ...prev,
+            show: false
+        }));
+    };
 
     // Fetch all products on component mount
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 const response = await fetch(`http://localhost:8080/api/restaurants/${id}/products`);
-                if (!response.ok) throw new Error('Failed to fetch products');
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch products');
+                }
+
                 const data = await response.json();
                 setProducts(data);
             } catch (error) {
-                console.error("Error fetching products:", error);
+                console.error('Error fetching products:', error);
+                showToast('Failed to load dishes.', 'error');
             }
         };
+
         fetchProducts();
     }, [id]);
 
-    // Handle product deletion
-    const handleDeleteProduct = async (productId) => {
-        if (!window.confirm("Are you sure you want to delete this dish?")) return;
+    const handleDeleteClick = (productId) => {
+        setDeleteTargetId(productId);
+    };
+
+    const cancelDelete = () => {
+        setDeleteTargetId(null);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTargetId) return;
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:8080/api/restaurants/${id}/products/${productId}`, {
+
+            if (!token) {
+                showToast('You are not logged in.', 'error');
+                setDeleteTargetId(null);
+                return;
+            }
+
+            showToast('Deleting dish...', 'info');
+
+            const response = await fetch(`http://localhost:8080/api/restaurants/${id}/products/${deleteTargetId}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
 
-            if (response.ok) {
-                // Remove product from local state upon successful deletion
-                setProducts(products.filter(p => p._id !== productId));
+            if (response.ok || response.status === 204) {
+                setProducts((prevProducts) =>
+                    prevProducts.filter((product) => product._id !== deleteTargetId)
+                );
+
+                setDeleteTargetId(null);
+                showToast('Dish deleted successfully!', 'success');
+                return;
             }
+
+            const errorData = await response.json().catch(() => null);
+
+            setDeleteTargetId(null);
+
+            showToast(
+                errorData?.error ||
+                errorData?.message ||
+                'Failed to delete dish.',
+                'error'
+            );
         } catch (error) {
-            console.error("Delete error:", error);
+            console.error('Delete error:', error);
+            setDeleteTargetId(null);
+            showToast('Server error while deleting dish.', 'error');
         }
     };
 
     return (
         <div className="manager-page-container min-vh-100 py-5">
+            {toast.show && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={closeToast}
+                />
+            )}
+
+            {deleteTargetId && (
+                <div
+                    className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                    style={{
+                        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                        zIndex: 9998
+                    }}
+                >
+                    <div
+                        className="bg-white rounded-4 shadow p-4 text-center"
+                        style={{
+                            width: 'min(420px, 90vw)'
+                        }}
+                    >
+                        <h4 className="fw-bold mb-3 text-dark">
+                            Delete dish?
+                        </h4>
+
+                        <p className="text-muted mb-4">
+                            Are you sure you want to delete this dish?
+                            This action cannot be undone.
+                        </p>
+
+                        <div className="d-flex gap-3 justify-content-center">
+                            <button
+                                type="button"
+                                className="btn btn-outline-secondary rounded-pill px-4 fw-bold"
+                                onClick={cancelDelete}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                className="btn btn-danger rounded-pill px-4 fw-bold"
+                                onClick={confirmDelete}
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <BackgroundDoodles />
+
             <div className="container position-relative">
                 <div className="row justify-content-center">
                     <div className="col-12 col-md-10 col-lg-8">
-
                         <div className="text-center mb-4">
                             <h1 className="fw-bold">Menu Management</h1>
-                            <p className="text-muted">Manage the dishes available at your restaurant.</p>
+                            <p className="text-muted">
+                                Manage the dishes available at your restaurant.
+                            </p>
                         </div>
 
                         <section className="card p-4 p-md-5 shadow-sm border-0 rounded-4">
                             <div className="d-flex justify-content-between align-items-center mb-4">
                                 <h3 className="fw-bold m-0">Dishes</h3>
+
                                 <button
                                     className="btn btn-primary rounded-pill px-4 fw-bold"
                                     onClick={() => navigate(`/owner/edit/${id}/menu/add`)}
@@ -72,15 +194,12 @@ const RestaurantMenuManager = () => {
 
                             <div className="list-group list-group-flush">
                                 {products.length > 0 ? (
-                                    products.map(product => (
-                                        <div key={product._id} className="list-group-item d-flex justify-content-between align-items-center py-3 bg-transparent border-bottom">
-
+                                    products.map((product) => (
+                                        <div
+                                            key={product._id}
+                                            className="list-group-item d-flex justify-content-between align-items-center py-3 bg-transparent border-bottom"
+                                        >
                                             <div className="d-flex align-items-center">
-
-                                                {/* Dish Image - Uses the app logo (/icon.svg) from the public folder 
-                                                    as a fallback if the product.image field is empty.
-                                                    The style uses objectFit: 'contain' to prevent the SVG from being cropped.
-                                                */}
                                                 <img
                                                     src={(product.image && product.image.trim() !== '') ? product.image : '/icon.svg'}
                                                     alt={product.name}
@@ -94,9 +213,18 @@ const RestaurantMenuManager = () => {
                                                         padding: '5px'
                                                     }}
                                                 />
+
                                                 <div>
-                                                    <h5 className="mb-1 fw-bold" style={{ color: 'inherit' }}>{product.name}</h5>
-                                                    <small className="text-muted">{product.price} ₪</small>
+                                                    <h5
+                                                        className="mb-1 fw-bold"
+                                                        style={{ color: 'inherit' }}
+                                                    >
+                                                        {product.name}
+                                                    </h5>
+
+                                                    <small className="text-muted">
+                                                        {product.price} ₪
+                                                    </small>
                                                 </div>
                                             </div>
 
@@ -107,9 +235,10 @@ const RestaurantMenuManager = () => {
                                                 >
                                                     Edit
                                                 </button>
+
                                                 <button
                                                     className="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                                    onClick={() => handleDeleteProduct(product._id)}
+                                                    onClick={() => handleDeleteClick(product._id)}
                                                 >
                                                     Delete
                                                 </button>
@@ -118,7 +247,9 @@ const RestaurantMenuManager = () => {
                                     ))
                                 ) : (
                                     <div className="text-center py-4">
-                                        <p className="text-muted mb-0">No dishes found. Click "+ Add New Dish" to get started.</p>
+                                        <p className="text-muted mb-0">
+                                            No dishes found. Click "+ Add New Dish" to get started.
+                                        </p>
                                     </div>
                                 )}
                             </div>

@@ -85,10 +85,21 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     return (
         <nav className="wolt-navbar">
             {/* Logo Section */}
-            <div className="navbar-left">
+            <div className="navbar-left d-flex align-items-center">
                 <span className="brand-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer', textDecoration: 'none', color: '#00c2e8' }}>
                     bites
                 </span>
+
+                <a 
+                    href="/past-orders" 
+                    className="btn p-0 border-0 fs-4 ms-3"
+                    title="My Past Orders" 
+                    style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                    >
+                    🛒
+                </a>
             </div>
 
             {/* SINGLE SEARCH BAR - Always visible and uses the smart handleSearch */}

@@ -76,7 +76,29 @@ const restaurantSchema = new mongoose.Schema({
         required: true
     },
     // Array of products based on the nested schema defined above
-    products: [productSchema]
+    products: [productSchema],
+
+    // ratings field to store user ratings for the restaurant
+    ratings: [
+        {
+            userId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+            rating: {
+                type: Number,
+                required: true,
+                min: 1,
+                max: 5
+            }
+        }
+    ],
+    averageRating: {
+        type: Number,
+        default: 0 
+    }
+
 }, { timestamps: true });
 
 const Restaurant = mongoose.models.Restaurant || mongoose.model('Restaurant', restaurantSchema);

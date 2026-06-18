@@ -60,5 +60,5 @@ router.patch('/:id/products/:pid', authMiddleware, isOwner, restaurantController
 // Route for deleting a specific product in a specific restaurant's menu: DELETE /api/restaurants/:id/products/:pid
 // Protected route: Only authenticated owners can delete products
 router.delete('/:id/products/:pid', authMiddleware, isOwner, restaurantController.deleteProduct);
-
+router.post('/:id/rate', authMiddleware, restaurantController.rateRestaurant);
 module.exports = router;
