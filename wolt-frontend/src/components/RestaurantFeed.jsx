@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import RestaurantCard from './RestaurantCard';
-import Toast from './Toast';
+import RestaurantCard from './RestaurantCard'; 
+import ProductCard from './ProductCard'; 
+import Toast from './Toast'; 
 
 const RestaurantFeed = ({ searchQuery }) => {
     const [restaurants, setRestaurants] = useState([]);
-    const [activeFilter, setActiveFilter] = useState('all');
+    const [relatedProducts, setRelatedProducts] = useState([]); 
+    const [activeFilter, setActiveFilter] = useState('all'); 
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
     const [userLocation, setUserLocation] = useState(null);
@@ -34,12 +36,30 @@ const RestaurantFeed = ({ searchQuery }) => {
     useEffect(() => {
         const fetchRestaurants = async () => {
             try {
-                const response = await fetch('http://localhost:8080/api/restaurants');
+                setLoading(true);
+                
+                let url = 'http://localhost:8080/api/restaurants';
+                if (searchQuery && searchQuery.trim() !== '') {
+                    url = `http://localhost:8080/api/restaurants/search?q=${encodeURIComponent(searchQuery)}`;
+                }
+
+                const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`Server responded with status: ${response.status}`);
                 }
                 const data = await response.json();
-                setRestaurants(data);
+                
+                if (data && data.restaurants) {
+                    setRestaurants(data.restaurants);
+                    setRelatedProducts(data.relatedProducts || []);
+                } else if (Array.isArray(data)) {
+                    setRestaurants(data);
+                    setRelatedProducts([]);
+                } else {
+                    setRestaurants([]);
+                    setRelatedProducts([]);
+                }
+                setError(null);
             } catch (err) {
                 console.error("Error fetching restaurants:", err);
                 setError(err.message);
@@ -49,7 +69,7 @@ const RestaurantFeed = ({ searchQuery }) => {
         };
 
         fetchRestaurants();
-    }, []);
+    }, [searchQuery]);
 
     const getRealDistance = (lat1, lon1, lat2, lon2) => {
         if (!lat1 || !lon1 || !lat2 || !lon2) return null;
@@ -73,7 +93,7 @@ const RestaurantFeed = ({ searchQuery }) => {
             return;
         }
         setActiveFilter(filterType);
-    };
+    }; 
 
     const filteredRestaurants = restaurants
         .map(restaurant => {
@@ -99,15 +119,8 @@ const RestaurantFeed = ({ searchQuery }) => {
             if (activeFilter === 'promoted' && restaurant.isPromoted !== true) {
                 return false;
             }
-
-            const query = searchQuery ? searchQuery.toLowerCase().trim() : '';
-            if (query) {
-                const matchesName = restaurant.name?.toLowerCase().includes(query);
-                const matchesCuisine = restaurant.cuisine?.toLowerCase().includes(query);
-                return matchesName || matchesCuisine;
-            }
-
-            return true;
+            
+            return true; 
         });
 
     if (loading) {
@@ -135,9 +148,9 @@ const RestaurantFeed = ({ searchQuery }) => {
             )}
 
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <div className="text-start mb-4">
-                    <h2 className="fw-bold m-0 feed-title">Restaurants:</h2>
-                    <p className="m-0 feed-subtitle">Explore our curated list of available kitchens</p>
+                <div className="text-start mb-2">
+                    <h2 className="fw-bold m-0 text-dark">Restaurants:</h2>
+                    <p className="text-muted m-0">Explore our curated list of available kitchens</p>
                 </div>
                 <span className="badge bg-secondary p-2">{filteredRestaurants.length} Places Found</span>
             </div>
@@ -215,6 +228,18 @@ const RestaurantFeed = ({ searchQuery }) => {
                     </div>
                 )}
             </div>
+
+            {searchQuery && searchQuery.trim() !== '' && relatedProducts.length > 0 && (
+                <div className="mt-0 text-start mb-5">
+                    <hr style={{ opacity: 0.15, marginTop: '15px', marginBottom: '15px' }} />
+                    <h3 className="fw-bold text-dark mb-1">Related Items:</h3>
+                    <div className="row g-4 mt-2">
+                        {relatedProducts.map((product) => (
+                            <ProductCard key={product._id} product={product} />
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

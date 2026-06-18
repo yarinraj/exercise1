@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import './navbar.css';
-import { useNavigate, Link } from 'react-router-dom';
 
 function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     const [isDarkMode, setIsDarkMode] = React.useState(() => {
@@ -9,6 +9,9 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     });
 
     const navigate = useNavigate();
+    const location = useLocation();
+    
+    //Created the reference for the search input
     const searchInputRef = useRef(null);
 
     // Auto-focus logic for the search bar
@@ -55,6 +58,17 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
         window.location.href = '/'; 
     };
 
+    // Handle search, redirect to feed if necessary
+    const handleSearch = (e) => {
+        const value = e.target.value;
+        setSearchQuery(value);
+
+        if (value.trim() !== '' && location.pathname !== '/restaurants') {
+            navigate('/restaurants');
+        }
+    };
+
+    // Determine the name to display in the navbar
     const displayName = user?.displayName || user?.username || 'User';
 
     return (
@@ -83,11 +97,20 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
 
             {/* Conditional User Menu - Shows Login/Signup for guests, profile/logout for users */}
             {user ? (
-                <div className="navbar-right">
-                    <button className="theme-toggle" onClick={toggleTheme}>
-                        <span className={`icon sun ${isDarkMode ? 'hidden' : ''}`}>☀️</span>
-                        <span className={`icon moon ${!isDarkMode ? 'hidden' : ''}`}>🌙</span>
-                    </button>
+                <>
+                    <div className="navbar-center" style={{ flex: 1, maxWidth: '400px', margin: '0 20px' }}>
+                        <div className="input-group">
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="🔍   Search restaurants or cuisines..."
+                                value={searchQuery}
+                                style={{ borderRadius: '20px 20px 20px 20px' }}
+                                onChange={handleSearch}
+                                ref={searchInputRef} 
+                            />
+                        </div>
+                    </div>
 
                     <div className="user-menu">
                         <span className="display-name">{displayName}</span>
