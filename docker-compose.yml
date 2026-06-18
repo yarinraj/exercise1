@@ -1,5 +1,5 @@
 services:
-  # C++ Server Service
+  # C++ Backend Server
   cpp-server:
     build:
       context: .
@@ -8,12 +8,12 @@ services:
       - "8000:8000"
     networks:
       - app-network
-
-  # cppGateway.js API Service
-  cpp-gateway:
+  
+  # Node.js API Server
+  app-server:
     build:
       context: .
-      dockerfile: Dockerfile.gateway
+      dockerfile: Dockerfile.gateway 
     ports:
       - "8080:8080"
     environment:
@@ -23,6 +23,20 @@ services:
     depends_on:
       - cpp-server
       - mongo  
+    networks:
+      - app-network
+
+  # React Frontend Server 
+  frontend:
+    build:
+      context: ./wolt-frontend  
+    ports:
+      - "3000:3000"            
+    volumes:
+      - ./wolt-frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
     networks:
       - app-network
 

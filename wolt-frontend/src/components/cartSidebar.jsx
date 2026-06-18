@@ -10,29 +10,56 @@ export const CartSidebar = ({ isOpen, onClose }) => {
         totalItems,
         clearCart,
         activeRestaurantId,
-        addToCart
-    } = useCart();
+        addToCart,
+        showToast,
+} = useCart();
 
-    const [isDark, setIsDark] = useState(false);
-    const [recommendations, setRecommendations] = useState([]);
-    const [loadingRecs, setLoadingRecs] = useState(false);
+const [isDark, setIsDark] = useState(false);
+const [recommendations, setRecommendations] = useState([]);
+const [loadingRecs, setLoadingRecs] = useState(false);
+const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
 
-    // Theme detection logic to seamlessly match the main app's dark/light mode
     useEffect(() => {
         const determineTheme = () => {
-            const htmlAttr = document.documentElement.getAttribute('data-bs-theme') || document.documentElement.getAttribute('data-theme') || '';
-            const bodyAttr = document.body.getAttribute('data-bs-theme') || document.body.getAttribute('data-theme') || '';
-            const classes = [...document.body.classList, ...document.documentElement.classList];
-            const hasDarkClass = classes.some(c => c.toLowerCase().includes('dark'));
+            const htmlAttr =
+                document.documentElement.getAttribute('data-bs-theme') ||
+                document.documentElement.getAttribute('data-theme') ||
+                '';
 
-            setIsDark(htmlAttr.includes('dark') || bodyAttr.includes('dark') || hasDarkClass);
+            const bodyAttr =
+                document.body.getAttribute('data-bs-theme') ||
+                document.body.getAttribute('data-theme') ||
+                '';
+
+            const classes = [
+                ...document.body.classList,
+                ...document.documentElement.classList
+            ];
+
+            const hasDarkClass = classes.some((c) =>
+                c.toLowerCase().includes('dark')
+            );
+
+            setIsDark(
+                htmlAttr.includes('dark') ||
+                bodyAttr.includes('dark') ||
+                hasDarkClass
+            );
         };
 
         determineTheme();
 
         const observer = new MutationObserver(determineTheme);
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-bs-theme', 'data-theme'] });
-        observer.observe(document.body, { attributes: true, attributeFilter: ['class', 'data-bs-theme', 'data-theme'] });
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class', 'data-bs-theme', 'data-theme']
+        });
+
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class', 'data-bs-theme', 'data-theme']
+        });
 
         return () => observer.disconnect();
     }, []);
@@ -136,7 +163,19 @@ export const CartSidebar = ({ isOpen, onClose }) => {
 
     // Handles the secure checkout process
     const handleCheckout = async () => {
-        if (cartItems.length === 0) return;
+        if (cartItems.length === 0) {
+            showToast('Your cart is empty.', 'warning');
+            return;
+        }
+
+        if (!activeRestaurantId) {
+            showToast('Missing restaurant information for this order.', 'error');
+            return;
+        }
+
+        if (isSubmittingOrder) {
+            return;
+        }
 
         const token = localStorage.getItem('token');
 
@@ -154,63 +193,112 @@ export const CartSidebar = ({ isOpen, onClose }) => {
         };
 
         if (token) {
-            requestHeaders['Authorization'] = `Bearer ${token}`;
+            requestHeaders.Authorization = `Bearer ${token}`;
         }
 
         try {
+            setIsSubmittingOrder(true);
+            showToast('Placing your order...', 'info');
+
             const response = await fetch('http://localhost:8080/api/orders', {
                 method: 'POST',
                 headers: requestHeaders,
                 body: JSON.stringify(orderPayload)
             });
 
+            const data = await response.json().catch(() => null);
+
             if (response.ok || response.status === 201) {
-                const data = await response.json();
-                alert('Order placed successfully! Order ID: ' + (data._id || data.id));
-                clearCart();
-                onClose();
-            } else {
-                const errorData = await response.json().catch(() => null);
-                alert(`Failed to place order: ${errorData?.error || 'Unknown error'}`);
+                showToast(
+                    `Order placed successfully! Order ID: ${data?._id || data?.id || 'created'}`,
+                    'success'
+                );
+
+                setTimeout(() => {
+                    clearCart({ silent: true });
+                    onClose();
+                }, 1800);
+
+                return;
             }
+
+            showToast(
+                data?.error ||
+                data?.message ||
+                'Failed to place order. Please try again.',
+                'error'
+            );
         } catch (error) {
             console.error('Checkout error:', error);
-            alert('Server error. Please try again later.');
+            showToast('Server error. Please try again later.', 'error');
+        } finally {
+            setIsSubmittingOrder(false);
         }
     };
 
     return (
         <>
-            {/* Backdrop overlay */}
-            <div className="position-fixed top-0 start-0 w-100 h-100"
-                style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1040, backdropFilter: 'blur(3px)' }}
+            <div
+                className="position-fixed top-0 start-0 w-100 h-100"
+                style={{
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    zIndex: 1040,
+                    backdropFilter: 'blur(3px)'
+                }}
                 onClick={onClose}
             />
 
-            {/* Main Sidebar Container */}
-            <div className="position-fixed top-0 end-0 h-100 d-flex flex-column shadow-lg"
+            <div
+                className="position-fixed top-0 end-0 h-100 d-flex flex-column shadow-lg"
                 style={{
                     width: '400px',
                     backgroundColor: isDark ? '#12161f' : '#ffffff',
-                    borderLeft: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)',
+                    borderLeft: isDark
+                        ? '1px solid rgba(255,255,255,0.08)'
+                        : '1px solid rgba(0,0,0,0.08)',
                     zIndex: 1050,
                     color: isDark ? '#fff' : '#212529',
                     transition: 'background-color 0.2s ease, color 0.2s ease'
                 }}
             >
-                {/* Header Section */}
-                <div className="p-4 d-flex justify-content-between align-items-center"
-                    style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)' }}>
-                    <h5 className="mb-0 fw-bold d-flex align-items-center gap-2" style={{ color: isDark ? '#fff' : '#212529' }}>
-                        Your Cart
-                        <span className="badge rounded-pill fs-6" style={{ backgroundColor: '#00c2e8', color: '#fff' }}>
+                <div
+                    className="p-4 d-flex justify-content-between align-items-center"
+                    style={{
+                        borderBottom: isDark
+                            ? '1px solid rgba(255,255,255,0.08)'
+                            : '1px solid rgba(0,0,0,0.08)'
+                    }}
+                >
+                    <h5
+                        className="mb-0 fw-bold d-flex align-items-center gap-2"
+                        style={{ color: isDark ? '#fff' : '#212529' }}
+                    >
+                        🛒 Your Cart
+
+                        <span
+                            className="badge rounded-pill fs-6"
+                            style={{
+                                backgroundColor: '#00c2e8',
+                                color: '#fff'
+                            }}
+                        >
                             {totalItems}
                         </span>
                     </h5>
-                    <button className="btn p-0 fs-4 opacity-75" onClick={onClose} style={{ border: 'none', background: 'none', color: isDark ? '#fff' : '#212529' }}>&times;</button>
+
+                    <button
+                        className="btn p-0 fs-4 opacity-75"
+                        onClick={onClose}
+                        style={{
+                            border: 'none',
+                            background: 'none',
+                            color: isDark ? '#fff' : '#212529'
+                        }}
+                    >
+                        &times;
+                    </button>
                 </div>
 
-                {/* Cart Items List Area */}
                 <div className="flex-grow-1 overflow-auto p-4">
                     {cartItems.length === 0 ? (
                         <div className="text-center text-muted mt-5 py-5">
@@ -339,22 +427,41 @@ export const CartSidebar = ({ isOpen, onClose }) => {
                         }}>
                         <div className="d-flex justify-content-between align-items-center mb-3">
                             <span className="text-muted fw-bold">Total Price:</span>
-                            <span className="fs-4 fw-bold" style={{ color: isDark ? '#fff' : '#212529' }}>₪{totalPrice.toFixed(2)}</span>
+
+                            <span
+                                className="fs-4 fw-bold"
+                                style={{ color: isDark ? '#fff' : '#212529' }}
+                            >
+                                ₪{totalPrice.toFixed(2)}
+                            </span>
                         </div>
 
                         <div className="d-flex gap-2">
-                            <button className="btn btn-outline-danger btn-sm px-3 rounded-3" onClick={clearCart} title="Clear Cart">
+                            <button
+                                className="btn btn-outline-danger btn-sm px-3 rounded-3"
+                                onClick={clearCart}
+                                title="Clear Cart"
+                                disabled={isSubmittingOrder}
+                            >
                                 Clear
                             </button>
-                            <button className="btn flex-grow-1 fw-bold py-2 rounded-3 text-white shadow-sm"
+
+                            <button
+                                className="btn flex-grow-1 fw-bold py-2 rounded-3 text-white shadow-sm"
                                 style={{
-                                    backgroundColor: '#00c2e8',
+                                    backgroundColor: isSubmittingOrder
+                                        ? '#8adfeb'
+                                        : '#00c2e8',
                                     boxShadow: '0 4px 15px rgba(0, 194, 232, 0.3)',
-                                    border: 'none'
+                                    border: 'none',
+                                    cursor: isSubmittingOrder ? 'not-allowed' : 'pointer'
                                 }}
                                 onClick={handleCheckout}
+                                disabled={isSubmittingOrder}
                             >
-                                Finish order🍽️
+                                {isSubmittingOrder
+                                    ? 'Placing order...'
+                                    : 'Secure Checkout ➔'}
                             </button>
                         </div>
                     </div>
