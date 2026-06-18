@@ -226,13 +226,38 @@ export const CartSidebar = ({ isOpen, onClose }) => {
                                         backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
                                         border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)'
                                     }}>
-                                    <div style={{ flex: 1 }}>
-                                        <h6 className="mb-1 fw-bold text-truncate" style={{ maxWidth: '180px', color: isDark ? '#fff' : '#212529' }}>{item.name}</h6>
-                                        <span className="fw-bold small" style={{ color: '#00c2e8' }}>
-                                            ₪{(item.price * item.quantity).toFixed(2)}
-                                        </span>
-                                    </div>
+                                    <div className="d-flex align-items-center gap-2" style={{ flex: 1, minWidth: 0 }}>
+                                        <img
+                                            src={(item.image && item.image.trim() !== '') ? item.image : '/icon.svg'}
+                                            alt={item.name}
+                                            className="rounded-2"
+                                            style={{
+                                                width: '46px',
+                                                height: '46px',
+                                                objectFit: (item.image && item.image.trim() !== '') ? 'cover' : 'contain',
+                                                backgroundColor: '#f8f9fa',
+                                                border: '1px solid #eaeaea',
+                                                padding: (item.image && item.image.trim() !== '') ? '0' : '5px',
+                                                flexShrink: 0
+                                            }}
+                                        />
 
+                                        <div style={{ minWidth: 0 }}>
+                                            <h6
+                                                className="mb-1 fw-bold text-truncate"
+                                                style={{
+                                                    maxWidth: '130px',
+                                                    color: isDark ? '#fff' : '#212529'
+                                                }}
+                                            >
+                                                {item.name}
+                                            </h6>
+
+                                            <span className="fw-bold small" style={{ color: '#00c2e8' }}>
+                                                ₪{(item.price * item.quantity).toFixed(2)}
+                                            </span>
+                                        </div>
+                                    </div>
                                     <div className="d-flex align-items-center gap-2 rounded-2 p-1"
                                         style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}>
                                         <button className="btn btn-sm border-0 py-0 px-2 fw-bold"
