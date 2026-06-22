@@ -12,70 +12,175 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config/api';
 
+const base64UrlDecode = (base64Url) => {
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+    while (base64.length % 4) {
+        base64 += '=';
+    }
+
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    let output = '';
+
+    for (let block = 0, charCode, idx = 0, map = chars; base64.charAt(idx | 0) || (map = '=', idx % 1); output += String.fromCharCode(255 & (block >> ((-2 * idx) & 6)))) {
+        charCode = map.indexOf(base64.charAt(idx += 3 / 4));
+
+        if (charCode < 0) {
+            throw new Error('Invalid base64 string');
+        }
+
+        block = (block << 6) | charCode;
+    }
+
+    try {
+        return decodeURIComponent(
+            output
+                .split('')
+                .map((char) => {
+                    return `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`;
+                })
+                .join('')
+        );
+    } catch {
+        return output;
+    }
+};
+
+const decodeJwtPayload = (token) => {
+    const payload = token.split('.')[1];
+
+    if (!payload) {
+        throw new Error('Invalid token structure');
+    }
+
+    return JSON.parse(base64UrlDecode(payload));
+};
+
 const LoginScreen = ({ navigation, setUser }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+
     const [wasSubmitted, setWasSubmitted] = useState(false);
+    const [usernameTouched, setUsernameTouched] = useState(false);
+    const [passwordTouched, setPasswordTouched] = useState(false);
+
     const [isLoading, setIsLoading] = useState(false);
+    const [serverError, setServerError] = useState('');
+
+    const usernameTrimmed = username.trim();
+
+    const usernameInvalid =
+        (wasSubmitted || usernameTouched) &&
+        usernameTrimmed.length === 0;
+
+    const passwordInvalid =
+        (wasSubmitted || passwordTouched) &&
+        password.length === 0;
+
+    const isFormValid = usernameTrimmed.length > 0 && password.length > 0;
 
     const handleLogin = async () => {
         setWasSubmitted(true);
+        setServerError('');
 
-        if (!username.trim() || !password) {
-            Alert.alert('Login failed', 'Please enter both username and password.');
+        if (!isFormValid) {
             return;
         }
 
         try {
             setIsLoading(true);
 
-            const response = await fetch(`${API_BASE_URL}/api/tokens`, {
+            const loginUrl = `${API_BASE_URL}/api/tokens`;
+
+            console.log('Login URL:', loginUrl);
+            console.log('Login payload:', {
+                username: usernameTrimmed,
+                passwordLength: password.length
+            });
+
+            const tokenResponse = await fetch(loginUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    username: username.trim(),
+                    username: usernameTrimmed,
                     password
                 })
             });
 
-            const data = await response.json().catch(() => null);
+            console.log('Login status:', tokenResponse.status);
 
-            if (!response.ok || !data?.token) {
-                Alert.alert(
-                    'Login failed',
-                    data?.error || 'Invalid username or password.'
+            const tokenData = await tokenResponse.json().catch((error) => {
+                console.log('Could not parse login response JSON:', error);
+                return null;
+            });
+
+            console.log('Login response data:', tokenData);
+
+            if (!tokenResponse.ok || !tokenData?.token) {
+                setServerError(
+                    tokenData?.error ||
+                    tokenData?.message ||
+                    'Invalid username or password.'
                 );
                 return;
             }
 
-            const loggedInUser = {
-                username: username.trim()
+            const token = tokenData.token;
+
+            let loggedInUser = {
+                username: usernameTrimmed
             };
 
-            await AsyncStorage.setItem('token', data.token);
+            try {
+                const payload = decodeJwtPayload(token);
+                const userId = payload.userId || payload.id || payload._id;
+
+                if (userId) {
+                    const userResponse = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+                        method: 'GET',
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+
+                    const userData = await userResponse.json().catch(() => null);
+
+                    if (userResponse.ok && userData) {
+                        loggedInUser = {
+                            _id: userData._id || userId,
+                            username: userData.username,
+                            displayName: userData.displayName,
+                            profileImage: userData.profileImage,
+                            role: userData.role
+                        };
+                    }
+                }
+            } catch (decodeError) {
+                console.log('Could not decode token or fetch user details:', decodeError);
+            }
+
+            await AsyncStorage.setItem('token', token);
             await AsyncStorage.setItem('user', JSON.stringify(loggedInUser));
 
             if (setUser) {
                 setUser(loggedInUser);
             }
 
-            Alert.alert('Success', 'Logged in successfully.');
-            navigation.replace('Home');
+            Alert.alert('Success', 'Logged in successfully.', [
+                {
+                    text: 'OK',
+                    onPress: () => navigation.replace('Home')
+                }
+            ]);
         } catch (error) {
             console.error('Login error:', error);
-            Alert.alert(
-                'Network error',
-                'Login failed. Please check that the server is running.'
-            );
+            setServerError('Network error. Please check that the server is running.');
         } finally {
             setIsLoading(false);
         }
     };
-
-    const usernameInvalid = wasSubmitted && !username.trim();
-    const passwordInvalid = wasSubmitted && !password;
 
     return (
         <KeyboardAvoidingView
@@ -84,20 +189,35 @@ const LoginScreen = ({ navigation, setUser }) => {
         >
             <View style={styles.logoArea}>
                 <Text style={styles.logo}>bites</Text>
+
                 <Text style={styles.title}>Welcome Back!</Text>
-                <Text style={styles.subtitle}>Log in to continue your delicious journey.</Text>
+
+                <Text style={styles.subtitle}>
+                    Log in to continue your delicious journey.
+                </Text>
             </View>
 
             <View style={styles.card}>
+                {serverError ? (
+                    <View style={styles.serverErrorBox}>
+                        <Text style={styles.serverErrorText}>⚠️ {serverError}</Text>
+                    </View>
+                ) : null}
+
                 <Text style={styles.label}>USERNAME</Text>
                 <TextInput
                     style={[styles.input, usernameInvalid && styles.inputError]}
                     placeholder="Enter your username"
                     value={username}
-                    onChangeText={setUsername}
+                    onChangeText={(text) => {
+                        setUsername(text);
+                        setServerError('');
+                    }}
+                    onBlur={() => setUsernameTouched(true)}
                     autoCapitalize="none"
                     autoCorrect={false}
                 />
+
                 {usernameInvalid && (
                     <Text style={styles.errorText}>Username is required.</Text>
                 )}
@@ -107,15 +227,23 @@ const LoginScreen = ({ navigation, setUser }) => {
                     style={[styles.input, passwordInvalid && styles.inputError]}
                     placeholder="Enter your password"
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={(text) => {
+                        setPassword(text);
+                        setServerError('');
+                    }}
+                    onBlur={() => setPasswordTouched(true)}
                     secureTextEntry
                 />
+
                 {passwordInvalid && (
                     <Text style={styles.errorText}>Password is required.</Text>
                 )}
 
                 <TouchableOpacity
-                    style={[styles.submitButton, isLoading && styles.disabledButton]}
+                    style={[
+                        styles.submitButton,
+                        isLoading && styles.disabledButton
+                    ]}
                     onPress={handleLogin}
                     disabled={isLoading}
                 >
@@ -128,7 +256,9 @@ const LoginScreen = ({ navigation, setUser }) => {
                     style={styles.linkButton}
                     onPress={() => navigation.navigate('Register')}
                 >
-                    <Text style={styles.linkText}>Don&apos;t have an account? Sign up</Text>
+                    <Text style={styles.linkText}>
+                        Don&apos;t have an account? Sign up
+                    </Text>
                 </TouchableOpacity>
             </View>
         </KeyboardAvoidingView>
@@ -174,6 +304,18 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 10 },
         elevation: 5
     },
+    serverErrorBox: {
+        backgroundColor: '#fff5f5',
+        borderWidth: 1,
+        borderColor: '#ffb3b3',
+        borderRadius: 14,
+        padding: 12,
+        marginBottom: 14
+    },
+    serverErrorText: {
+        color: '#d62828',
+        fontWeight: '700'
+    },
     label: {
         fontSize: 13,
         fontWeight: '800',
@@ -197,7 +339,8 @@ const styles = StyleSheet.create({
     errorText: {
         color: '#ff4a4a',
         fontSize: 12,
-        marginTop: 5
+        marginTop: 5,
+        marginBottom: 4
     },
     submitButton: {
         backgroundColor: '#00c2e8',
