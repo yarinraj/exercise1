@@ -31,6 +31,25 @@ const RegisterScreen = () => {
             setProfileImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
         }
     };
+    const handleTakePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permission.granted) {
+        Alert.alert('Permission required', 'Camera permission is required.');
+        return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+        base64: true,
+    });
+
+    if (!result.canceled) {
+        setProfileImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
+    }
+};
 
     const handleRegister = async () => {
         // Validation logic
