@@ -44,7 +44,7 @@ app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions));
 
 // Allow Express to parse JSON request bodies
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '20mb' }));
 
 // Serve static frontend files from the public folder
 app.use(express.static(path.join(__dirname, 'public')));
