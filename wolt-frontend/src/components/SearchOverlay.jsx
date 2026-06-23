@@ -246,7 +246,7 @@ useEffect(() => {
                                                     onError={handleImageError} 
                                                 />
                                                 <div className="wolt-product-details">
-                                                    <span className="wolt-product-price">${product.price}</span>
+                                                    <span className="wolt-product-price">₪ {product.price}</span>
                                                     <h3 className="wolt-product-title">{product.name}</h3>
                                                     <p className="wolt-product-meta">
                                                         {product.restaurantName} | {product.restaurantAddress}
