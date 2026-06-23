@@ -171,7 +171,7 @@ const LoginScreen = ({ navigation, setUser }) => {
             Alert.alert('Success', 'Logged in successfully.', [
                 {
                     text: 'OK',
-                    onPress: () => navigation.replace('Home')
+                    onPress: () => navigation.replace('Welcome')
                 }
             ]);
         } catch (error) {
