@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
+import { Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {
+  createDrawerNavigator,
+  DrawerContentScrollView,
+  DrawerItemList,
+  DrawerItem
+} from '@react-navigation/drawer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import the cart context provider
 import { CartProvider } from './src/context/CartContext';
@@ -12,12 +20,100 @@ import WelcomeScreen from './src/screens/WelcomeScreen'; // The new Landing Page
 import HomeScreen from './src/screens/HomeScreen';       // The Restaurants Feed
 import RestaurantMenu from './src/screens/RestaurantMenu';
 
-// Initialize the stack navigator
 const Stack = createNativeStackNavigator();
+const Drawer = createDrawerNavigator();
+
+const CustomDrawerContent = (props) => {
+  const { onLogout } = props;
+
+  const handleLogoutPress = () => {
+    Alert.alert('Logout', 'Are you sure you want to log out?', [
+      {
+        text: 'Cancel',
+        style: 'cancel'
+      },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: onLogout
+      }
+    ]);
+  };
+
+  return (
+    <DrawerContentScrollView {...props}>
+      <DrawerItemList {...props} />
+
+      <DrawerItem
+        label="Logout"
+        onPress={handleLogoutPress}
+        labelStyle={{
+          color: '#d62828',
+          fontWeight: 'bold'
+        }}
+      />
+    </DrawerContentScrollView>
+  );
+};
 
 export default function App() {
-  // Global state to hold the logged-in user's details
   const [user, setUser] = useState(null);
+
+  const handleLogout = async (stackNavigation) => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+
+    setUser(null);
+
+    stackNavigation.replace('Login');
+  };
+
+  const DrawerNavigator = ({ navigation }) => {
+    return (
+      <Drawer.Navigator
+        drawerContent={(props) => (
+          <CustomDrawerContent
+            {...props}
+            onLogout={() => handleLogout(navigation)}
+          />
+        )}
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: '#ffffff'
+          },
+          headerTintColor: '#202125',
+          headerTitleStyle: {
+            fontWeight: '900'
+          },
+          drawerActiveTintColor: '#00c2e8',
+          drawerInactiveTintColor: '#202125',
+          drawerLabelStyle: {
+            fontWeight: '700'
+          }
+        }}
+      >
+        <Drawer.Screen
+          name="Welcome"
+          options={{
+            title: 'Home',
+            drawerLabel: 'Home'
+          }}
+        >
+          {(props) => <WelcomeScreen {...props} user={user} />}
+        </Drawer.Screen>
+
+        <Drawer.Screen
+          name="Home"
+          options={{
+            title: 'Restaurants',
+            drawerLabel: 'Restaurants'
+          }}
+        >
+          {(props) => <HomeScreen {...props} user={user} />}
+        </Drawer.Screen>
+      </Drawer.Navigator>
+    );
+  };
 
   return (
   <CartProvider>
@@ -25,10 +121,9 @@ export default function App() {
       <Stack.Navigator
         initialRouteName="Login"
         screenOptions={{
-          headerShown: false // Hide the default top navigation bar for all screens
+          headerShown: false
         }}
       >
-        {/* Authentication Screens */}
         <Stack.Screen name="Login">
           {(props) => <LoginScreen {...props} setUser={setUser} />}
         </Stack.Screen>
@@ -37,19 +132,10 @@ export default function App() {
           {(props) => <RegisterScreen {...props} />}
         </Stack.Screen>
 
-        {/* Main Application Screens */}
+        {/* Main application with Drawer */}
+        <Stack.Screen name="MainApp" component={DrawerNavigator} />
 
-        {/* Step 1: The Landing / Welcome Page */}
-        <Stack.Screen name="Welcome">
-          {(props) => <WelcomeScreen {...props} user={user} />}
-        </Stack.Screen>
-
-        {/* Step 2: The Restaurants Feed */}
-        <Stack.Screen name="Home">
-          {(props) => <HomeScreen {...props} user={user} />}
-        </Stack.Screen>
-
-        {/* Step 3: Restaurant Menu Detail Page */}
+        {/* Restaurant menu detail page */}
         <Stack.Screen name="RestaurantMenu">
           {(props) => <RestaurantMenu {...props} />}
         </Stack.Screen>
