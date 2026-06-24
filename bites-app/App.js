@@ -10,6 +10,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen'; // The new Landing Page
 import HomeScreen from './src/screens/HomeScreen';       // The Restaurants Feed
+import RestaurantMenu from './src/screens/RestaurantMenu';
 
 // Initialize the stack navigator
 const Stack = createNativeStackNavigator();
@@ -37,7 +38,7 @@ export default function App() {
         </Stack.Screen>
 
         {/* Main Application Screens */}
-        
+
         {/* Step 1: The Landing / Welcome Page */}
         <Stack.Screen name="Welcome">
           {(props) => <WelcomeScreen {...props} user={user} />}
@@ -46,6 +47,11 @@ export default function App() {
         {/* Step 2: The Restaurants Feed */}
         <Stack.Screen name="Home">
           {(props) => <HomeScreen {...props} user={user} />}
+        </Stack.Screen>
+
+        {/* Step 3: Restaurant Menu Detail Page */}
+        <Stack.Screen name="RestaurantMenu">
+          {(props) => <RestaurantMenu {...props} />}
         </Stack.Screen>
 
       </Stack.Navigator>
