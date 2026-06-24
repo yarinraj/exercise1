@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+// Import the cart context provider
+import { CartProvider } from './src/context/CartContext';
+
 // Import all application screens
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
@@ -16,6 +19,7 @@ export default function App() {
   const [user, setUser] = useState(null);
 
   return (
+  <CartProvider>
     <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Login"
@@ -46,5 +50,6 @@ export default function App() {
 
       </Stack.Navigator>
     </NavigationContainer>
+  </CartProvider>
   );
 }
