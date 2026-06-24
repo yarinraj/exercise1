@@ -50,6 +50,14 @@ export default function App() {
           {(props) => <HomeScreen {...props} user={user} />}
         </Stack.Screen>
 
+        <Stack.Screen 
+          name="RestaurantMenu" 
+          component={RestaurantMenu} 
+          options={{ headerShown: false }} 
+        />
+
+        <Stack.Screen name="Checkout" component={CheckoutScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   </CartProvider>

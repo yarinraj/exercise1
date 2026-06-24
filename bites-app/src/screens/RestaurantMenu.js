@@ -192,7 +192,7 @@ export default function RestaurantMenu() {
       {totalItemsInCart > 0 && (
         <TouchableOpacity 
           style={styles.cartBar}
-          // onPress={() => navigation.navigate('Cart')}
+          onPress={() => navigation.navigate('Checkout')}
         >
           <View style={styles.cartBarContent}>
             <View style={styles.cartCountBadge}>

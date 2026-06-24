@@ -104,9 +104,8 @@ const CheckoutScreen = ({ navigation, user }) => {
                 />
                 <View style={styles.itemDetails}>
                     <Text style={styles.itemName}>{item.name}</Text>
-                    <Text style={styles.itemMeta}>
-                        Qty: {item.quantity} × <Text style={styles.brandPrice}>₪{item.price}</Text>
-                    </Text>
+                    <Text style={styles.itemMeta}>×{item.quantity}</Text>
+                    <Text style={styles.brandPrice}>₪{item.price}</Text>
                 </View>
             </View>
         );
@@ -116,9 +115,6 @@ const CheckoutScreen = ({ navigation, user }) => {
         <SafeAreaView style={styles.container}>
             {/* Header Area */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Text style={styles.backButtonText}>← Back</Text>
-                </TouchableOpacity>
                 <Text style={styles.headerTitle}>Checkout</Text>
                 <View style={{ width: 60 }}/> 
             </View>
@@ -180,6 +176,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 14,
+        paddingTop: 40,
         backgroundColor: '#ffffff',
         borderBottomWidth: 1,
         borderColor: '#dfe3e8',
