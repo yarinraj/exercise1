@@ -131,9 +131,7 @@ export default function App() {
         <Stack.Screen name="MainApp" component={DrawerNavigator} />
 
         {/* Restaurant menu detail page */}
-        <Stack.Screen name="RestaurantMenu">
-          {(props) => <RestaurantMenu {...props} />}
-        </Stack.Screen>
+        <Stack.Screen name="RestaurantMenu" component={RestaurantMenu} />
 
       </Stack.Navigator>
     </NavigationContainer>
