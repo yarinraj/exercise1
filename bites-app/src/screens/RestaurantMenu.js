@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, Text, View, Image,
-  FlatList, ActivityIndicator, SafeAreaView, useColorScheme 
+  FlatList, ActivityIndicator, SafeAreaView, useColorScheme, TouchableOpacity
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config/api'; 
+import { useCart } from '../context/CartContext';
 
 export default function RestaurantMenu() {
+  const { cartItems, addToCart, updateQuantity } = useCart();
   const route = useRoute();
   const navigation = useNavigation();
   const systemColorScheme = useColorScheme();
@@ -19,6 +21,7 @@ export default function RestaurantMenu() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(systemColorScheme === 'dark');
+  const [cartTrigger, setCartTrigger] = useState(0);
 
   useEffect(() => {
     setIsDark(systemColorScheme === 'dark');
@@ -101,6 +104,9 @@ export default function RestaurantMenu() {
   // Menu Product Card Item
   const renderProductItem = ({ item: product }) => {
     const hasImage = product.image && product.image.trim() !== "";
+    const productId = product._id || product.id;
+    const cartItem = cartItems ? cartItems.find(ci => (ci._id || ci.id) === productId) : null;
+    const quantity = cartItem ? cartItem.quantity : 0;
 
     return (
       <View style={[
@@ -123,6 +129,47 @@ export default function RestaurantMenu() {
                 style={[styles.productImage, { resizeMode: hasImage ? 'cover' : 'contain' }]}
               />
             </View>
+            <View style={styles.quantityContainer}>
+  {quantity === 0 ? (
+    <TouchableOpacity 
+      style={styles.addButton} 
+      onPress={() => {
+        addToCart(product, id);
+        setCartTrigger(prev => prev + 1); 
+      }}
+    >
+      <Text style={styles.addButtonText}>+</Text>
+    </TouchableOpacity>
+  ) : (
+    <View style={styles.stepperContainer}>
+      <TouchableOpacity
+            style={styles.stepButton}
+            onPress={() => {
+              if (cartItem) {
+                const targetId = cartItem._id || cartItem.id;
+                const currentQty = cartItem.quantity || 1;
+                updateQuantity(targetId, currentQty - 1);
+                setCartTrigger(prev => prev + 1);
+              }
+            }}
+          >
+            <Text style={styles.stepButtonText}>-</Text>
+          </TouchableOpacity>
+
+      <Text style={styles.quantityText}>{quantity}</Text>
+      
+      <TouchableOpacity 
+        style={styles.stepButton} 
+        onPress={() => {
+          addToCart(product, id);
+          setCartTrigger(prev => prev + 1); 
+        }}
+      >
+        <Text style={styles.stepButtonText}>+</Text>
+      </TouchableOpacity>
+    </View>
+  )}
+</View>
           </View>
 
         </View>
@@ -130,15 +177,34 @@ export default function RestaurantMenu() {
     );
   };
 
+    const totalItemsInCart = cartItems ? cartItems.reduce((sum, item) => sum + item.quantity, 0) : 0;
+
   return (
     <SafeAreaView style={[styles.container, isDark && styles.darkBackground]}>
       <FlatList
         data={products}
+        extraData={cartTrigger}
         keyExtractor={(item) => item._id || item.id || Math.random().toString()}
         ListHeaderComponent={renderHeader}
         renderItem={renderProductItem}
         contentContainerStyle={styles.listContent}
       />
+      {totalItemsInCart > 0 && (
+        <TouchableOpacity 
+          style={styles.cartBar}
+          // onPress={() => navigation.navigate('Cart')}
+        >
+          <View style={styles.cartBarContent}>
+            <View style={styles.cartCountBadge}>
+              <Text style={styles.cartCountText}>{totalItemsInCart}</Text>
+            </View>
+            <Text style={styles.cartBarText}>View Basket</Text>
+            <Text style={styles.cartBarPrice}>
+              ₪{cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 }
@@ -160,7 +226,84 @@ const styles = StyleSheet.create({
   productName: { fontSize: 18, fontWeight: 'bold' },
   productDescription: { color: '#8c9399', fontSize: 13, textAlign: 'left', marginTop: 4, lineHeight: 18 },
   productPrice: { fontSize: 18, fontWeight: 'bold', color: '#00c2e8', marginTop: 10 },
-  rightActions: { width: 110, alignItems: 'center', justifyContent: 'center', marginRight: 15 },
+  rightActions: { width: 110, alignItems: 'center', justifyContent: 'space-between', marginRight: 15 },
   imageWrapper: { width: 110, height: 110, borderRadius: 12, overflow: 'hidden' },
-  productImage: { width: '100%', height: '100%' }
+  productImage: { width: '100%', height: '100%' },
+  quantityContainer: { marginTop: 10, width: '100%', alignItems: 'center' },
+  addButton: {
+    backgroundColor: '#00c2e8',
+    width: 35,
+    height: 35,
+    borderRadius: 17.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  addButtonText: { color: '#fff', fontSize: 20, fontWeight: 'bold', bottom: 1 },
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#00c2e8',
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    height: 35,
+    width: '95%',
+    elevation: 2,
+  },
+  stepButton: {
+    paddingHorizontal: 5,
+    height: '100%',
+    justifyContent: 'center',
+  },
+  stepButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  quantityText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+cartBar: {
+    position: 'absolute',
+    bottom: 28,
+    left: 20,
+    right: 20,
+    backgroundColor: '#00c2e8',
+    borderRadius: 25, // Full capsule layout
+    paddingVertical: 14,
+    paddingHorizontal: 22,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 5.30,
+  },
+  cartBarContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cartCountBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderRadius: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cartCountText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  cartBarText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  cartBarPrice: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '700',
+  },
 });
