@@ -135,11 +135,6 @@ export default function App() {
           {(props) => <RestaurantMenu {...props} />}
         </Stack.Screen>
 
-        {/* Step 3: Restaurant Menu Detail Page */}
-        <Stack.Screen name="RestaurantMenu">
-          {(props) => <RestaurantMenu {...props} />}
-        </Stack.Screen>
-
       </Stack.Navigator>
     </NavigationContainer>
   );
