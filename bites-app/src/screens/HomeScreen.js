@@ -9,9 +9,11 @@ import {
     TouchableOpacity,
     SafeAreaView
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { API_BASE_URL } from '../config/api';
 
 const HomeScreen = ({ user }) => {
+    const navigation = useNavigation();
     const [restaurants, setRestaurants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -72,7 +74,9 @@ const renderRestaurantCard = ({ item }) => {
         : require('../../assets/icon.png');
 
     return (
-        <TouchableOpacity style={styles.card}>
+        <TouchableOpacity style={styles.card}
+        onPress={() => navigation.navigate('RestaurantMenu', { id: item._id || item.id })} // Navigates and passes the restaurant ID
+        >
             <Image 
                 source={imageSource} 
                 style={[
