@@ -10,6 +10,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen'; // The new Landing Page
 import HomeScreen from './src/screens/HomeScreen';       // The Restaurants Feed
+import CheckoutScreen from './src/screens/CheckoutScreen';
 
 // Initialize the stack navigator
 const Stack = createNativeStackNavigator();
@@ -46,6 +47,10 @@ export default function App() {
         {/* Step 2: The Restaurants Feed */}
         <Stack.Screen name="Home">
           {(props) => <HomeScreen {...props} user={user} />}
+        </Stack.Screen>
+
+        <Stack.Screen name="Checkout">
+          {(props) => <CheckoutScreen {...props} user={user} />}
         </Stack.Screen>
 
       </Stack.Navigator>
