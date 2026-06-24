@@ -14,6 +14,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import HomeScreen from './src/screens/HomeScreen';
+import RestaurantMenu from './src/screens/RestaurantMenu';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -126,7 +127,13 @@ export default function App() {
           {(props) => <RegisterScreen {...props} />}
         </Stack.Screen>
 
+        {/* Main application with Drawer */}
         <Stack.Screen name="MainApp" component={DrawerNavigator} />
+
+        {/* Restaurant menu detail page */}
+        <Stack.Screen name="RestaurantMenu">
+          {(props) => <RestaurantMenu {...props} />}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
