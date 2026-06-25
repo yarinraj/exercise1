@@ -12,9 +12,17 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { API_BASE_URL } from '../config/api';
 import SearchOverlay from './SearchOverlay';
+import { useTheme } from '../context/ThemeContext';
+import { Colors } from '../config/Colors';
 
 const HomeScreen = ({ user }) => {
     const navigation = useNavigation();
+    
+    // Get current theme state (true for dark, false for light)
+    const { isDark } = useTheme();
+    // Select the active color palette based on the theme state
+    const theme = isDark ? Colors.dark : Colors.light;
+    
     const [restaurants, setRestaurants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -24,7 +32,6 @@ const HomeScreen = ({ user }) => {
     useEffect(() => {
         const fetchRestaurants = async () => {
             try {
-                // Adjust the endpoint if your Node.js route is different
                 const response = await fetch(`${API_BASE_URL}/api/restaurants`);
                 const data = await response.json();
 
@@ -43,7 +50,7 @@ const HomeScreen = ({ user }) => {
 
         fetchRestaurants();
     }, []);
-    // Helper function to format image URLs properly for the mobile emulator
+
     // Helper function to format image URLs properly for the mobile emulator
     const formatImageUrl = (url) => {
         if (!url) {
@@ -76,37 +83,54 @@ const HomeScreen = ({ user }) => {
             : require('../../assets/icon.png');
 
         return (
-            <TouchableOpacity style={styles.card}
-                onPress={() => navigation.navigate('RestaurantMenu', { id: item._id || item.id })} // Navigates and passes the restaurant ID
+            <TouchableOpacity 
+                // Apply dynamic background and border based on theme
+                style={[
+                    styles.card, 
+                    { 
+                        backgroundColor: theme.card, 
+                        borderColor: theme.border, 
+                        borderWidth: isDark ? 1 : 0 // Only show border in dark mode (matches web CSS)
+                    }
+                ]}
+                onPress={() => navigation.navigate('RestaurantMenu', { id: item._id || item.id })}
             >
                 <Image
                     source={imageSource}
                     style={[
                         styles.cardImage,
-                        // Optional: add a subtle background tint only when showing the logo
-                        !formattedUrl && { backgroundColor: '#f0f8fb', padding: 15 }
+                        // Apply dynamic background for missing images
+                        !formattedUrl && { backgroundColor: theme.inputBg, padding: 15 }
                     ]}
-                    // Cover for restaurant photos, Contain to keep the logo perfectly proportioned
                     resizeMode={formattedUrl ? 'cover' : 'contain'}
                 />
                 <View style={styles.cardInfo}>
-                    <Text style={styles.restaurantName}>{item.name}</Text>
-                    <Text style={styles.restaurantDescription} numberOfLines={2}>
+                    {/* Dynamic text color for restaurant name */}
+                    <Text style={[styles.restaurantName, { color: theme.text }]}>
+                        {item.name}
+                    </Text>
+                    {/* Dynamic muted text color for description */}
+                    <Text style={[styles.restaurantDescription, { color: theme.textMuted }]} numberOfLines={2}>
                         {item.description}
                     </Text>
                 </View>
             </TouchableOpacity>
         );
     };
+
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <View style={styles.header}>
+        // Apply dynamic background color to the main container
+        <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+            
+            {/* Apply dynamic card background to the header. Remove shadow in dark mode for better look */}
+            <View style={[styles.header, { backgroundColor: theme.card, shadowOpacity: isDark ? 0 : 0.05 }]}>
                 <Text style={styles.logo}>bites</Text>
                 <Text style={styles.welcomeText}>
                     Welcome back, {user?.displayName || user?.username || 'Guest'}! 🍕
                 </Text>
                 <TouchableOpacity
-                    style={styles.searchButton}
+                    // Apply dynamic input background to the search button
+                    style={[styles.searchButton, { backgroundColor: theme.inputBg }]}
                     onPress={() => setSearchVisible(true)}
                     activeOpacity={0.8}
                 >
@@ -116,7 +140,8 @@ const HomeScreen = ({ user }) => {
             </View>
 
             <View style={styles.content}>
-                <Text style={styles.sectionTitle}>Browsing Restaurants</Text>
+                {/* Apply dynamic text color to section title */}
+                <Text style={[styles.sectionTitle, { color: theme.text }]}>Browsing Restaurants</Text>
 
                 {loading ? (
                     <ActivityIndicator size="large" color="#00c2e8" style={styles.loader} />
@@ -132,6 +157,7 @@ const HomeScreen = ({ user }) => {
                     />
                 )}
             </View>
+            
             <SearchOverlay
                 visible={searchVisible}
                 onClose={() => setSearchVisible(false)}
@@ -144,13 +170,13 @@ const HomeScreen = ({ user }) => {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#f8f5ef',
+        backgroundColor: '#f8f5ef', // Kept as fallback, overridden by dynamic style
     },
     header: {
         padding: 24,
         paddingTop: 8,
         paddingBottom: 16,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#ffffff', // Kept as fallback
         borderBottomLeftRadius: 26,
         borderBottomRightRadius: 26,
         shadowColor: '#000',
@@ -175,7 +201,7 @@ const styles = StyleSheet.create({
     searchButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#f1f3f5', 
+        backgroundColor: '#f1f3f5', // Kept as fallback
         marginTop: 12,
         paddingHorizontal: 16,
         height: 46,
@@ -196,7 +222,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 22,
         fontWeight: '900',
-        color: '#202125',
+        color: '#202125', // Kept as fallback
         paddingHorizontal: 24,
         marginBottom: 15,
     },
@@ -215,7 +241,7 @@ const styles = StyleSheet.create({
         paddingBottom: 30,
     },
     card: {
-        backgroundColor: '#ffffff',
+        backgroundColor: '#ffffff', // Kept as fallback
         borderRadius: 20,
         marginBottom: 20,
         overflow: 'hidden',
@@ -236,12 +262,12 @@ const styles = StyleSheet.create({
     restaurantName: {
         fontSize: 19,
         fontWeight: '800',
-        color: '#202125',
+        color: '#202125', // Kept as fallback
         marginBottom: 6,
     },
     restaurantDescription: {
         fontSize: 14,
-        color: '#7b8490',
+        color: '#7b8490', // Kept as fallback
         lineHeight: 20,
     },
 });

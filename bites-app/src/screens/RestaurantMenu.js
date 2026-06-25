@@ -1,28 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, Text, View, Image,
-  FlatList, ActivityIndicator, SafeAreaView, useColorScheme 
+  FlatList, ActivityIndicator, SafeAreaView 
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config/api'; 
+import { useTheme } from '../context/ThemeContext';
+import { Colors } from '../config/Colors';
 
 export default function RestaurantMenu() {
   const route = useRoute();
   const navigation = useNavigation();
-  const systemColorScheme = useColorScheme();
   
-  // Get restaurant ID passed from the feed screen
+  // 1. Pull the dynamic theme and colors correctly (No duplicates!)
+  const { isDark } = useTheme();
+  const theme = isDark ? Colors.dark : Colors.light;
+
+  // 2. Get restaurant ID passed from the feed screen
   const { id } = route.params || {}; 
 
   const [restaurant, setRestaurant] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isDark, setIsDark] = useState(systemColorScheme === 'dark');
-
-  useEffect(() => {
-    setIsDark(systemColorScheme === 'dark');
-  }, [systemColorScheme]);
 
   // Fetch restaurant and menu data
   useEffect(() => {
@@ -62,8 +62,9 @@ export default function RestaurantMenu() {
 
   if (loading) {
     return (
-      <View style={[styles.centerContainer, isDark && styles.darkBackground]}>
-        <ActivityIndicator size="large" color="#00c2e8" />
+      // Dynamic background applied here
+      <View style={[styles.centerContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -77,8 +78,12 @@ export default function RestaurantMenu() {
       <View>
         <View style={[
           styles.heroBanner, 
-          { backgroundColor: hasImage ? 'transparent' : (isDark ? '#1a1d24' : '#f8f9fa') },
-          { borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }
+          // Dynamic background and border for the banner
+          { 
+            backgroundColor: hasImage ? 'transparent' : theme.inputBg,
+            borderBottomColor: theme.border,
+            borderBottomWidth: 1
+          }
         ]}>
           <Image
             source={hasImage ? { uri: restaurant.image } : require('../../assets/icon.png')} 
@@ -87,13 +92,14 @@ export default function RestaurantMenu() {
         </View>
 
         <View style={styles.infoContainer}>
-          <Text style={[styles.restaurantName, { color: isDark ? '#fff' : '#212529' }]}>{restaurant.name}</Text>
-          <Text style={[styles.restaurantSub, { color: isDark ? '#adb5bd' : '#6c757d' }]}>
+          {/* Dynamic text colors */}
+          <Text style={[styles.restaurantName, { color: theme.text }]}>{restaurant.name}</Text>
+          <Text style={[styles.restaurantSub, { color: theme.textMuted }]}>
             {restaurant.cuisine} • {restaurant.address}
           </Text>
         </View>
 
-        <Text style={[styles.menuTitle, { color: isDark ? '#fff' : '#212529' }]}>Menu</Text>
+        <Text style={[styles.menuTitle, { color: theme.text }]}>Menu</Text>
       </View>
     );
   };
@@ -105,19 +111,25 @@ export default function RestaurantMenu() {
     return (
       <View style={[
         styles.card, 
-        { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#fff' },
-        { borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)' }
+        // Dynamic card background and border logic
+        { 
+            backgroundColor: theme.card, 
+            borderColor: theme.border,
+            borderWidth: isDark ? 1 : 0 
+        }
       ]}>
         <View style={styles.cardContent}>
           
           <View style={[styles.textDetails, { maxWidth: hasImage ? '65%' : '100%' }]}>
-            <Text style={[styles.productName, { color: isDark ? '#fff' : '#212529' }]}>{product.name}</Text>
-            <Text style={styles.productDescription} numberOfLines={3}>{product.description}</Text>
+             {/* Dynamic text colors */}
+            <Text style={[styles.productName, { color: theme.text }]}>{product.name}</Text>
+            <Text style={[styles.productDescription, { color: theme.textMuted }]} numberOfLines={3}>{product.description}</Text>
             <Text style={styles.productPrice}>₪{product.price}</Text>
           </View>
 
           <View style={styles.rightActions}>
-            <View style={[styles.imageWrapper, { backgroundColor: hasImage ? 'transparent' : (isDark ? 'rgba(255,255,255,0.05)' : '#f8f9fa') }]}>
+            {/* Dynamic image wrapper background */}
+            <View style={[styles.imageWrapper, { backgroundColor: hasImage ? 'transparent' : theme.inputBg }]}>
               <Image 
                 source={hasImage ? { uri: product.image } : require('../../assets/icon.png')}
                 style={[styles.productImage, { resizeMode: hasImage ? 'cover' : 'contain' }]}
@@ -131,7 +143,8 @@ export default function RestaurantMenu() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, isDark && styles.darkBackground]}>
+    // Dynamic Main Background applied to SafeAreaView
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <FlatList
         data={products}
         keyExtractor={(item) => item._id || item.id || Math.random().toString()}
@@ -143,22 +156,22 @@ export default function RestaurantMenu() {
   );
 }
 
+// All static theme-related colors have been removed from the StyleSheet
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa' },
-  darkBackground: { backgroundColor: '#121212' },
+  container: { flex: 1 },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   listContent: { paddingBottom: 30 },
-  heroBanner: { width: '100%', height: 200, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1 },
+  heroBanner: { width: '100%', height: 200, justifyContent: 'center', alignItems: 'center' },
   heroImage: { width: '100%', height: '100%' },
   infoContainer: { alignItems: 'flex-start', padding: 20 },
   restaurantName: { fontSize: 26, fontWeight: 'bold', textAlign: 'left' },
   restaurantSub: { fontSize: 15, marginTop: 5, textAlign: 'left' },
   menuTitle: { fontSize: 22, fontWeight: 'bold', paddingHorizontal: 20, marginBottom: 15, textAlign: 'left' },
-  card: { marginHorizontal: 15, marginBottom: 15, borderRadius: 16, borderWidth: 1, padding: 15, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 },
+  card: { marginHorizontal: 15, marginBottom: 15, borderRadius: 16, padding: 15, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 },
   cardContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'stretch' },
   textDetails: { flex: 1, alignItems: 'flex-start', justifyContent: 'space-between' },
   productName: { fontSize: 18, fontWeight: 'bold' },
-  productDescription: { color: '#8c9399', fontSize: 13, textAlign: 'left', marginTop: 4, lineHeight: 18 },
+  productDescription: { fontSize: 13, textAlign: 'left', marginTop: 4, lineHeight: 18 },
   productPrice: { fontSize: 18, fontWeight: 'bold', color: '#00c2e8', marginTop: 10 },
   rightActions: { width: 110, alignItems: 'center', justifyContent: 'center', marginRight: 15 },
   imageWrapper: { width: 110, height: 110, borderRadius: 12, overflow: 'hidden' },
