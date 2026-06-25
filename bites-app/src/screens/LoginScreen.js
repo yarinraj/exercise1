@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config/api';
+import { useCart } from '../context/CartContext';
 
 const base64UrlDecode = (base64Url) => {
     let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -57,6 +58,7 @@ const decodeJwtPayload = (token) => {
 };
 
 const LoginScreen = ({ navigation, setUser }) => {
+    const { refreshCartKey } = useCart();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
@@ -163,6 +165,7 @@ const LoginScreen = ({ navigation, setUser }) => {
 
             await AsyncStorage.setItem('token', token);
             await AsyncStorage.setItem('user', JSON.stringify(loggedInUser));
+            await refreshCartKey();
 
             if (setUser) {
                 setUser(loggedInUser);
