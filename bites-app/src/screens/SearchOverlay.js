@@ -7,7 +7,8 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config/api';
 
-export default function SearchOverlay({ visible, onClose }) {
+// Added 'user' prop to handle user-specific history
+export default function SearchOverlay({ visible, onClose, user }) {
     const navigation = useNavigation();
     const systemColorScheme = useColorScheme();
     const isDark = systemColorScheme === 'dark';
@@ -17,14 +18,25 @@ export default function SearchOverlay({ visible, onClose }) {
     const [liveResults, setLiveResults] = useState({ restaurants: [], items: [] });
     const [isLoading, setIsLoading] = useState(false);
 
-    // Load recent searches from AsyncStorage
+    // Load recent searches from AsyncStorage based on the specific user
     useEffect(() => {
         if (visible) {
             const loadRecentSearches = async () => {
+                // If it's a guest user, keep recent searches empty
+                if (!user || !user.username) {
+                    setRecentSearches([]);
+                    return;
+                }
+
                 try {
-                    const savedSearches = await AsyncStorage.getItem('recent_searches');
+                    // Create a unique storage key for the specific user
+                    const userStorageKey = `recent_searches_${user.username}`;
+                    const savedSearches = await AsyncStorage.getItem(userStorageKey);
+                    
                     if (savedSearches) {
                         setRecentSearches(JSON.parse(savedSearches));
+                    } else {
+                        setRecentSearches([]);
                     }
                 } catch (error) {
                     console.error("Error loading recent searches:", error);
@@ -32,10 +44,11 @@ export default function SearchOverlay({ visible, onClose }) {
             };
             loadRecentSearches();
         } else {
+            // Clear input and results when overlay closes
             setSearchQuery('');
             setLiveResults({ restaurants: [], items: [] });
         }
-    }, [visible]);
+    }, [visible, user]);
 
     // Live Search with Debounce (300ms)
     useEffect(() => {
@@ -60,7 +73,7 @@ export default function SearchOverlay({ visible, onClose }) {
                             r.name === product.restaurantName 
                         );
 
-                        // חילוץ ה-ID הסופי
+                        // Extract the final ID
                         const finalId = matchedRestaurant
                             ? matchedRestaurant._id
                             : (product.restaurantId || null);
@@ -88,14 +101,22 @@ export default function SearchOverlay({ visible, onClose }) {
         return () => clearTimeout(delayDebounce);
     }, [searchQuery]);
 
+    // Save search query specific to the logged-in user
     const saveSearch = async (queryStr) => {
         if (!queryStr.trim()) return;
+        
+        // Update local state for immediate UI feedback (even for guests during the session)
         const updated = [queryStr, ...recentSearches.filter(s => s !== queryStr)].slice(0, 5);
         setRecentSearches(updated);
-        try {
-            await AsyncStorage.setItem('recent_searches', JSON.stringify(updated));
-        } catch (error) {
-            console.error("Error saving search:", error);
+
+        // Only persist to AsyncStorage if it's a logged-in user
+        if (user && user.username) {
+            try {
+                const userStorageKey = `recent_searches_${user.username}`;
+                await AsyncStorage.setItem(userStorageKey, JSON.stringify(updated));
+            } catch (error) {
+                console.error("Error saving search:", error);
+            }
         }
     };
 
