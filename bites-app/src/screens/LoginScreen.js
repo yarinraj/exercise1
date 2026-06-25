@@ -80,6 +80,16 @@ const LoginScreen = ({ navigation, setUser }) => {
         password.length === 0;
 
     const isFormValid = usernameTrimmed.length > 0 && password.length > 0;
+    // Handle guest login - bypass authentication and navigate to the main app
+  const handleGuestLogin = () => {
+    // Ensure user state is explicitly null for guest mode
+    if (typeof setUser === 'function') {
+      setUser(null);
+    }
+    
+    // Navigate directly to the Drawer navigator wrapper
+    navigation.replace('MainApp');
+  };
 
     const handleLogin = async () => {
         setWasSubmitted(true);
@@ -199,6 +209,15 @@ const LoginScreen = ({ navigation, setUser }) => {
                     Log in to continue your delicious journey.
                 </Text>
             </View>
+            {/* Guest Login Button */}
+        <TouchableOpacity 
+          onPress={handleGuestLogin} 
+          style={{ marginTop: 20, alignItems: 'center', padding: 10 }}
+        >
+          <Text style={{ color: '#00c2e8', fontWeight: 'bold', fontSize: 16 }}>
+            Continue as Guest
+          </Text>
+        </TouchableOpacity>
 
             <View style={styles.card}>
                 {serverError ? (
