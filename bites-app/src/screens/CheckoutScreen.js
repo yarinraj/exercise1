@@ -163,7 +163,7 @@ const CheckoutScreen = ({ navigation, user }) => {
                         style={styles.closeModalButton}
                         onPress={() => {
                             setShowSuccessModal(false);
-                            navigation.navigate('Home'); 
+                            navigation.popToTop();
                         }}
                         >
                         <Text style={styles.closeModalText}>Back to restaurants feed</Text>
