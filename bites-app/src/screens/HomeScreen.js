@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    View, 
-    Text, 
-    StyleSheet, 
-    FlatList, 
-    ActivityIndicator, 
-    Image, 
+import {
+    View,
+    Text,
+    StyleSheet,
+    FlatList,
+    ActivityIndicator,
+    Image,
     TouchableOpacity,
     SafeAreaView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { API_BASE_URL } from '../config/api';
+import SearchOverlay from './SearchOverlay';
 
 const HomeScreen = ({ user }) => {
     const navigation = useNavigation();
     const [restaurants, setRestaurants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchVisible, setSearchVisible] = useState(false);
 
     // Fetch restaurants from your backend when the screen loads
     useEffect(() => {
@@ -25,7 +27,7 @@ const HomeScreen = ({ user }) => {
                 // Adjust the endpoint if your Node.js route is different
                 const response = await fetch(`${API_BASE_URL}/api/restaurants`);
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     setRestaurants(data);
                 } else {
@@ -42,60 +44,60 @@ const HomeScreen = ({ user }) => {
         fetchRestaurants();
     }, []);
     // Helper function to format image URLs properly for the mobile emulator
-// Helper function to format image URLs properly for the mobile emulator
-const formatImageUrl = (url) => {
-    if (!url) {
-        return null; // Return null if no image exists so we can use the local asset fallback
-    }
-    
-    // Case 1: URL is absolute and contains localhost (needs replacement for Android Emulator)
-    if (url.startsWith('http://localhost') || url.startsWith('https://localhost')) {
-        return url.replace('localhost', '10.0.2.2');
-    }
-    
-    // Case 2: URL is already a full external web address
-    if (url.startsWith('http')) {
-        return url;
-    }
-    
-    // Case 3: URL is a relative path (e.g., /uploads/image.png or uploads/image.png)
-    const cleanPath = url.startsWith('/') ? url : `/${url}`;
-    return `${API_BASE_URL}${cleanPath}`;
-};
+    // Helper function to format image URLs properly for the mobile emulator
+    const formatImageUrl = (url) => {
+        if (!url) {
+            return null; // Return null if no image exists so we can use the local asset fallback
+        }
 
-  // Inside your HomeScreen component, update renderRestaurantCard:
-const renderRestaurantCard = ({ item }) => {
-    const rawImage = item.imageUrl || item.image;
-    const formattedUrl = formatImageUrl(rawImage);
-    
-    // Dynamically choose between remote URL or local asset require
-    const imageSource = formattedUrl 
-        ? { uri: formattedUrl } 
-        : require('../../assets/icon.png');
+        // Case 1: URL is absolute and contains localhost (needs replacement for Android Emulator)
+        if (url.startsWith('http://localhost') || url.startsWith('https://localhost')) {
+            return url.replace('localhost', '10.0.2.2');
+        }
 
-    return (
-        <TouchableOpacity style={styles.card}
-        onPress={() => navigation.navigate('RestaurantMenu', { id: item._id || item.id })} // Navigates and passes the restaurant ID
-        >
-            <Image 
-                source={imageSource} 
-                style={[
-                    styles.cardImage,
-                    // Optional: add a subtle background tint only when showing the logo
-                    !formattedUrl && { backgroundColor: '#f0f8fb', padding: 15 } 
-                ]} 
-                // Cover for restaurant photos, Contain to keep the logo perfectly proportioned
-                resizeMode={formattedUrl ? 'cover' : 'contain'} 
-            />
-            <View style={styles.cardInfo}>
-                <Text style={styles.restaurantName}>{item.name}</Text>
-                <Text style={styles.restaurantDescription} numberOfLines={2}>
-                    {item.description}
-                </Text>
-            </View>
-        </TouchableOpacity>
-    );
-};
+        // Case 2: URL is already a full external web address
+        if (url.startsWith('http')) {
+            return url;
+        }
+
+        // Case 3: URL is a relative path (e.g., /uploads/image.png or uploads/image.png)
+        const cleanPath = url.startsWith('/') ? url : `/${url}`;
+        return `${API_BASE_URL}${cleanPath}`;
+    };
+
+    // Inside your HomeScreen component, update renderRestaurantCard:
+    const renderRestaurantCard = ({ item }) => {
+        const rawImage = item.imageUrl || item.image;
+        const formattedUrl = formatImageUrl(rawImage);
+
+        // Dynamically choose between remote URL or local asset require
+        const imageSource = formattedUrl
+            ? { uri: formattedUrl }
+            : require('../../assets/icon.png');
+
+        return (
+            <TouchableOpacity style={styles.card}
+                onPress={() => navigation.navigate('RestaurantMenu', { id: item._id || item.id })} // Navigates and passes the restaurant ID
+            >
+                <Image
+                    source={imageSource}
+                    style={[
+                        styles.cardImage,
+                        // Optional: add a subtle background tint only when showing the logo
+                        !formattedUrl && { backgroundColor: '#f0f8fb', padding: 15 }
+                    ]}
+                    // Cover for restaurant photos, Contain to keep the logo perfectly proportioned
+                    resizeMode={formattedUrl ? 'cover' : 'contain'}
+                />
+                <View style={styles.cardInfo}>
+                    <Text style={styles.restaurantName}>{item.name}</Text>
+                    <Text style={styles.restaurantDescription} numberOfLines={2}>
+                        {item.description}
+                    </Text>
+                </View>
+            </TouchableOpacity>
+        );
+    };
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
@@ -103,11 +105,19 @@ const renderRestaurantCard = ({ item }) => {
                 <Text style={styles.welcomeText}>
                     Welcome back, {user?.displayName || user?.username || 'Guest'}! 🍕
                 </Text>
+                <TouchableOpacity
+                    style={styles.searchButton}
+                    onPress={() => setSearchVisible(true)}
+                    activeOpacity={0.8}
+                >
+                    <Text style={styles.searchEmoji}>🔍</Text>
+                    <Text style={styles.placeholder}>Search restaurants or dishes...</Text>
+                </TouchableOpacity>
             </View>
 
             <View style={styles.content}>
                 <Text style={styles.sectionTitle}>Browsing Restaurants</Text>
-                
+
                 {loading ? (
                     <ActivityIndicator size="large" color="#00c2e8" style={styles.loader} />
                 ) : error ? (
@@ -122,6 +132,10 @@ const renderRestaurantCard = ({ item }) => {
                     />
                 )}
             </View>
+            <SearchOverlay
+                visible={searchVisible}
+                onClose={() => setSearchVisible(false)}
+            />
         </SafeAreaView>
     );
 };
@@ -133,7 +147,8 @@ const styles = StyleSheet.create({
     },
     header: {
         padding: 24,
-        paddingTop: 40,
+        paddingTop: 8,
+        paddingBottom: 16,
         backgroundColor: '#ffffff',
         borderBottomLeftRadius: 26,
         borderBottomRightRadius: 26,
@@ -142,7 +157,7 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
         shadowOffset: { width: 0, height: 5 },
         elevation: 3,
-        marginBottom: 20,
+        marginBottom: 12,
     },
     logo: {
         fontSize: 32,
@@ -155,6 +170,24 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#7b8490',
         fontWeight: '600',
+    },
+    searchButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f1f3f5', 
+        marginTop: 12,
+        paddingHorizontal: 16,
+        height: 46,
+        borderRadius: 24, 
+    },
+    searchEmoji: {
+        marginRight: 10,
+        fontSize: 16,
+    },
+    placeholder: {
+        color: '#7b8490',
+        fontSize: 15,
+        fontWeight: '500',
     },
     content: {
         flex: 1,
