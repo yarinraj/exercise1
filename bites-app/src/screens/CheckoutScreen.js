@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {View, Text, StyleSheet, FlatList, Image, TouchableOpacity, SafeAreaView, ActivityIndicator} from 'react-native';
 import { useCart } from '../context/CartContext';
 import { API_BASE_URL } from '../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CheckoutScreen = ({ navigation, user }) => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -31,9 +32,13 @@ const CheckoutScreen = ({ navigation, user }) => {
         try {
             setIsSubmitting(true);
 
+            const savedUser = await AsyncStorage.getItem('user');
+            const parsedUser = savedUser ? JSON.parse(savedUser) : null;
+            const finalUserId = parsedUser?.userId || parsedUser?._id || parsedUser?.id || user?.userId || user?._id || 'guest_user';
+
             // Construct the payload allowing both authenticated users and guests to order
             const orderPayload = {
-                userId: user?.userId || user?._id || user?.id || user?.username || 'guest_user',
+                userId: finalUserId,
                 restaurantId: activeRestaurantId,
                 
                 products: cartItems.map(item => ({
@@ -97,7 +102,7 @@ const CheckoutScreen = ({ navigation, user }) => {
             <View style={styles.header}>
                 <TouchableOpacity 
                     style={styles.backButton} 
-                    onPress={() => navigation.navigate('RestaurantMenu', { id: activeRestaurantId })}
+                    onPress={() => navigation.goBack()}
                 >
                     <Text style={styles.backButtonText}>← Back</Text>
                 </TouchableOpacity>
@@ -158,10 +163,10 @@ const CheckoutScreen = ({ navigation, user }) => {
                         style={styles.closeModalButton}
                         onPress={() => {
                             setShowSuccessModal(false);
-                            navigation.navigate('Welcome'); 
+                            navigation.navigate('Home'); 
                         }}
                         >
-                        <Text style={styles.closeModalText}>Back to home page</Text>
+                        <Text style={styles.closeModalText}>Back to restaurants feed</Text>
                         </TouchableOpacity>
                     </View>
                     </View>

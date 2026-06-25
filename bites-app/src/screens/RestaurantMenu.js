@@ -9,7 +9,7 @@ import { API_BASE_URL } from '../config/api';
 import { useCart } from '../context/CartContext';
 
 export default function RestaurantMenu() {
-  const { cartItems, addToCart, updateQuantity } = useCart();
+  const { cartItems, addToCart, updateQuantity, showToast } = useCart();
   const route = useRoute();
   const navigation = useNavigation();
   const systemColorScheme = useColorScheme();
@@ -150,6 +150,7 @@ export default function RestaurantMenu() {
                 const currentQty = cartItem.quantity || 1;
                 updateQuantity(targetId, currentQty - 1);
                 setCartTrigger(prev => prev + 1);
+                showToast('Dish removed from cart.', 'info');
               }
             }}
           >
@@ -183,7 +184,7 @@ export default function RestaurantMenu() {
     <SafeAreaView style={[styles.container, isDark && styles.darkBackground]}>
       <TouchableOpacity 
         style={styles.floatingBackButton} 
-        onPress={() => navigation.navigate('Home')}
+        onPress={() => navigation.goBack()}
       >
         <Text style={styles.floatingBackButtonText}>← Back</Text>
       </TouchableOpacity>

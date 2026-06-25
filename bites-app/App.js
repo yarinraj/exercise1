@@ -1,3 +1,6 @@
+// Mandatory! Must be the first line in the file for drawer gestures to work
+import 'react-native-gesture-handler';
+
 import React, { useState } from 'react';
 import { Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -29,21 +32,24 @@ export const navigationRef = createNavigationContainerRef();
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
+// --- Custom Drawer Content with Guest Logic ---
 const CustomDrawerContent = (props) => {
-  const { onLogout } = props;
+  const { onLogout, user } = props;
+  
+  // Check if current user is a guest (null)
+  const isGuest = !user;
 
-  const handleLogoutPress = () => {
-    Alert.alert('Logout', 'Are you sure you want to log out?', [
-      {
-        text: 'Cancel',
-        style: 'cancel'
-      },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: onLogout
-      }
-    ]);
+  const handleAuthAction = () => {
+    if (isGuest) {
+      // If guest, send them back to Login screen
+      props.navigation.replace('Login');
+    } else {
+      // If logged in, prompt logout confirmation
+      Alert.alert('Logout', 'Are you sure you want to log out?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', style: 'destructive', onPress: onLogout }
+      ]);
+    }
   };
 
   return (
@@ -51,10 +57,10 @@ const CustomDrawerContent = (props) => {
       <DrawerItemList {...props} />
 
       <DrawerItem
-        label="Logout"
-        onPress={handleLogoutPress}
+        label={isGuest ? "Login" : "Logout"}
+        onPress={handleAuthAction}
         labelStyle={{
-          color: '#d62828',
+          color: isGuest ? '#00c2e8' : '#d62828', // Blue for Guest, Red for User
           fontWeight: 'bold'
         }}
       />
@@ -74,12 +80,14 @@ export default function App() {
     stackNavigation.replace('Login');
   };
 
+  // --- Drawer Navigator Wrapper ---
   const DrawerNavigator = ({ navigation }) => {
     return (
       <Drawer.Navigator
         drawerContent={(props) => (
           <CustomDrawerContent
             {...props}
+            user={user} // Explicitly pass the user state here!
             onLogout={() => handleLogout(navigation)}
           />
         )}

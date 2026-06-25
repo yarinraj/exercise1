@@ -5,7 +5,6 @@ const { width } = Dimensions.get('window');
 
 const Toast = ({ message, type = 'info', onClose }) => {
     
-    // טיימר להעלמת ההודעה אוטומטית אחרי 3 שניות
     useEffect(() => {
         const timer = setTimeout(() => {
             if (onClose) onClose();
@@ -14,13 +13,12 @@ const Toast = ({ message, type = 'info', onClose }) => {
         return () => clearTimeout(timer);
     }, [onClose]);
 
-    // קביעת צבע הרקע לפי סוג ההודעה
     const getBackgroundColor = () => {
         switch (type) {
-            case 'success': return '#2e7d32'; // ירוק
-            case 'error': return '#d32f2f';   // אדום
+            case 'success': return '#2e7d32'; 
+            case 'error': return '#d32f2f';   
             case 'info':
-            default: return '#0288d1';        // כחול אקספו/וולט
+            default: return '#0288d1';       
         }
     };
 
@@ -39,7 +37,7 @@ const Toast = ({ message, type = 'info', onClose }) => {
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
-        top: 50, // ממוקם בחלק העליון של המסך, מתחת לסטטוס בר
+        top: 50, 
         left: 20,
         right: 20,
         paddingVertical: 12,
@@ -52,8 +50,8 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
-        elevation: 5, // צל עבור אנדרואיד
-        zIndex: 9999, // שיהיה מעל הכל
+        elevation: 5, 
+        zIndex: 9999, 
     },
     text: {
         color: '#ffffff',

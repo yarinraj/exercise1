@@ -26,7 +26,7 @@ const FloatingCartIcon = () => {
     const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
     const isAllowedScreen = currentRouteName === 'Home' || currentRouteName === 'RestaurantMenu';
-    if (!isAllowedScreen || totalItems === 0) {
+    if (!isAllowedScreen) {
         return null;
     }
 

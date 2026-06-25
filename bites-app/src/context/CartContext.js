@@ -22,9 +22,10 @@ export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
     const [activeRestaurantId, setActiveRestaurantId] = useState(null);
     const [cartStorageKey, setCartStorageKey] = useState(GUEST_CART_KEY);
-
     const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
-
+    
+    const isSwitchingUser = React.useRef(false);
+    
     const showToast = (message, type = 'info') => {
         setToast({ show: true, message, type });
     };
@@ -37,29 +38,41 @@ export const CartProvider = ({ children }) => {
         const initCart = async () => {
             const key = await getUserCartKey();
             setCartStorageKey(key);
+
+            if (key === GUEST_CART_KEY) {
+                setCartItems([]);
+                setActiveRestaurantId(null);
+                return;
+            }
+
             try {
                 const savedCart = await AsyncStorage.getItem(key);
                 if (savedCart) {
                     const parsedCart = JSON.parse(savedCart);
                     setCartItems(parsedCart.cartItems || []);
                     setActiveRestaurantId(parsedCart.activeRestaurantId || null);
+                } else {
+                    setCartItems([]);
+                    setActiveRestaurantId(null);
                 }
             } catch (error) {
                 console.error(error);
             }
         };
         initCart();
-    }, []);
+    }, [cartStorageKey]);
 
     useEffect(() => {
         const saveCart = async () => {
+            if (isSwitchingUser.current) return;
+            if (cartStorageKey === GUEST_CART_KEY) return;
             try {
                 await AsyncStorage.setItem(cartStorageKey, JSON.stringify({ cartItems, activeRestaurantId }));
             } catch (error) {
                 console.error(error);
             }
         };
-        if (cartItems.length > 0 || activeRestaurantId) saveCart();
+        saveCart();
     }, [cartItems, activeRestaurantId, cartStorageKey]);
 
     const addToCart = (product, restaurantId) => {
@@ -125,11 +138,53 @@ export const CartProvider = ({ children }) => {
     const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+    const refreshCartKey = async () => {
+        isSwitchingUser.current = true; 
+
+        const currentItemsBeforeSwitch = [...cartItems];
+        const currentRestaurantBeforeSwitch = activeRestaurantId;
+        
+        const key = await getUserCartKey();
+        const oldKey = cartStorageKey;
+        setCartStorageKey(key);
+        
+        try {
+            if (oldKey === GUEST_CART_KEY && key !== GUEST_CART_KEY && currentItemsBeforeSwitch.length > 0) {
+                await AsyncStorage.setItem(key, JSON.stringify({ 
+                    cartItems: currentItemsBeforeSwitch, 
+                    activeRestaurantId: currentRestaurantBeforeSwitch 
+                }));
+                setCartItems(currentItemsBeforeSwitch);
+                setActiveRestaurantId(currentRestaurantBeforeSwitch);
+            } else if (key === GUEST_CART_KEY) {
+                setCartItems([]);
+                setActiveRestaurantId(null);
+            } else {
+                const savedCart = await AsyncStorage.getItem(key);
+                if (savedCart) {
+                    const parsedCart = JSON.parse(savedCart);
+                    setCartItems(parsedCart.cartItems || []);
+                    setActiveRestaurantId(parsedCart.activeRestaurantId || null);
+                } else {
+                    setCartItems([]);
+                    setActiveRestaurantId(null);
+                }
+            }
+        } catch (error) {
+            console.error('Error refreshing cart key:', error);
+        } finally {
+            setTimeout(() => {
+                isSwitchingUser.current = false;
+            }, 100);
+        }
+    };
+
     return (
         <CartContext.Provider
             value={{
                 cartItems, addToCart, updateQuantity, removeFromCart, clearCart,
-                totalItems, totalPrice, activeRestaurantId, showToast
+                totalItems, totalPrice, activeRestaurantId, showToast, 
+                refreshCartKey
             }}
         >
             {children}
