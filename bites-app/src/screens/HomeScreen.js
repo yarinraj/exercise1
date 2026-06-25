@@ -135,6 +135,7 @@ const HomeScreen = ({ user }) => {
             <SearchOverlay
                 visible={searchVisible}
                 onClose={() => setSearchVisible(false)}
+                user={user}
             />
         </SafeAreaView>
     );
