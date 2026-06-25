@@ -38,6 +38,13 @@ export const CartProvider = ({ children }) => {
         const initCart = async () => {
             const key = await getUserCartKey();
             setCartStorageKey(key);
+
+            if (key === GUEST_CART_KEY) {
+                setCartItems([]);
+                setActiveRestaurantId(null);
+                return;
+            }
+
             try {
                 const savedCart = await AsyncStorage.getItem(key);
                 if (savedCart) {
@@ -58,6 +65,7 @@ export const CartProvider = ({ children }) => {
     useEffect(() => {
         const saveCart = async () => {
             if (isSwitchingUser.current) return;
+            if (cartStorageKey === GUEST_CART_KEY) return;
             try {
                 await AsyncStorage.setItem(cartStorageKey, JSON.stringify({ cartItems, activeRestaurantId }));
             } catch (error) {
@@ -133,19 +141,35 @@ export const CartProvider = ({ children }) => {
 
     const refreshCartKey = async () => {
         isSwitchingUser.current = true; 
-        
-        setCartItems([]);
-        setActiveRestaurantId(null);
+
+        const currentItemsBeforeSwitch = [...cartItems];
+        const currentRestaurantBeforeSwitch = activeRestaurantId;
         
         const key = await getUserCartKey();
+        const oldKey = cartStorageKey;
         setCartStorageKey(key);
         
         try {
-            const savedCart = await AsyncStorage.getItem(key);
-            if (savedCart) {
-                const parsedCart = JSON.parse(savedCart);
-                setCartItems(parsedCart.cartItems || []);
-                setActiveRestaurantId(parsedCart.activeRestaurantId || null);
+            if (oldKey === GUEST_CART_KEY && key !== GUEST_CART_KEY && currentItemsBeforeSwitch.length > 0) {
+                await AsyncStorage.setItem(key, JSON.stringify({ 
+                    cartItems: currentItemsBeforeSwitch, 
+                    activeRestaurantId: currentRestaurantBeforeSwitch 
+                }));
+                setCartItems(currentItemsBeforeSwitch);
+                setActiveRestaurantId(currentRestaurantBeforeSwitch);
+            } else if (key === GUEST_CART_KEY) {
+                setCartItems([]);
+                setActiveRestaurantId(null);
+            } else {
+                const savedCart = await AsyncStorage.getItem(key);
+                if (savedCart) {
+                    const parsedCart = JSON.parse(savedCart);
+                    setCartItems(parsedCart.cartItems || []);
+                    setActiveRestaurantId(parsedCart.activeRestaurantId || null);
+                } else {
+                    setCartItems([]);
+                    setActiveRestaurantId(null);
+                }
             }
         } catch (error) {
             console.error('Error refreshing cart key:', error);

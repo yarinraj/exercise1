@@ -81,11 +81,10 @@ const LoginScreen = ({ navigation, setUser }) => {
 
     const isFormValid = usernameTrimmed.length > 0 && password.length > 0;
     // Handle guest login - bypass authentication and navigate to the main app
-  const handleGuestLogin = () => {
+  const handleGuestLogin = async () => {
     // Ensure user state is explicitly null for guest mode
-    if (typeof setUser === 'function') {
-      setUser(null);
-    }
+    await AsyncStorage.removeItem('user'); 
+    await refreshCartKey();
     
     // Navigate directly to the Drawer navigator wrapper
     navigation.replace('MainApp');
