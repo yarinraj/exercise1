@@ -13,6 +13,10 @@ import {
 } from '@react-navigation/drawer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Import the cart context provider
+import { CartProvider } from './src/context/CartContext';
+
+// Import all application screens
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen'; // The new Landing Page
@@ -120,6 +124,7 @@ export default function App() {
   };
 
   return (
+  <CartProvider>
     <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Login"
@@ -143,5 +148,6 @@ export default function App() {
 
       </Stack.Navigator>
     </NavigationContainer>
+  </CartProvider>
   );
 }
