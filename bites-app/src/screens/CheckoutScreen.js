@@ -1,27 +1,16 @@
 import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    FlatList,
-    Image,
-    TouchableOpacity,
-    SafeAreaView,
-    ActivityIndicator
-} from 'react-native';
+import {View, Text, StyleSheet, FlatList, Image, TouchableOpacity, SafeAreaView, ActivityIndicator} from 'react-native';
 import { useCart } from '../context/CartContext';
 import { API_BASE_URL } from '../config/api';
 
 const CheckoutScreen = ({ navigation, user }) => {
-    // Extract required cart state and actions
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
     const { cartItems, totalPrice, totalItems, clearCart, activeRestaurantId, showToast } = useCart();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Fixed delivery fee constant
     const DELIVERY_FEE = 12;
     const finalAmount = totalPrice + DELIVERY_FEE;
 
-    // Helper function to handle image fallbacks and emulator URL rewrites
     const formatImageUrl = (url) => {
         if (!url) return null;
         if (url.startsWith('http://localhost') || url.startsWith('https://localhost')) {
@@ -46,19 +35,17 @@ const CheckoutScreen = ({ navigation, user }) => {
             const orderPayload = {
                 userId: user?.userId || user?._id || user?.id || user?.username || 'guest_user',
                 restaurantId: activeRestaurantId,
-                items: cartItems.map(item => ({
-                    productId: item._id,
+                
+                products: cartItems.map(item => ({
+                    productId: item._id || item.id, 
                     name: item.name,
                     quantity: item.quantity,
                     price: item.price
                 })),
+                
                 totalPrice: finalAmount,
                 status: 'pending'
             };
-
-            // --- ADDED LOGS FOR DEBUGGING ---
-            console.log('Sending Payload to:', `${API_BASE_URL}/api/orders`);
-            console.log('Payload Data:', JSON.stringify(orderPayload, null, 2));
 
             const response = await fetch(`${API_BASE_URL}/api/orders`, {
                 method: 'POST',
@@ -68,19 +55,13 @@ const CheckoutScreen = ({ navigation, user }) => {
                 body: JSON.stringify(orderPayload)
             });
 
-            // --- ADDED LOGS FOR RESPONSES ---
-            console.log('Server Response Status:', response.status);
-            console.log('Server Response OK?:', response.ok);
-
             if (response.ok) {
-                // Success pipeline: clear state, alert user via native toast, and redirect
-                await clearCart();
-                showToast('Order placed successfully! 🚀', 'success');
-                navigation.navigate('Home');
+                await clearCart(); 
+                setShowSuccessModal(true); 
             } else {
                 const errorData = await response.json().catch(() => null);
                 console.log('Server Error Data:', errorData);
-                showToast(errorData?.message || 'Failed to submit order', 'error');
+                showToast(errorData?.error || errorData?.message || 'Failed to submit order', 'error');
             }
         } catch (error) {
             console.error('Order submission error:', error);
@@ -90,7 +71,6 @@ const CheckoutScreen = ({ navigation, user }) => {
         }
     };
 
-    // Render individual item row with image on the left, details on the right
     const renderCartItem = ({ item }) => {
         const formattedUrl = formatImageUrl(item.imageUrl || item.image);
         const imageSource = formattedUrl ? { uri: formattedUrl } : require('../../assets/icon.png');
@@ -115,6 +95,12 @@ const CheckoutScreen = ({ navigation, user }) => {
         <SafeAreaView style={styles.container}>
             {/* Header Area */}
             <View style={styles.header}>
+                <TouchableOpacity 
+                    style={styles.backButton} 
+                    onPress={() => navigation.navigate('RestaurantMenu', { id: activeRestaurantId })}
+                >
+                    <Text style={styles.backButtonText}>← Back</Text>
+                </TouchableOpacity>
                 <Text style={styles.headerTitle}>Checkout</Text>
                 <View style={{ width: 60 }}/> 
             </View>
@@ -161,6 +147,25 @@ const CheckoutScreen = ({ navigation, user }) => {
                     )}
                 </TouchableOpacity>
             </View>
+                {showSuccessModal && (
+                    <View style={styles.modalOverlay}>
+                    <View style={styles.successBox}>
+                        <Text style={styles.successIcon}>🎉</Text>
+                        <Text style={styles.successTitle}>order confirmed</Text>
+                        <Text style={styles.successMessage}>The shipment is on its way to you</Text>
+                        
+                        <TouchableOpacity 
+                        style={styles.closeModalButton}
+                        onPress={() => {
+                            setShowSuccessModal(false);
+                            navigation.navigate('Welcome'); 
+                        }}
+                        >
+                        <Text style={styles.closeModalText}>Back to home page</Text>
+                        </TouchableOpacity>
+                    </View>
+                    </View>
+                )}
         </SafeAreaView>
     );
 };
@@ -168,7 +173,7 @@ const CheckoutScreen = ({ navigation, user }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8f5ef', // Consistent brand background
+        backgroundColor: '#f8f5ef',
     },
     header: {
         flexDirection: 'row',
@@ -211,7 +216,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
     },
     itemCard: {
-        flexDirection: 'row', // Left-to-Right distribution
+        flexDirection: 'row', 
         backgroundColor: '#ffffff',
         borderRadius: 16,
         padding: 12,
@@ -231,7 +236,7 @@ const styles = StyleSheet.create({
     },
     itemDetails: {
         flex: 1,
-        marginLeft: 14, // Push text to the right side of the image
+        marginLeft: 14, 
         alignItems: 'flex-start',
     },
     itemName: {
@@ -246,7 +251,7 @@ const styles = StyleSheet.create({
         color: '#7b8490',
     },
     brandPrice: {
-        color: '#00c2e8', // Dynamic brand signature blue
+        color: '#00c2e8', 
         fontWeight: '800',
     },
     emptyText: {
@@ -311,6 +316,59 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '900',
     },
+    modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center', 
+    alignItems: 'center',     
+    zIndex: 9999,             
+  },
+  successBox: {
+    width: '85%',
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 30,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 10, 
+  },
+  successIcon: {
+    fontSize: 55,
+    marginBottom: 15,
+  },
+  successTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#212529',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  successMessage: {
+    fontSize: 16,
+    color: '#6c757d',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  closeModalButton: {
+    backgroundColor: '#00c2e8',
+    paddingVertical: 14,
+    paddingHorizontal: 35,
+    borderRadius: 25,
+    width: '100%', 
+    alignItems: 'center',
+  },
+  closeModalText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
 
 export default CheckoutScreen;

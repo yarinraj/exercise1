@@ -119,7 +119,6 @@ export const CartProvider = ({ children }) => {
     const clearCart = async () => {
         setCartItems([]);
         setActiveRestaurantId(null);
-        showToast('Cart cleared.', 'info');
         try { await AsyncStorage.removeItem(cartStorageKey); } catch (e) {}
     };
 

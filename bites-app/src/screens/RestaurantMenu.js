@@ -181,6 +181,12 @@ export default function RestaurantMenu() {
 
   return (
     <SafeAreaView style={[styles.container, isDark && styles.darkBackground]}>
+      <TouchableOpacity 
+        style={styles.floatingBackButton} 
+        onPress={() => navigation.navigate('Home')}
+      >
+        <Text style={styles.floatingBackButtonText}>← Back</Text>
+      </TouchableOpacity>
       <FlatList
         data={products}
         extraData={cartTrigger}
@@ -305,5 +311,41 @@ cartBar: {
     color: '#fff',
     fontSize: 17,
     fontWeight: '700',
+  },
+  backButtonMenu: {
+    position: 'absolute',
+    top: 20,
+    left: 15,
+    zIndex: 99999,      
+    elevation: 99,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 15,
+  },
+  backButtonTextMenu: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  floatingBackButton: {
+    position: 'absolute',
+    top: 40, 
+    left: 20,
+    zIndex: 9999, 
+    backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  floatingBackButtonText: {
+    color: '#00c2e8', 
+    fontWeight: '800',
+    fontSize: 15,
   },
 });
