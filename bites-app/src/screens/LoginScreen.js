@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config/api';
-
+import { useTheme } from '../context/ThemeContext';
 const base64UrlDecode = (base64Url) => {
     let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
 
@@ -59,7 +59,7 @@ const decodeJwtPayload = (token) => {
 const LoginScreen = ({ navigation, setUser }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-
+    const { resetTheme } = useTheme();
     const [wasSubmitted, setWasSubmitted] = useState(false);
     const [usernameTouched, setUsernameTouched] = useState(false);
     const [passwordTouched, setPasswordTouched] = useState(false);
@@ -79,15 +79,15 @@ const LoginScreen = ({ navigation, setUser }) => {
 
     const isFormValid = usernameTrimmed.length > 0 && password.length > 0;
     // Handle guest login - bypass authentication and navigate to the main app
-  const handleGuestLogin = () => {
-    // Ensure user state is explicitly null for guest mode
-    if (typeof setUser === 'function') {
-      setUser(null);
-    }
-    
-    // Navigate directly to the Drawer navigator wrapper
-    navigation.replace('MainApp');
-  };
+    const handleGuestLogin = () => {
+        // Ensure user state is explicitly null for guest mode
+        if (typeof setUser === 'function') {
+            setUser(null);
+        }
+        resetTheme();
+        // Navigate directly to the Drawer navigator wrapper
+        navigation.replace('MainApp');
+    };
 
     const handleLogin = async () => {
         setWasSubmitted(true);
@@ -207,14 +207,14 @@ const LoginScreen = ({ navigation, setUser }) => {
                 </Text>
             </View>
             {/* Guest Login Button */}
-        <TouchableOpacity 
-          onPress={handleGuestLogin} 
-          style={{ marginTop: 20, alignItems: 'center', padding: 10 }}
-        >
-          <Text style={{ color: '#00c2e8', fontWeight: 'bold', fontSize: 16 }}>
-            Continue as Guest
-          </Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+                onPress={handleGuestLogin}
+                style={{ marginTop: 20, alignItems: 'center', padding: 10 }}
+            >
+                <Text style={{ color: '#00c2e8', fontWeight: 'bold', fontSize: 16 }}>
+                    Continue as Guest
+                </Text>
+            </TouchableOpacity>
 
             <View style={styles.card}>
                 {serverError ? (
