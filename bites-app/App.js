@@ -14,12 +14,22 @@ import {
 } from '@react-navigation/drawer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Import the cart context provider
+import { CartProvider } from './src/context/CartContext';
+import FloatingCartIcon from './src/components/FloatingCartIcon';
+
+// Import all application screens
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen'; 
 import HomeScreen from './src/screens/HomeScreen';       
 import RestaurantMenu from './src/screens/RestaurantMenu';
+import CheckoutScreen from './src/screens/CheckoutScreen';
 
+import { createNavigationContainerRef } from '@react-navigation/native';
+export const navigationRef = createNavigationContainerRef();
+
+// Initialize the stack navigator
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
@@ -143,25 +153,39 @@ export default function App() {
     );
   };
 
-  return (
+   return (
     <ThemeProvider user={user}>
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Login"
-          screenOptions={{ headerShown: false }}
-        >
-          <Stack.Screen name="Login">
-            {(props) => <LoginScreen {...props} setUser={setUser} />}
-          </Stack.Screen>
+      <CartProvider>
+        <NavigationContainer ref={navigationRef}>
+          <Stack.Navigator
+            initialRouteName="Login"
+            screenOptions={{
+              headerShown: false
+            }}
+          >
+            <Stack.Screen name="Login">
+              {(props) => <LoginScreen {...props} setUser={setUser} />}
+            </Stack.Screen>
 
-          <Stack.Screen name="Register">
-            {(props) => <RegisterScreen {...props} />}
-          </Stack.Screen>
+            <Stack.Screen name="Register">
+              {(props) => <RegisterScreen {...props} />}
+            </Stack.Screen>
 
-          <Stack.Screen name="MainApp" component={DrawerNavigator} />
-          <Stack.Screen name="RestaurantMenu" component={RestaurantMenu} />
-        </Stack.Navigator>
-      </NavigationContainer>
+            {/* Main application with Drawer */}
+            <Stack.Screen name="MainApp" component={DrawerNavigator} />
+
+            <Stack.Screen name="RestaurantMenu">
+              {(props) => <RestaurantMenu {...props} />}
+            </Stack.Screen>
+
+            <Stack.Screen name="Checkout">
+              {(props) => <CheckoutScreen {...props} />}
+            </Stack.Screen>
+          </Stack.Navigator>
+
+          <FloatingCartIcon />
+        </NavigationContainer>
+      </CartProvider>
     </ThemeProvider>
   );
 }

@@ -1,35 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  StyleSheet, Text, View, Image,
-  FlatList, ActivityIndicator, SafeAreaView 
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  FlatList,
+  ActivityIndicator,
+  SafeAreaView,
+  TouchableOpacity
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from '../config/api'; 
+
+import { API_BASE_URL } from '../config/api';
 import { useTheme } from '../context/ThemeContext';
 import { Colors } from '../config/Colors';
+import { useCart } from '../context/CartContext';
 
 export default function RestaurantMenu() {
-  const route = useRoute();
-  const navigation = useNavigation();
-  
-  // 1. Pull the dynamic theme and colors correctly (No duplicates!)
+  const { cartItems, addToCart, updateQuantity, showToast } = useCart();
   const { isDark } = useTheme();
+
   const theme = isDark ? Colors.dark : Colors.light;
 
-  // 2. Get restaurant ID passed from the feed screen
-  const { id } = route.params || {}; 
+  const route = useRoute();
+  const navigation = useNavigation();
+
+  const { id } = route.params || {};
 
   const [restaurant, setRestaurant] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cartTrigger, setCartTrigger] = useState(0);
 
-  // Fetch restaurant and menu data
   useEffect(() => {
     const fetchMenuData = async () => {
       if (!id) return;
+
       setLoading(true);
-      
+
       try {
         const token = await AsyncStorage.getItem('token');
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -40,7 +49,7 @@ export default function RestaurantMenu() {
         ]);
 
         if (restaurantRes.status === 404 || !restaurantRes.ok || !productsRes.ok) {
-          navigation.goBack(); // Safely goes back to previous screen if not found
+          navigation.goBack();
           return;
         }
 
@@ -50,51 +59,53 @@ export default function RestaurantMenu() {
         setRestaurant(restaurantData);
         setProducts(productsData);
       } catch (err) {
-        console.error("Error fetching menu data:", err);
-        navigation.goBack(); // Safely goes back to previous screen on network error
+        console.error('Error fetching menu data:', err);
+        navigation.goBack();
       } finally {
         setLoading(false);
       }
     };
 
     fetchMenuData();
-  }, [id]);
+  }, [id, navigation]);
 
   if (loading) {
     return (
-      // Dynamic background applied here
       <View style={[styles.centerContainer, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
+        <ActivityIndicator size="large" color={theme.primary || '#00c2e8'} />
       </View>
     );
   }
 
-  // Header Component for the list (Hero Image + Info)
   const renderHeader = () => {
     if (!restaurant) return null;
+
     const hasImage = restaurant.image && restaurant.image.trim() !== '';
 
     return (
       <View>
-        <View style={[
-          styles.heroBanner, 
-          // Dynamic background and border for the banner
-          { 
-            backgroundColor: hasImage ? 'transparent' : theme.inputBg,
-            borderBottomColor: theme.border,
-            borderBottomWidth: 1
-          }
-        ]}>
+        <View
+          style={[
+            styles.heroBanner,
+            {
+              backgroundColor: hasImage ? 'transparent' : theme.inputBg,
+              borderBottomColor: theme.border,
+              borderBottomWidth: 1
+            }
+          ]}
+        >
           <Image
-            source={hasImage ? { uri: restaurant.image } : require('../../assets/icon.png')} 
+            source={hasImage ? { uri: restaurant.image } : require('../../assets/icon.png')}
             style={[styles.heroImage, { resizeMode: hasImage ? 'cover' : 'contain' }]}
           />
         </View>
 
         <View style={styles.infoContainer}>
-          {/* Dynamic text colors */}
-          <Text style={[styles.restaurantName, { color: theme.text }]}>{restaurant.name}</Text>
-          <Text style={[styles.restaurantSub, { color: theme.textMuted }]}>
+          <Text style={[styles.restaurantName, { color: theme.text }]}>
+            {restaurant.name}
+          </Text>
+
+          <Text style={[styles.restaurantSub, { color: theme.textMuted || theme.mutedText || '#7b8490' }]}>
             {restaurant.cuisine} • {restaurant.address}
           </Text>
         </View>
@@ -104,76 +115,369 @@ export default function RestaurantMenu() {
     );
   };
 
-  // Menu Product Card Item
   const renderProductItem = ({ item: product }) => {
-    const hasImage = product.image && product.image.trim() !== "";
+    const hasImage = product.image && product.image.trim() !== '';
+    const productId = product._id || product.id;
+
+    const cartItem = cartItems
+      ? cartItems.find((ci) => (ci._id || ci.id) === productId)
+      : null;
+
+    const quantity = cartItem ? cartItem.quantity : 0;
 
     return (
-      <View style={[
-        styles.card, 
-        // Dynamic card background and border logic
-        { 
-            backgroundColor: theme.card, 
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: theme.card,
             borderColor: theme.border,
-            borderWidth: isDark ? 1 : 0 
-        }
-      ]}>
+            borderWidth: isDark ? 1 : 0
+          }
+        ]}
+      >
         <View style={styles.cardContent}>
-          
           <View style={[styles.textDetails, { maxWidth: hasImage ? '65%' : '100%' }]}>
-             {/* Dynamic text colors */}
-            <Text style={[styles.productName, { color: theme.text }]}>{product.name}</Text>
-            <Text style={[styles.productDescription, { color: theme.textMuted }]} numberOfLines={3}>{product.description}</Text>
+            <Text style={[styles.productName, { color: theme.text }]}>
+              {product.name}
+            </Text>
+
+            <Text
+              style={[
+                styles.productDescription,
+                { color: theme.textMuted || theme.mutedText || '#7b8490' }
+              ]}
+              numberOfLines={3}
+            >
+              {product.description}
+            </Text>
+
             <Text style={styles.productPrice}>₪{product.price}</Text>
           </View>
 
           <View style={styles.rightActions}>
-            {/* Dynamic image wrapper background */}
-            <View style={[styles.imageWrapper, { backgroundColor: hasImage ? 'transparent' : theme.inputBg }]}>
-              <Image 
+            <View
+              style={[
+                styles.imageWrapper,
+                { backgroundColor: hasImage ? 'transparent' : theme.inputBg }
+              ]}
+            >
+              <Image
                 source={hasImage ? { uri: product.image } : require('../../assets/icon.png')}
                 style={[styles.productImage, { resizeMode: hasImage ? 'cover' : 'contain' }]}
               />
             </View>
-          </View>
 
+            <View style={styles.quantityContainer}>
+              {quantity === 0 ? (
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={() => {
+                    addToCart(product, id);
+                    setCartTrigger((prev) => prev + 1);
+                  }}
+                >
+                  <Text style={styles.addButtonText}>+</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.stepperContainer}>
+                  <TouchableOpacity
+                    style={styles.stepButton}
+                    onPress={() => {
+                      if (cartItem) {
+                        const targetId = cartItem._id || cartItem.id;
+                        const currentQty = cartItem.quantity || 1;
+
+                        updateQuantity(targetId, currentQty - 1);
+                        setCartTrigger((prev) => prev + 1);
+
+                        if (showToast) {
+                          showToast('Dish removed from cart.', 'info');
+                        }
+                      }
+                    }}
+                  >
+                    <Text style={styles.stepButtonText}>-</Text>
+                  </TouchableOpacity>
+
+                  <Text style={styles.quantityText}>{quantity}</Text>
+
+                  <TouchableOpacity
+                    style={styles.stepButton}
+                    onPress={() => {
+                      addToCart(product, id);
+                      setCartTrigger((prev) => prev + 1);
+                    }}
+                  >
+                    <Text style={styles.stepButtonText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
         </View>
       </View>
     );
   };
 
+  const totalItemsInCart = cartItems
+    ? cartItems.reduce((sum, item) => sum + item.quantity, 0)
+    : 0;
+
+  const totalPrice = cartItems
+    ? cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    : 0;
+
   return (
-    // Dynamic Main Background applied to SafeAreaView
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <TouchableOpacity
+        style={[
+          styles.floatingBackButton,
+          {
+            backgroundColor: isDark ? 'rgba(9, 24, 45, 0.95)' : 'rgba(255, 255, 255, 0.9)'
+          }
+        ]}
+        onPress={() => navigation.goBack()}
+      >
+        <Text style={styles.floatingBackButtonText}>← Back</Text>
+      </TouchableOpacity>
+
       <FlatList
         data={products}
+        extraData={cartTrigger}
         keyExtractor={(item) => item._id || item.id || Math.random().toString()}
         ListHeaderComponent={renderHeader}
         renderItem={renderProductItem}
         contentContainerStyle={styles.listContent}
       />
+
+      {totalItemsInCart > 0 && (
+        <TouchableOpacity
+          style={styles.cartBar}
+          onPress={() => navigation.navigate('Checkout')}
+        >
+          <View style={styles.cartBarContent}>
+            <View style={styles.cartCountBadge}>
+              <Text style={styles.cartCountText}>{totalItemsInCart}</Text>
+            </View>
+
+            <Text style={styles.cartBarText}>View Basket</Text>
+
+            <Text style={styles.cartBarPrice}>₪{totalPrice}</Text>
+          </View>
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 }
 
-// All static theme-related colors have been removed from the StyleSheet
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  listContent: { paddingBottom: 30 },
-  heroBanner: { width: '100%', height: 200, justifyContent: 'center', alignItems: 'center' },
-  heroImage: { width: '100%', height: '100%' },
-  infoContainer: { alignItems: 'flex-start', padding: 20 },
-  restaurantName: { fontSize: 26, fontWeight: 'bold', textAlign: 'left' },
-  restaurantSub: { fontSize: 15, marginTop: 5, textAlign: 'left' },
-  menuTitle: { fontSize: 22, fontWeight: 'bold', paddingHorizontal: 20, marginBottom: 15, textAlign: 'left' },
-  card: { marginHorizontal: 15, marginBottom: 15, borderRadius: 16, padding: 15, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 },
-  cardContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'stretch' },
-  textDetails: { flex: 1, alignItems: 'flex-start', justifyContent: 'space-between' },
-  productName: { fontSize: 18, fontWeight: 'bold' },
-  productDescription: { fontSize: 13, textAlign: 'left', marginTop: 4, lineHeight: 18 },
-  productPrice: { fontSize: 18, fontWeight: 'bold', color: '#00c2e8', marginTop: 10 },
-  rightActions: { width: 110, alignItems: 'center', justifyContent: 'center', marginRight: 15 },
-  imageWrapper: { width: 110, height: 110, borderRadius: 12, overflow: 'hidden' },
-  productImage: { width: '100%', height: '100%' }
+  container: {
+    flex: 1
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  listContent: {
+    paddingBottom: 120
+  },
+  heroBanner: {
+    width: '100%',
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%'
+  },
+  infoContainer: {
+    alignItems: 'flex-start',
+    padding: 20
+  },
+  restaurantName: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    textAlign: 'left'
+  },
+  restaurantSub: {
+    fontSize: 15,
+    marginTop: 5,
+    textAlign: 'left'
+  },
+  menuTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    paddingHorizontal: 20,
+    marginBottom: 15,
+    textAlign: 'left'
+  },
+  card: {
+    marginHorizontal: 15,
+    marginBottom: 15,
+    borderRadius: 16,
+    padding: 15,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8
+  },
+  cardContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'stretch'
+  },
+  textDetails: {
+    flex: 1,
+    alignItems: 'flex-start',
+    justifyContent: 'space-between'
+  },
+  productName: {
+    fontSize: 18,
+    fontWeight: 'bold'
+  },
+  productDescription: {
+    fontSize: 13,
+    textAlign: 'left',
+    marginTop: 4,
+    lineHeight: 18
+  },
+  productPrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#00c2e8',
+    marginTop: 10
+  },
+  rightActions: {
+    width: 110,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginRight: 15
+  },
+  imageWrapper: {
+    width: 110,
+    height: 110,
+    borderRadius: 12,
+    overflow: 'hidden'
+  },
+  productImage: {
+    width: '100%',
+    height: '100%'
+  },
+  quantityContainer: {
+    marginTop: 10,
+    width: '100%',
+    alignItems: 'center'
+  },
+  addButton: {
+    backgroundColor: '#00c2e8',
+    width: 35,
+    height: 35,
+    borderRadius: 17.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    bottom: 1
+  },
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#00c2e8',
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    height: 35,
+    width: '95%',
+    elevation: 2
+  },
+  stepButton: {
+    paddingHorizontal: 5,
+    height: '100%',
+    justifyContent: 'center'
+  },
+  stepButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold'
+  },
+  quantityText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 15
+  },
+  cartBar: {
+    position: 'absolute',
+    bottom: 28,
+    left: 20,
+    right: 20,
+    backgroundColor: '#00c2e8',
+    borderRadius: 25,
+    paddingVertical: 14,
+    paddingHorizontal: 22,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 5.3
+  },
+  cartBarContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  cartCountBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderRadius: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  cartCountText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15
+  },
+  cartBarText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: 0.3
+  },
+  cartBarPrice: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '700'
+  },
+  floatingBackButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 9999,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5
+  },
+  floatingBackButtonText: {
+    color: '#00c2e8',
+    fontWeight: '800',
+    fontSize: 15
+  }
 });
