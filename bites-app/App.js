@@ -22,6 +22,9 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen'; // The new Landing Page
 import HomeScreen from './src/screens/HomeScreen';       // The Restaurants Feed
 import RestaurantMenu from './src/screens/RestaurantMenu';
+import OwnerDashboard from './src/screens/OwnerDashboard';
+import RestaurantSetupScreen from './src/screens/RestaurantSetupScreen';
+import EditRestaurantScreen from './src/screens/EditRestaurantScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -119,6 +122,12 @@ export default function App() {
         >
           {(props) => <HomeScreen {...props} user={user} />}
         </Drawer.Screen>
+        {user?.role === 'owner' && (
+           <Drawer.Screen name="Owner Dashboard"> 
+            {(props) => <OwnerDashboard {...props} user={user} />}
+          </Drawer.Screen>
+        )}
+       
       </Drawer.Navigator>
     );
   };
@@ -146,6 +155,13 @@ export default function App() {
         {/* Restaurant menu detail page - sits on top of the drawer */}
         <Stack.Screen name="RestaurantMenu" component={RestaurantMenu} />
 
+        <Stack.Screen name="RestaurantSetupScreen" >
+          {(props) => <RestaurantSetupScreen {...props} />}
+        </Stack.Screen>
+
+        <Stack.Screen name="EditRestaurantScreen" >
+          {(props) => <EditRestaurantScreen {...props} />}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   </CartProvider>

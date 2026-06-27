@@ -140,37 +140,13 @@ const LoginScreen = ({ navigation, setUser }) => {
 
             const token = tokenData.token;
 
-            let loggedInUser = {
-                username: usernameTrimmed
+            const loggedInUser = {
+                _id: tokenData.user._id,
+                username: tokenData.user.username,
+                displayName: tokenData.user.displayName,
+                role: tokenData.user.role || 'customer',
+                profileImage: '' 
             };
-
-            try {
-                const payload = decodeJwtPayload(token);
-                const userId = payload.userId || payload.id || payload._id;
-
-                if (userId) {
-                    const userResponse = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
-                        method: 'GET',
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    });
-
-                    const userData = await userResponse.json().catch(() => null);
-
-                    if (userResponse.ok && userData) {
-                        loggedInUser = {
-                            _id: userData._id || userId,
-                            username: userData.username,
-                            displayName: userData.displayName,
-                            profileImage: userData.profileImage,
-                            role: userData.role
-                        };
-                    }
-                }
-            } catch (decodeError) {
-                console.log('Could not decode token or fetch user details:', decodeError);
-            }
 
             await AsyncStorage.setItem('token', token);
             await AsyncStorage.setItem('user', JSON.stringify(loggedInUser));
@@ -186,7 +162,7 @@ const LoginScreen = ({ navigation, setUser }) => {
                     onPress: () => navigation.replace('MainApp')
                 }
             ]);
-        } catch (error) {
+            } catch (error) {
             console.error('Login error:', error);
             setServerError('Network error. Please check that the server is running.');
         } finally {
