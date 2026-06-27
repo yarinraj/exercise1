@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import the cart context provider
 import { CartProvider } from './src/context/CartContext';
+import FloatingCartIcon from './src/components/FloatingCartIcon';
 
 // Import all application screens
 import LoginScreen from './src/screens/LoginScreen';
@@ -22,7 +23,12 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen'; // The new Landing Page
 import HomeScreen from './src/screens/HomeScreen';       // The Restaurants Feed
 import RestaurantMenu from './src/screens/RestaurantMenu';
+import CheckoutScreen from './src/screens/CheckoutScreen';
 
+import { createNavigationContainerRef } from '@react-navigation/native';
+export const navigationRef = createNavigationContainerRef();
+
+// Initialize the stack navigator
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
@@ -125,7 +131,7 @@ export default function App() {
 
   return (
   <CartProvider>
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         initialRouteName="Login"
         screenOptions={{
@@ -143,10 +149,20 @@ export default function App() {
         {/* Main application with Drawer */}
         <Stack.Screen name="MainApp" component={DrawerNavigator} />
 
-        {/* Restaurant menu detail page - sits on top of the drawer */}
-        <Stack.Screen name="RestaurantMenu" component={RestaurantMenu} />
+        <Stack.Screen name="Home">
+          {(props) => <HomeScreen {...props} user={user} />}
+        </Stack.Screen>
+
+        <Stack.Screen name="RestaurantMenu">
+          {(props) => <RestaurantMenu {...props} />}
+        </Stack.Screen>
+
+        <Stack.Screen name="Checkout">
+          {(props) => <CheckoutScreen {...props} />}
+        </Stack.Screen>
 
       </Stack.Navigator>
+      <FloatingCartIcon />
     </NavigationContainer>
   </CartProvider>
   );
