@@ -25,6 +25,9 @@ import RestaurantMenu from './src/screens/RestaurantMenu';
 import OwnerDashboard from './src/screens/OwnerDashboard';
 import RestaurantSetupScreen from './src/screens/RestaurantSetupScreen';
 import EditRestaurantScreen from './src/screens/EditRestaurantScreen';
+import AddDishScreen from './src/screens/AddDishScreen';
+import EditDishScreen from './src/screens/EditDishScreen';
+import RestaurantMenuManagerScreen from './src/screens/RestaurantMenuManagerScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -162,6 +165,19 @@ export default function App() {
         <Stack.Screen name="EditRestaurantScreen" >
           {(props) => <EditRestaurantScreen {...props} />}
         </Stack.Screen>
+
+        <Stack.Screen name="AddDishScreen" options={{ title: 'Add Dish', headerShown: true }} >
+          {(props) => <AddDishScreen {...props} />}
+        </Stack.Screen>
+
+        <Stack.Screen name="EditDishScreen" options={{ title: 'Edit Dish', headerShown: true }} >
+          {(props) => <EditDishScreen {...props} />}
+        </Stack.Screen>
+
+        <Stack.Screen name="RestaurantMenuManagerScreen" options={{ title: 'Menu Manager', headerShown: true }} >
+          {(props) => <RestaurantMenuManagerScreen {...props} />}
+        </Stack.Screen>
+
       </Stack.Navigator>
     </NavigationContainer>
   </CartProvider>
