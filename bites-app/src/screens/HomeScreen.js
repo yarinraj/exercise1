@@ -46,8 +46,17 @@ const HomeScreen = ({ user }) => {
             }
         };
 
+        // Fetch data on initial mount
         fetchRestaurants();
-    }, []);
+
+        // Add navigation listener to re-fetch data every time the screen comes into focus
+        const unsubscribe = navigation.addListener('focus', () => {
+            fetchRestaurants();
+        });
+
+        // Clean up the listener when component unmounts
+        return unsubscribe;
+    }, [navigation]);
 
     const formatImageUrl = (url) => {
         if (!url) {
