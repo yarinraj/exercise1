@@ -1,28 +1,44 @@
 import React, { useState } from 'react';
-import {View, Text, StyleSheet, FlatList, Image, TouchableOpacity, SafeAreaView, ActivityIndicator} from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    FlatList,
+    Image,
+    TouchableOpacity,
+    SafeAreaView,
+    ActivityIndicator
+} from 'react-native';
 import { useCart } from '../context/CartContext';
 import { API_BASE_URL } from '../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
+import { Colors } from '../config/Colors';
 
 const CheckoutScreen = ({ navigation, user }) => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const { cartItems, totalPrice, totalItems, clearCart, activeRestaurantId, showToast } = useCart();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const { isDark } = useTheme();
+    const theme = isDark ? Colors.dark : Colors.light;
+
     const DELIVERY_FEE = 12;
     const finalAmount = totalPrice + DELIVERY_FEE;
 
     const formatImageUrl = (url) => {
         if (!url) return null;
+
         if (url.startsWith('http://localhost') || url.startsWith('https://localhost')) {
             return url.replace('localhost', '10.0.2.2');
         }
+
         if (url.startsWith('http')) return url;
+
         const cleanPath = url.startsWith('/') ? url : `/${url}`;
         return `${API_BASE_URL}${cleanPath}`;
     };
 
-    // Main function to submit the order payload to the backend gateway
     const handlePlaceOrder = async () => {
         if (cartItems.length === 0) {
             showToast('Your cart is empty', 'error');
@@ -34,20 +50,26 @@ const CheckoutScreen = ({ navigation, user }) => {
 
             const savedUser = await AsyncStorage.getItem('user');
             const parsedUser = savedUser ? JSON.parse(savedUser) : null;
-            const finalUserId = parsedUser?.userId || parsedUser?._id || parsedUser?.id || user?.userId || user?._id || 'guest_user';
 
-            // Construct the payload allowing both authenticated users and guests to order
+            const finalUserId =
+                parsedUser?.userId ||
+                parsedUser?._id ||
+                parsedUser?.id ||
+                user?.userId ||
+                user?._id ||
+                'guest_user';
+
             const orderPayload = {
                 userId: finalUserId,
                 restaurantId: activeRestaurantId,
-                
-                products: cartItems.map(item => ({
-                    productId: item._id || item.id, 
+
+                products: cartItems.map((item) => ({
+                    productId: item._id || item.id,
                     name: item.name,
                     quantity: item.quantity,
                     price: item.price
                 })),
-                
+
                 totalPrice: finalAmount,
                 status: 'pending'
             };
@@ -61,12 +83,17 @@ const CheckoutScreen = ({ navigation, user }) => {
             });
 
             if (response.ok) {
-                await clearCart(); 
-                setShowSuccessModal(true); 
+                await clearCart();
+                setShowSuccessModal(true);
             } else {
                 const errorData = await response.json().catch(() => null);
                 console.log('Server Error Data:', errorData);
-                showToast(errorData?.error || errorData?.message || 'Failed to submit order', 'error');
+                showToast(
+                    errorData?.error ||
+                    errorData?.message ||
+                    'Failed to submit order',
+                    'error'
+                );
             }
         } catch (error) {
             console.error('Order submission error:', error);
@@ -78,18 +105,44 @@ const CheckoutScreen = ({ navigation, user }) => {
 
     const renderCartItem = ({ item }) => {
         const formattedUrl = formatImageUrl(item.imageUrl || item.image);
-        const imageSource = formattedUrl ? { uri: formattedUrl } : require('../../assets/icon.png');
+        const imageSource = formattedUrl
+            ? { uri: formattedUrl }
+            : require('../../assets/icon.png');
 
         return (
-            <View style={styles.itemCard}>
-                <Image 
-                    source={imageSource} 
-                    style={styles.itemImage} 
-                    resizeMode={formattedUrl ? 'cover' : 'contain'} 
+            <View
+                style={[
+                    styles.itemCard,
+                    {
+                        backgroundColor: theme.card,
+                        borderColor: theme.border,
+                        borderWidth: isDark ? 1 : 0
+                    }
+                ]}
+            >
+                <Image
+                    source={imageSource}
+                    style={[
+                        styles.itemImage,
+                        { backgroundColor: isDark ? theme.inputBg : '#eaeaea' }
+                    ]}
+                    resizeMode={formattedUrl ? 'cover' : 'contain'}
                 />
+
                 <View style={styles.itemDetails}>
-                    <Text style={styles.itemName}>{item.name}</Text>
-                    <Text style={styles.itemMeta}>×{item.quantity}</Text>
+                    <Text style={[styles.itemName, { color: theme.text }]}>
+                        {item.name}
+                    </Text>
+
+                    <Text
+                        style={[
+                            styles.itemMeta,
+                            { color: theme.textMuted || theme.mutedText || '#7b8490' }
+                        ]}
+                    >
+                        ×{item.quantity}
+                    </Text>
+
                     <Text style={styles.brandPrice}>₪{item.price}</Text>
                 </View>
             </View>
@@ -97,88 +150,180 @@ const CheckoutScreen = ({ navigation, user }) => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            {/* Header Area */}
-            <View style={styles.header}>
-                <TouchableOpacity 
-                    style={styles.backButton} 
+        <SafeAreaView
+            style={[
+                styles.container,
+                { backgroundColor: theme.background }
+            ]}
+        >
+            <View
+                style={[
+                    styles.header,
+                    {
+                        backgroundColor: theme.card,
+                        borderColor: theme.border
+                    }
+                ]}
+            >
+                <TouchableOpacity
+                    style={styles.backButton}
                     onPress={() => navigation.goBack()}
                 >
                     <Text style={styles.backButtonText}>← Back</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Checkout</Text>
-                <View style={{ width: 60 }}/> 
+
+                <Text style={[styles.headerTitle, { color: theme.text }]}>
+                    Checkout
+                </Text>
+
+                <View style={{ width: 60 }} />
             </View>
 
-            {/* Main Order Items Summary list */}
             <View style={styles.content}>
-                <Text style={styles.sectionTitle}>Order Summary</Text>
-                
+                <Text style={[styles.sectionTitle, { color: theme.text }]}>
+                    Order Summary
+                </Text>
+
                 <FlatList
                     data={cartItems}
-                    keyExtractor={(item) => item._id}
+                    keyExtractor={(item) => item._id || item.id}
                     renderItem={renderCartItem}
                     contentContainerStyle={styles.listContainer}
                     ListEmptyComponent={
-                        <Text style={styles.emptyText}>No items in your cart.</Text>
+                        <Text
+                            style={[
+                                styles.emptyText,
+                                { color: theme.textMuted || theme.mutedText || '#7b8490' }
+                            ]}
+                        >
+                            No items in your cart.
+                        </Text>
                     }
                 />
             </View>
 
-            {/* Financial Summary & Action Sticky Footer */}
-            <View style={styles.footerCard}>
+            <View
+                style={[
+                    styles.footerCard,
+                    {
+                        backgroundColor: theme.card,
+                        borderColor: theme.border,
+                        borderTopWidth: isDark ? 1 : 0
+                    }
+                ]}
+            >
                 <View style={styles.priceRow}>
-                    <Text style={styles.priceLabel}>Subtotal</Text>
-                    <Text style={styles.priceValue}>₪{totalPrice}</Text>
-                </View>
-                <View style={styles.priceRow}>
-                    <Text style={styles.priceLabel}>Delivery Fee</Text>
-                    <Text style={styles.priceValue}>₪{DELIVERY_FEE}</Text>
-                </View>
-                <View style={[styles.priceRow, styles.totalRow]}>
-                    <Text style={styles.totalLabel}>Total Amount</Text>
-                    <Text style={styles.totalValue}>₪{finalAmount}</Text>
+                    <Text
+                        style={[
+                            styles.priceLabel,
+                            { color: theme.textMuted || theme.mutedText || '#7b8490' }
+                        ]}
+                    >
+                        Subtotal
+                    </Text>
+
+                    <Text style={[styles.priceValue, { color: theme.text }]}>
+                        ₪{totalPrice}
+                    </Text>
                 </View>
 
-                <TouchableOpacity 
-                    style={[styles.submitButton, isSubmitting && styles.disabledButton]}
+                <View style={styles.priceRow}>
+                    <Text
+                        style={[
+                            styles.priceLabel,
+                            { color: theme.textMuted || theme.mutedText || '#7b8490' }
+                        ]}
+                    >
+                        Delivery Fee
+                    </Text>
+
+                    <Text style={[styles.priceValue, { color: theme.text }]}>
+                        ₪{DELIVERY_FEE}
+                    </Text>
+                </View>
+
+                <View
+                    style={[
+                        styles.priceRow,
+                        styles.totalRow,
+                        { borderColor: theme.border }
+                    ]}
+                >
+                    <Text style={[styles.totalLabel, { color: theme.text }]}>
+                        Total Amount
+                    </Text>
+
+                    <Text style={styles.totalValue}>
+                        ₪{finalAmount}
+                    </Text>
+                </View>
+
+                <TouchableOpacity
+                    style={[
+                        styles.submitButton,
+                        isSubmitting && styles.disabledButton
+                    ]}
                     onPress={handlePlaceOrder}
                     disabled={isSubmitting || cartItems.length === 0}
                 >
                     {isSubmitting ? (
                         <ActivityIndicator color="#ffffff" />
                     ) : (
-                        <Text style={styles.submitButtonText}>Place Order • ₪{finalAmount}</Text>
+                        <Text style={styles.submitButtonText}>
+                            Place Order • ₪{finalAmount}
+                        </Text>
                     )}
                 </TouchableOpacity>
             </View>
-                {showSuccessModal && (
-                    <View style={styles.modalOverlay}>
-                    <View style={styles.successBox}>
+
+            {showSuccessModal && (
+                <View style={styles.modalOverlay}>
+                    <View
+                        style={[
+                            styles.successBox,
+                            {
+                                backgroundColor: theme.card,
+                                borderColor: theme.border,
+                                borderWidth: isDark ? 1 : 0
+                            }
+                        ]}
+                    >
                         <Text style={styles.successIcon}>🎉</Text>
-                        <Text style={styles.successTitle}>order confirmed</Text>
-                        <Text style={styles.successMessage}>The shipment is on its way to you</Text>
-                        
-                        <TouchableOpacity 
-                        style={styles.closeModalButton}
-                        onPress={() => {
-                            setShowSuccessModal(false);
-                            navigation.popToTop();
-                        }}
+
+                        <Text style={[styles.successTitle, { color: theme.text }]}>
+                            order confirmed
+                        </Text>
+
+                        <Text
+                            style={[
+                                styles.successMessage,
+                                { color: theme.textMuted || theme.mutedText || '#6c757d' }
+                            ]}
                         >
-                        <Text style={styles.closeModalText}>Back to restaurants feed</Text>
+                            The shipment is on its way to you
+                        </Text>
+
+                        <TouchableOpacity
+                            style={styles.closeModalButton}
+                            onPress={() => {
+                                setShowSuccessModal(false);
+                                navigation.popToTop();
+                            }}
+                        >
+                            <Text style={styles.closeModalText}>
+                                Back to restaurants feed
+                            </Text>
                         </TouchableOpacity>
                     </View>
-                    </View>
-                )}
+                </View>
+            )}
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: '#f8f5ef',
+        flex: 1
     },
     header: {
         flexDirection: 'row',
@@ -187,42 +332,38 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 14,
         paddingTop: 40,
-        backgroundColor: '#ffffff',
-        borderBottomWidth: 1,
-        borderColor: '#dfe3e8',
+        borderBottomWidth: 1
     },
     backButton: {
         paddingVertical: 6,
-        paddingHorizontal: 10,
+        paddingHorizontal: 10
     },
     backButtonText: {
         color: '#00c2e8',
         fontWeight: '700',
-        fontSize: 15,
+        fontSize: 15
     },
     headerTitle: {
         fontSize: 18,
-        fontWeight: '900',
-        color: '#202125',
+        fontWeight: '900'
     },
     content: {
         flex: 1,
-        paddingTop: 20,
+        paddingTop: 20
     },
     sectionTitle: {
         fontSize: 20,
         fontWeight: '900',
-        color: '#202125',
         paddingHorizontal: 24,
         marginBottom: 15,
-        textAlign: 'left',
+        textAlign: 'left'
     },
     listContainer: {
         paddingHorizontal: 24,
+        paddingBottom: 20
     },
     itemCard: {
-        flexDirection: 'row', 
-        backgroundColor: '#ffffff',
+        flexDirection: 'row',
         borderRadius: 16,
         padding: 12,
         marginBottom: 14,
@@ -231,42 +372,37 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOpacity: 0.04,
         shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 4 }
     },
     itemImage: {
         width: 70,
         height: 70,
-        borderRadius: 10,
-        backgroundColor: '#eaeaea',
+        borderRadius: 10
     },
     itemDetails: {
         flex: 1,
-        marginLeft: 14, 
-        alignItems: 'flex-start',
+        marginLeft: 14,
+        alignItems: 'flex-start'
     },
     itemName: {
         fontSize: 16,
         fontWeight: '800',
-        color: '#202125',
         marginBottom: 4,
-        textAlign: 'left',
+        textAlign: 'left'
     },
     itemMeta: {
-        fontSize: 14,
-        color: '#7b8490',
+        fontSize: 14
     },
     brandPrice: {
-        color: '#00c2e8', 
-        fontWeight: '800',
+        color: '#00c2e8',
+        fontWeight: '800'
     },
     emptyText: {
         textAlign: 'center',
-        color: '#7b8490',
         marginTop: 40,
-        fontSize: 16,
+        fontSize: 16
     },
     footerCard: {
-        backgroundColor: '#ffffff',
         borderTopLeftRadius: 26,
         borderTopRightRadius: 26,
         padding: 24,
@@ -274,106 +410,99 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOpacity: 0.08,
         shadowRadius: 15,
-        shadowOffset: { width: 0, height: -5 },
+        shadowOffset: { width: 0, height: -5 }
     },
     priceRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 10,
+        marginBottom: 10
     },
     priceLabel: {
-        color: '#7b8490',
         fontSize: 15,
-        fontWeight: '600',
+        fontWeight: '600'
     },
     priceValue: {
-        color: '#202125',
         fontSize: 15,
-        fontWeight: '700',
+        fontWeight: '700'
     },
     totalRow: {
         borderTopWidth: 1,
-        borderColor: '#dfe3e8',
         paddingTop: 12,
-        marginBottom: 20,
+        marginBottom: 20
     },
     totalLabel: {
-        color: '#202125',
         fontSize: 17,
-        fontWeight: '900',
+        fontWeight: '900'
     },
     totalValue: {
         color: '#00c2e8',
         fontSize: 18,
-        fontWeight: '900',
+        fontWeight: '900'
     },
     submitButton: {
         backgroundColor: '#00c2e8',
         padding: 16,
         borderRadius: 18,
-        alignItems: 'center',
+        alignItems: 'center'
     },
     disabledButton: {
-        opacity: 0.6,
+        opacity: 0.6
     },
     submitButtonText: {
         color: '#ffffff',
         fontSize: 16,
-        fontWeight: '900',
+        fontWeight: '900'
     },
     modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center', 
-    alignItems: 'center',     
-    zIndex: 9999,             
-  },
-  successBox: {
-    width: '85%',
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 30,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 10, 
-  },
-  successIcon: {
-    fontSize: 55,
-    marginBottom: 15,
-  },
-  successTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#212529',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  successMessage: {
-    fontSize: 16,
-    color: '#6c757d',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  closeModalButton: {
-    backgroundColor: '#00c2e8',
-    paddingVertical: 14,
-    paddingHorizontal: 35,
-    borderRadius: 25,
-    width: '100%', 
-    alignItems: 'center',
-  },
-  closeModalText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999
+    },
+    successBox: {
+        width: '85%',
+        borderRadius: 20,
+        padding: 30,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 10
+    },
+    successIcon: {
+        fontSize: 55,
+        marginBottom: 15
+    },
+    successTitle: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        marginBottom: 8,
+        textAlign: 'center'
+    },
+    successMessage: {
+        fontSize: 16,
+        textAlign: 'center',
+        marginBottom: 24
+    },
+    closeModalButton: {
+        backgroundColor: '#00c2e8',
+        paddingVertical: 14,
+        paddingHorizontal: 35,
+        borderRadius: 25,
+        width: '100%',
+        alignItems: 'center'
+    },
+    closeModalText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold'
+    }
 });
 
 export default CheckoutScreen;
