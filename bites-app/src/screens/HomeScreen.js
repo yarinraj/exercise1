@@ -80,7 +80,14 @@ const HomeScreen = ({ user }) => {
         };
 
         fetchRestaurants();
-    }, []);
+
+        // Refresh data when returning to screen
+        const unsubscribe = navigation.addListener('focus', () => {
+            fetchRestaurants();
+        });
+
+        return unsubscribe;
+    }, [navigation]);
 
     const getRealDistance = (lat1, lon1, lat2, lon2) => {
         if (!lat1 || !lon1 || !lat2 || !lon2) return null;
@@ -147,7 +154,49 @@ const HomeScreen = ({ user }) => {
         return `${API_BASE_URL}${cleanPath}`;
     };
 
-    // Render single restaurant card
+    // --- RENDER PROMOTED CARD ---
+    const renderPromotedCard = ({ item }) => {
+        const rawImage = item.imageUrl || item.image;
+        const formattedUrl = formatImageUrl(rawImage);
+        const imageSource = formattedUrl ? { uri: formattedUrl } : require('../../assets/icon.png');
+
+        return (
+            <TouchableOpacity
+                style={styles.promotedCard}
+                onPress={() => navigation.navigate('RestaurantMenu', { id: item._id || item.id })}
+                activeOpacity={0.85}
+            >
+                <View style={styles.imageContainer}>
+                    <Image
+                        source={imageSource}
+                        style={[styles.promotedImage, !formattedUrl && { backgroundColor: '#f0f8fb' }]}
+                        resizeMode={formattedUrl ? 'cover' : 'contain'}
+                    />
+                    <View style={styles.promotedTag}>
+                        <Text style={styles.promotedTagText}>Promoted</Text>
+                    </View>
+                </View>
+
+                <View style={styles.promotedInfo}>
+                    <Text style={styles.promotedName} numberOfLines={1}>
+                        {item.name}
+                    </Text>
+                    <View style={styles.promotedBottomRow}>
+                        <Text style={styles.promotedCuisine} numberOfLines={1}>
+                            {item.cuisine || 'Restaurant'}
+                        </Text>
+                        {item.averageRating ? (
+                            <View style={[styles.ratingBadge, { paddingHorizontal: 6, paddingVertical: 2 }]}>
+                                <Text style={[styles.ratingText, { fontSize: 11 }]}>⭐ {item.averageRating}</Text>
+                            </View>
+                        ) : null}
+                    </View>
+                </View>
+            </TouchableOpacity>
+        );
+    };
+
+    // --- RENDER REGULAR CARD ---
     const renderRestaurantCard = ({ item }) => {
         const rawImage = item.imageUrl || item.image;
         const formattedUrl = formatImageUrl(rawImage);
@@ -178,6 +227,88 @@ const HomeScreen = ({ user }) => {
         );
     };
 
+    // Get strictly promoted restaurants for the top carousel
+    const promotedRestaurants = restaurants.filter(r => r.isPromoted);
+
+    // --- RENDER LIST HEADER (Carousel + Filters) ---
+    const renderListHeader = () => (
+        <View style={styles.headerContainer}>
+            {/* Promoted Carousel */}
+            {promotedRestaurants.length > 0 && (
+                <View style={styles.promotedSection}>
+                    <Text style={[styles.sectionTitle, { paddingHorizontal: 24, marginBottom: 15 }]}>
+                        Featured & Promoted ✨
+                    </Text>
+                    <FlatList
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        data={promotedRestaurants}
+                        keyExtractor={(item) => `promoted-${item._id || item.id}`}
+                        renderItem={renderPromotedCard}
+                        contentContainerStyle={styles.promotedListContainer}
+                    />
+                </View>
+            )}
+
+            {/* Title and Count */}
+            <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>Browsing</Text>
+                <Text style={styles.countBadge}>{filteredRestaurants.length} Places</Text>
+            </View>
+
+            {/* Filter Buttons */}
+            <View style={styles.filterContainer}>
+                <TouchableOpacity 
+                    style={[styles.filterBtn, activeFilter === 'all' && styles.activeFilterBtn]}
+                    onPress={() => handleFilterClick('all')}
+                >
+                    <Text style={[styles.filterBtnText, activeFilter === 'all' && styles.activeFilterBtnText]}>All</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                    style={[styles.filterBtn, activeFilter === 'nearby' && styles.activeFilterBtn]}
+                    onPress={() => handleFilterClick('nearby')}
+                >
+                    <Text style={[styles.filterBtnText, activeFilter === 'nearby' && styles.activeFilterBtnText]}>📍 Nearby</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                    style={[styles.filterBtn, activeFilter === 'promoted' && styles.activeFilterBtn]}
+                    onPress={() => handleFilterClick('promoted')}
+                >
+                    <Text style={[styles.filterBtnText, activeFilter === 'promoted' && styles.activeFilterBtnText]}>⭐ Promoted</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                    style={[styles.filterBtn, activeFilter === 'top' && styles.activeFilterBtn]}
+                    onPress={() => handleFilterClick('top')}
+                >
+                    <Text style={[styles.filterBtnText, activeFilter === 'top' && styles.activeFilterBtnText]}>🏆 Top Rated</Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* Distance Selector (Only shows when 'nearby' is active) */}
+            {activeFilter === 'nearby' && !locationDenied && (
+                <View style={styles.distanceSelectorContainer}>
+                    <Text style={styles.distanceSelectorText}>Within: </Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        {[5, 10, 20].map(dist => (
+                            <TouchableOpacity 
+                                key={dist} 
+                                style={[styles.distanceChip, maxDistance === dist && styles.activeDistanceChip]}
+                                onPress={() => setMaxDistance(dist)}
+                            >
+                                <Text style={[styles.distanceChipText, maxDistance === dist && styles.activeDistanceChipText]}>
+                                    {dist} km
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+                </View>
+            )}
+        </View>
+    );
+
     return (
         <SafeAreaView style={styles.safeArea}>
             {/* Top Header Section */}
@@ -197,79 +328,25 @@ const HomeScreen = ({ user }) => {
             </View>
 
             <View style={styles.content}>
-                <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionTitle}>Browsing Restaurants</Text>
-                    <Text style={styles.countBadge}>{filteredRestaurants.length} Places</Text>
-                </View>
-
-                {/* Filter Buttons */}
-                <View style={styles.filterContainer}>
-                    <TouchableOpacity 
-                        style={[styles.filterBtn, activeFilter === 'all' && styles.activeFilterBtn]}
-                        onPress={() => handleFilterClick('all')}
-                    >
-                        <Text style={[styles.filterBtnText, activeFilter === 'all' && styles.activeFilterBtnText]}>All Places</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity 
-                        style={[styles.filterBtn, activeFilter === 'nearby' && styles.activeFilterBtn]}
-                        onPress={() => handleFilterClick('nearby')}
-                    >
-                        <Text style={[styles.filterBtnText, activeFilter === 'nearby' && styles.activeFilterBtnText]}>📍 Nearby</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity 
-                        style={[styles.filterBtn, activeFilter === 'promoted' && styles.activeFilterBtn]}
-                        onPress={() => handleFilterClick('promoted')}
-                    >
-                        <Text style={[styles.filterBtnText, activeFilter === 'promoted' && styles.activeFilterBtnText]}>⭐ Promoted</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity 
-                        style={[styles.filterBtn, activeFilter === 'top' && styles.activeFilterBtn]}
-                        onPress={() => handleFilterClick('top')}
-                    >
-                        <Text style={[styles.filterBtnText, activeFilter === 'top' && styles.activeFilterBtnText]}>🏆 Top Rated</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Distance Selector (Only shows when 'nearby' is active) */}
-                {activeFilter === 'nearby' && !locationDenied && (
-                    <View style={styles.distanceSelectorContainer}>
-                        <Text style={styles.distanceSelectorText}>Showing within: </Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                            {[5, 10, 20].map(dist => (
-                                <TouchableOpacity 
-                                    key={dist} 
-                                    style={[styles.distanceChip, maxDistance === dist && styles.activeDistanceChip]}
-                                    onPress={() => setMaxDistance(dist)}
-                                >
-                                    <Text style={[styles.distanceChipText, maxDistance === dist && styles.activeDistanceChipText]}>
-                                        {dist} km
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-                    </View>
-                )}
-
                 {/* Feed */}
                 {loading ? (
                     <ActivityIndicator size="large" color="#00c2e8" style={styles.loader} />
                 ) : error ? (
                     <Text style={styles.errorText}>{error}</Text>
-                ) : filteredRestaurants.length > 0 ? (
+                ) : (
                     <FlatList
                         data={filteredRestaurants}
                         keyExtractor={(item) => item._id || item.id || Math.random().toString()}
+                        ListHeaderComponent={renderListHeader}
                         renderItem={renderRestaurantCard}
                         contentContainerStyle={styles.listContainer}
                         showsVerticalScrollIndicator={false}
+                        ListEmptyComponent={() => (
+                            <View style={styles.emptyContainer}>
+                                <Text style={styles.emptyText}>No restaurants match your filters. 🍽️</Text>
+                            </View>
+                        )}
                     />
-                ) : (
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>No restaurants match your filters. 🍽️</Text>
-                    </View>
                 )}
             </View>
             
@@ -291,18 +368,30 @@ const styles = StyleSheet.create({
     searchEmoji: { marginRight: 10, fontSize: 16 },
     placeholder: { color: '#7b8490', fontSize: 15, fontWeight: '500' },
     content: { flex: 1 },
-    sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, marginBottom: 10 },
+    headerContainer: { paddingBottom: 5 },
+    
+    // Carousel Styles
+    promotedSection: { marginBottom: 10 },
+    promotedListContainer: { paddingLeft: 24, paddingRight: 8, paddingBottom: 15 },
+    promotedCard: { width: 240, backgroundColor: '#ffffff', borderRadius: 20, marginRight: 16, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
+    imageContainer: { position: 'relative', width: '100%', height: 130 },
+    promotedImage: { width: '100%', height: '100%', backgroundColor: '#eaeaea' },
+    promotedTag: { position: 'absolute', top: 10, left: 10, backgroundColor: '#ff4a4a', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+    promotedTagText: { color: '#ffffff', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' },
+    promotedInfo: { padding: 14 },
+    promotedName: { fontSize: 16, fontWeight: '800', marginBottom: 4, color: '#202125' },
+    promotedBottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    promotedCuisine: { fontSize: 12, color: '#7b8490', flex: 1, marginRight: 10 },
+
+    sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, marginBottom: 15 },
     sectionTitle: { fontSize: 22, fontWeight: '900', color: '#202125' },
     countBadge: { backgroundColor: '#e9ecef', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, fontSize: 12, fontWeight: 'bold', color: '#495057' },
-    filterContainer: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 24, marginBottom: 15,},
-    filterBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: '#dee2e6', backgroundColor: '#fff',marginRight: 8, marginBottom: 8 },
+    filterContainer: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 24, marginBottom: 15 },
+    filterBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: '#dee2e6', backgroundColor: '#fff', marginRight: 8, marginBottom: 8 },
     activeFilterBtn: { backgroundColor: '#00c2e8', borderColor: '#00c2e8' },
-    filterBtnText: { color: '#495057', fontWeight: '600', fontSize: 14 },
+    filterBtnText: { color: '#495057', fontWeight: '600', fontSize: 13 },
     activeFilterBtnText: { color: '#fff' },
-    filterScroll: { paddingHorizontal: 20, alignItems: 'center' },
-    filterBtnText: { color: '#495057', fontWeight: '600', fontSize: 14 },
-    activeFilterBtnText: { color: '#fff' },
-    distanceSelectorContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, marginBottom: 15 },
+    distanceSelectorContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, marginBottom: 20 },
     distanceSelectorText: { fontSize: 14, color: '#7b8490', fontWeight: '600', marginRight: 10 },
     distanceChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15, backgroundColor: '#e9ecef', marginRight: 8 },
     activeDistanceChip: { backgroundColor: '#202125' },
@@ -310,18 +399,19 @@ const styles = StyleSheet.create({
     activeDistanceChipText: { color: '#fff' },
     loader: { flex: 1, justifyContent: 'center' },
     errorText: { color: '#ff4a4a', textAlign: 'center', marginTop: 20, fontSize: 16 },
-    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
+    emptyContainer: { padding: 40, alignItems: 'center' },
     emptyText: { color: '#7b8490', fontSize: 16, fontWeight: '600', textAlign: 'center' },
-    listContainer: { paddingHorizontal: 24, paddingBottom: 30 },
-    card: { backgroundColor: '#ffffff', borderRadius: 20, marginBottom: 20, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 15, shadowOffset: { width: 0, height: 8 }, elevation: 4 },
+    listContainer: { paddingBottom: 30 },
+    
+    // Regular Card Styles
+    card: { backgroundColor: '#ffffff', borderRadius: 20, marginBottom: 20, marginHorizontal: 24, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 15, shadowOffset: { width: 0, height: 8 }, elevation: 4 },
     cardImage: { width: '100%', height: 160, backgroundColor: '#eaeaea' },
     cardInfo: { padding: 18 },
     cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 },
     restaurantName: { fontSize: 19, fontWeight: '800', color: '#202125', flex: 1 },
     ratingBadge: { backgroundColor: '#fff3cd', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
     ratingText: { fontSize: 12, fontWeight: 'bold', color: '#856404' },
-    restaurantDescription: { fontSize: 14, color: '#7b8490', lineHeight: 20 },
-    distanceText: { fontSize: 13, color: '#00c2e8', fontWeight: 'bold', marginTop: 8 }
+    distanceText: { fontSize: 13, color: '#00c2e8', fontWeight: 'bold', marginTop: 4 }
 });
 
 export default HomeScreen;
