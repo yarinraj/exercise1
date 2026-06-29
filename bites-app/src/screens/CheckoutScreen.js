@@ -17,8 +17,6 @@ import { Colors } from '../config/Colors';
 
 const CheckoutScreen = ({ navigation, user }) => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-    
-    // Destructured addToCart from useCart context to handle cross-selling interactions
     const { cartItems, totalPrice, totalItems, clearCart, activeRestaurantId, showToast, addToCart } = useCart();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -42,44 +40,50 @@ const CheckoutScreen = ({ navigation, user }) => {
         const fetchRecommendations = async () => {
             try {
                 setLoadingRecs(true);
-                
-                // 1. Initial attempt to fetch from C++ Gateway / recommendations endpoint
-                const recsResponse = await fetch(`${API_BASE_URL}/api/recommendations?restaurantId=${activeRestaurantId}`);
+
+                const token = await AsyncStorage.getItem('token');
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+                // 1. Primary endpoint check (C++ server gateway)
+                const targetUrl = `${API_BASE_URL}/api/recommendations?restaurantId=${activeRestaurantId}`;
+                const recsResponse = await fetch(targetUrl, { headers });
                 let recData = [];
-                
+
                 if (recsResponse.ok) {
                     recData = await recsResponse.json();
                 }
 
-                // 2. Fallback logic: If empty or failed, fetch all restaurant products and pick 3 random ones
+                // 2. Fallback check (Node products endpoint)
                 if (!recData || recData.length === 0) {
-                    const fallbackResponse = await fetch(`${API_BASE_URL}/api/products?restaurantId=${activeRestaurantId}`);
+                    const fallbackUrl = `${API_BASE_URL}/api/restaurants/${activeRestaurantId}/products`;
+                    const fallbackResponse = await fetch(fallbackUrl, { headers });
+                    
                     if (fallbackResponse.ok) {
                         const allProducts = await fallbackResponse.json();
-                        // Random shuffle and slice to get exactly 3 products
+                        // Get 3 random products as fallback recommendations
                         recData = allProducts.sort(() => 0.5 - Math.random()).slice(0, 3);
                     }
                 }
 
-                // 3. Filter out items already in cart + enrich object with activeRestaurantId context
+                // 3. Filtering check (Exclude items already in cart)
                 const cartIds = new Set(cartItems.map(item => item._id || item.id));
                 const enrichedFilteredRecs = recData
                     .filter(item => !cartIds.has(item._id || item.id))
                     .map(item => ({
                         ...item,
-                        restaurantId: activeRestaurantId // Ensures correct restaurant context
+                        restaurantId: activeRestaurantId
                     }));
 
                 setRecommendations(enrichedFilteredRecs);
             } catch (error) {
-                console.error('Error fetching recommendations:', error);
+                console.error('Network error inside fetchRecommendations:', error);
             } finally {
                 setLoadingRecs(false);
             }
         };
 
         fetchRecommendations();
-    }, [activeRestaurantId, cartItems.length]); // Triggers when active restaurant changes or cart item length updates
+    }, [activeRestaurantId, cartItems.length]);
 
     const formatImageUrl = (url) => {
         if (!url) return null;
@@ -118,14 +122,12 @@ const CheckoutScreen = ({ navigation, user }) => {
             const orderPayload = {
                 userId: finalUserId,
                 restaurantId: activeRestaurantId,
-
                 products: cartItems.map((item) => ({
                     productId: item._id || item.id,
                     name: item.name,
                     quantity: item.quantity,
                     price: item.price
                 })),
-
                 totalPrice: finalAmount,
                 status: 'pending'
             };
@@ -143,7 +145,6 @@ const CheckoutScreen = ({ navigation, user }) => {
                 setShowSuccessModal(true);
             } else {
                 const errorData = await response.json().catch(() => null);
-                console.log('Server Error Data:', errorData);
                 showToast(
                     errorData?.error ||
                     errorData?.message ||
@@ -205,7 +206,6 @@ const CheckoutScreen = ({ navigation, user }) => {
         );
     };
 
-    // UI Component for the horizontal recommendations list
     const renderRecommendationsSection = () => {
         if (loadingRecs) {
             return (
@@ -240,11 +240,11 @@ const CheckoutScreen = ({ navigation, user }) => {
                                         {item.name}
                                     </Text>
                                     <Text style={styles.recPrice}>₪{item.price}</Text>
-                                    <TouchableOpacity 
-                                        style={styles.recAddButton} 
+                                    <TouchableOpacity
+                                        style={styles.recAddButton}
                                         onPress={() => {
                                             if (addToCart) {
-                                                addToCart(item);
+                                                addToCart(item, activeRestaurantId);
                                                 showToast(`${item.name} added to cart!`, 'success');
                                             }
                                         }}
@@ -261,25 +261,9 @@ const CheckoutScreen = ({ navigation, user }) => {
     };
 
     return (
-        <SafeAreaView
-            style={[
-                styles.container,
-                { backgroundColor: theme.background }
-            ]}
-        >
-            <View
-                style={[
-                    styles.header,
-                    {
-                        backgroundColor: theme.card,
-                        borderColor: theme.border
-                    }
-                ]}
-            >
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                >
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+            <View style={[styles.header, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                     <Text style={styles.backButtonText}>← Back</Text>
                 </TouchableOpacity>
 
@@ -300,81 +284,45 @@ const CheckoutScreen = ({ navigation, user }) => {
                     keyExtractor={(item) => item._id || item.id}
                     renderItem={renderCartItem}
                     contentContainerStyle={styles.listContainer}
-                    ListFooterComponent={renderRecommendationsSection} // Renders recommendations right below cart items safely
+                    ListFooterComponent={renderRecommendationsSection}
                     ListEmptyComponent={
-                        <Text
-                            style={[
-                                styles.emptyText,
-                                { color: theme.textMuted || theme.mutedText || '#7b8490' }
-                            ]}
-                        >
+                        <Text style={[styles.emptyText, { color: theme.textMuted || theme.mutedText || '#7b8490' }]}>
                             No items in your cart.
                         </Text>
                     }
                 />
             </View>
 
-            <View
-                style={[
-                    styles.footerCard,
-                    {
-                        backgroundColor: theme.card,
-                        borderColor: theme.border,
-                        borderTopWidth: isDark ? 1 : 0
-                    }
-                ]}
-            >
+            <View style={[styles.footerCard, { backgroundColor: theme.card, borderColor: theme.border, borderTopWidth: isDark ? 1 : 0 }]}>
                 <View style={styles.priceRow}>
-                    <Text
-                        style={[
-                            styles.priceLabel,
-                            { color: theme.textMuted || theme.mutedText || '#7b8490' }
-                        ]}
-                    >
+                    <Text style={[styles.priceLabel, { color: theme.textMuted || theme.mutedText || '#7b8490' }]}>
                         Subtotal
                     </Text>
-
                     <Text style={[styles.priceValue, { color: theme.text }]}>
                         ₪{totalPrice}
                     </Text>
                 </View>
 
                 <View style={styles.priceRow}>
-                    <Text
-                        style={[
-                            styles.priceLabel,
-                            { color: theme.textMuted || theme.mutedText || '#7b8490' }
-                        ]}
-                    >
+                    <Text style={[styles.priceLabel, { color: theme.textMuted || theme.mutedText || '#7b8490' }]}>
                         Delivery Fee
                     </Text>
-
                     <Text style={[styles.priceValue, { color: theme.text }]}>
                         ₪{DELIVERY_FEE}
                     </Text>
                 </View>
 
-                <View
-                    style={[
-                        styles.priceRow,
-                        styles.totalRow,
-                        { borderColor: theme.border }
-                    ]}
-                >
+                <View style={[styles.priceRow, styles.totalRow, { borderColor: theme.border }]}>
                     <Text style={[styles.totalLabel, { color: theme.text }]}>
                         Total Amount
                     </Text>
-
                     <Text style={styles.totalValue}>
                         ₪{finalAmount}
                     </Text>
                 </View>
 
                 <TouchableOpacity
-                    style={[
-                        styles.submitButton,
-                        isSubmitting && styles.disabledButton
-                    ]}
+                    style={[styles.submitButton, isSubmitting && styles.disabledButton]}
                     onPress={handlePlaceOrder}
                     disabled={isSubmitting || cartItems.length === 0}
                 >
@@ -390,31 +338,14 @@ const CheckoutScreen = ({ navigation, user }) => {
 
             {showSuccessModal && (
                 <View style={styles.modalOverlay}>
-                    <View
-                        style={[
-                            styles.successBox,
-                            {
-                                backgroundColor: theme.card,
-                                borderColor: theme.border,
-                                borderWidth: isDark ? 1 : 0
-                            }
-                        ]}
-                    >
+                    <View style={[styles.successBox, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
                         <Text style={styles.successIcon}>🎉</Text>
-
                         <Text style={[styles.successTitle, { color: theme.text }]}>
                             order confirmed
                         </Text>
-
-                        <Text
-                            style={[
-                                styles.successMessage,
-                                { color: theme.textMuted || theme.mutedText || '#6c757d' }
-                            ]}
-                        >
+                        <Text style={[styles.successMessage, { color: theme.textMuted || theme.mutedText || '#6c757d' }]}>
                             The shipment is on its way to you
                         </Text>
-
                         <TouchableOpacity
                             style={styles.closeModalButton}
                             onPress={() => {
@@ -514,7 +445,6 @@ const styles = StyleSheet.create({
         marginTop: 40,
         fontSize: 16
     },
-    // New styles for the cross-selling recommendation engine
     recsContainer: {
         marginTop: 25,
         marginBottom: 10,
