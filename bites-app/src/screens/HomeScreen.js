@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as Location from 'expo-location'; 
-
 import { API_BASE_URL } from '../config/api';
 import SearchOverlay from './SearchOverlay';
 import { useTheme } from '../context/ThemeContext';
@@ -85,8 +84,10 @@ const HomeScreen = ({ user }) => {
         };
         
         useEffect(() => {
-        fetchRestaurants();
-    }, []);
+            fetchRestaurants();
+        }, []);
+    
+        
 
     const getRealDistance = (lat1, lon1, lat2, lon2) => {
         if (!lat1 || !lon1 || !lat2 || !lon2) return null;
@@ -144,18 +145,11 @@ const HomeScreen = ({ user }) => {
 
     // Helper function to format image URLs properly for the mobile emulator
     const formatImageUrl = (url) => {
-        if (!url) {
-            return null;
-        }
-
+        if (!url) return null;
         if (url.startsWith('http://localhost') || url.startsWith('https://localhost')) {
             return url.replace('localhost', '10.0.2.2');
         }
-
-        if (url.startsWith('http')) {
-            return url;
-        }
-
+        if (url.startsWith('http')) return url;
         const cleanPath = url.startsWith('/') ? url : `/${url}`;
         return `${API_BASE_URL}${cleanPath}`;
     };
@@ -363,6 +357,9 @@ const HomeScreen = ({ user }) => {
                         </ScrollView>
                     </View>
                 )}
+                <Text style={[styles.sectionTitle, { color: theme.text }]}>
+                    Browsing Restaurants
+                </Text>
 
                 {/* Feed */}
                 {loading ? (
@@ -438,6 +435,11 @@ const styles = StyleSheet.create({
     },
     restaurantTextArea: {
         flex: 1
+    },
+    restaurantDescription: {
+        fontSize: 14,
+        color: '#7b8490',
+        lineHeight: 20
     },
     ratingBadge: {
         flexDirection: 'row',
