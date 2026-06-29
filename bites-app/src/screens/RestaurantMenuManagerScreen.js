@@ -10,7 +10,7 @@ import { useTheme } from '../context/ThemeContext';
 import { Colors } from '../config/Colors';
 
 const RestaurantMenuManagerScreen = ({ route, navigation }) => {
-    const { restaurantId } = route.params || {};
+    const restaurantId = route.params?.id || route.params?.restaurantId;
     const { isDark } = useTheme();
     const theme = isDark ? Colors.dark : Colors.light;
 
