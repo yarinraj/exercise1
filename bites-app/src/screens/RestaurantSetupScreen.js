@@ -6,9 +6,14 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config/api';
+import { useTheme } from '../context/ThemeContext';
+import { Colors } from '../config/Colors';
 
 export default function RestaurantSetupScreen() {
     const navigation = useNavigation();
+    const { isDark } = useTheme();
+    const theme = isDark ? Colors.dark : Colors.light;
+
     const [isLoading, setIsLoading] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -87,47 +92,51 @@ export default function RestaurantSetupScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+            <View style={[styles.header, { backgroundColor: theme.card }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Text style={styles.backButtonText}>← Back</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Create Restaurant</Text>
+                <Text style={[styles.headerTitle, { color: theme.text }]}>Create Restaurant</Text>
                 <View style={{ width: 60 }} />
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <View style={styles.formCard}>
-                    <Text style={styles.subtitle}>Fields marked with * are required.</Text>
+                <View style={[styles.formCard, { backgroundColor: theme.card }]}>
+                    <Text style={[styles.subtitle, { color: theme.textMuted }]}>Fields marked with * are required.</Text>
 
-                    <Text style={styles.label}>Restaurant Name *</Text>
-                    <TextInput style={styles.input} value={formData.name} onChangeText={(val) => handleChange('name', val)} placeholder="Enter restaurant name" />
+                    <Text style={[styles.label, { color: theme.text }]}>Restaurant Name *</Text>
+                    <TextInput style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={formData.name} placeholderTextColor={theme.textMuted} onChangeText={(val) => handleChange('name', val)} placeholder="Enter restaurant name" />
 
-                    <Text style={styles.label}>Address *</Text>
-                    <TextInput style={styles.input} value={formData.address} onChangeText={(val) => handleChange('address', val)} placeholder="Full address" />
+                    <Text style={[styles.label, { color: theme.text }]}>Address *</Text>
+                    <TextInput style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={formData.address} placeholderTextColor={theme.textMuted} onChangeText={(val) => handleChange('address', val)} placeholder="Full address" />
 
-                    <Text style={styles.label}>Cuisine Type *</Text>
-                    <TextInput style={styles.input} value={formData.cuisine} onChangeText={(val) => handleChange('cuisine', val)} placeholder="e.g., Italian, Sushi, Burger" />
+                    <Text style={[styles.label, { color: theme.text }]}>Cuisine Type *</Text>
+                    <TextInput style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={formData.cuisine} placeholderTextColor={theme.textMuted} onChangeText={(val) => handleChange('cuisine', val)} placeholder="e.g., Italian, Sushi, Burger" />
 
                     <View style={styles.row}>
                         <View style={styles.halfWidth}>
-                            <Text style={styles.label}>Latitude *</Text>
-                            <TextInput style={styles.input} value={formData.lat} onChangeText={(val) => handleChange('lat', val)} placeholder="32.0853" keyboardType="numeric" />
+                            <Text style={[styles.label, { color: theme.text }]}>Latitude *</Text>
+                            <TextInput style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={formData.lat} placeholderTextColor={theme.textMuted} onChangeText={(val) => handleChange('lat', val)} placeholder="32.0853" keyboardType="numeric" />
                         </View>
                         <View style={styles.halfWidth}>
-                            <Text style={styles.label}>Longitude *</Text>
-                            <TextInput style={styles.input} value={formData.lng} onChangeText={(val) => handleChange('lng', val)} placeholder="34.7818" keyboardType="numeric" />
+                            <Text style={[styles.label, { color: theme.text }]}>Longitude *</Text>
+                            <TextInput style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={formData.lng} placeholderTextColor={theme.textMuted} onChangeText={(val) => handleChange('lng', val)} placeholder="34.7818" keyboardType="numeric" />
                         </View>
                     </View>
 
-                    <Text style={styles.label}>Description (Optional)</Text>
-                    <TextInput style={[styles.input, styles.textArea]} value={formData.description} onChangeText={(val) => handleChange('description', val)} placeholder="Tell us about your place" multiline numberOfLines={3} />
+                    <Text style={[styles.label, { color: theme.text }]}>Description (Optional)</Text>
+                    <TextInput   
+                    style={[styles.input, styles.textArea, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} 
+                    value={formData.description} 
+                    placeholderTextColor={theme.textMuted}
+                    onChangeText={(val) => handleChange('description', val)} placeholder="Tell us about your place" multiline numberOfLines={3} />
 
-                    <Text style={styles.label}>Phone Number (Optional)</Text>
-                    <TextInput style={styles.input} value={formData.phone} onChangeText={(val) => handleChange('phone', val)} placeholder="Phone number" keyboardType="phone-pad" />
+                    <Text style={[styles.label, { color: theme.text }]}>Phone Number (Optional)</Text>
+                    <TextInput style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={formData.phone} placeholderTextColor={theme.textMuted} onChangeText={(val) => handleChange('phone', val)} placeholder="Phone number" keyboardType="phone-pad" />
 
-                    <Text style={styles.label}>Cover Image URL (Optional)</Text>
-                    <TextInput style={styles.input} value={formData.image} onChangeText={(val) => handleChange('image', val)} placeholder="https://example.com/cover.jpg" keyboardType="url" autoCapitalize="none" />
+                    <Text style={[styles.label, { color: theme.text }]}>Cover Image URL (Optional)</Text>
+                    <TextInput style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]} value={formData.image} placeholderTextColor={theme.textMuted} onChangeText={(val) => handleChange('image', val)} placeholder="https://example.com/cover.jpg" keyboardType="url" autoCapitalize="none" />
 
                     <View style={styles.promotionCard}>
                         <View style={styles.promotionTextContainer}>

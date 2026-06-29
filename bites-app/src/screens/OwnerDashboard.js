@@ -6,9 +6,13 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config/api';
+import { useTheme } from '../context/ThemeContext';
+import { Colors } from '../config/Colors';
 
 export default function OwnerDashboard({ user }) {
     const navigation = useNavigation();
+    const { isDark } = useTheme();
+    const theme = isDark ? Colors.dark : Colors.light;
     
     const [restaurants, setRestaurants] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -140,11 +144,11 @@ export default function OwnerDashboard({ user }) {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 
                 <View style={styles.header}>
-                    <Text style={styles.title}>My Restaurants</Text>
+                    <Text style={[styles.title, { color: theme.text }]}>My Restaurants</Text>
                     <TouchableOpacity 
                         style={styles.createButton}
                         onPress={() => navigation.navigate('RestaurantSetupScreen')} 
@@ -153,12 +157,12 @@ export default function OwnerDashboard({ user }) {
                     </TouchableOpacity>
                 </View>
 
-                <View style={styles.section}>
+                <View style={[styles.section, { backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0 }]}>
                     {isLoading ? (
                         <ActivityIndicator size="large" color="#00c2e8" style={{ marginTop: 20 }} />
                     ) : restaurants.length > 0 ? (
                         restaurants.map((res) => (
-                            <View key={res._id} style={styles.card}>
+                            <View key={res._id} style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
                                 {res.isPromoted && (
                                     <View style={styles.promotedBadge}>
                                         <Text style={styles.promotedText}>⭐ Promoted</Text>
@@ -167,12 +171,12 @@ export default function OwnerDashboard({ user }) {
                                 
                                 <Image 
                                     source={res.image && res.image.trim() !== '' ? { uri: res.image } : require('../../assets/icon.png')} 
-                                    style={[styles.cardImage, (!res.image || res.image.trim() === '') && styles.containImage]} 
+                                    style={[styles.cardImage, (!res.image || res.image.trim() === '') && styles.containImage, { backgroundColor: theme.card }]} 
                                 />
                                 
-                                <View style={styles.cardBody}>
-                                    <Text style={styles.cardTitle}>{res.name}</Text>
-                                    <Text style={styles.cardCuisine}>{res.cuisine}</Text>
+                                <View style={[styles.cardBody, { backgroundColor: theme.card }]}>
+                                    <Text style={[styles.cardTitle, { color: theme.text }]}>{res.name}</Text>
+                                    <Text style={[styles.cardCuisine, { color: theme.textMuted }]}>{res.cuisine}</Text>
                                     
                                     <View style={styles.actionButtonsRow}>
                                         <TouchableOpacity 
@@ -210,8 +214,8 @@ export default function OwnerDashboard({ user }) {
                         ))
                     ) : (
                         <View style={styles.emptyState}>
-                            <Text style={styles.emptyText}>You don't have any restaurants yet.</Text>
-                            <Text style={styles.emptyText}>Create your first one to get started!</Text>
+                            <Text style={[styles.emptyText, { color: theme.textMuted }]}>You don't have any restaurants yet.</Text>
+                            <Text style={[styles.emptyText, { color: theme.textMuted }]}>Create your first one to get started!</Text>
                         </View>
                     )}
                 </View>
