@@ -53,7 +53,7 @@ const EditDishScreen = ({ route, navigation }) => {
 
     const handleSubmit = async () => {
         if (!formData.name.trim() || !formData.price.trim()) {
-            setErrorMsg('Please fill in the required fields (Name, Price)!');
+            setErrorMsg('Please fill in the required fields (*)');
             return;
         }
 
