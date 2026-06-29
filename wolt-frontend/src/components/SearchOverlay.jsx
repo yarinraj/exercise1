@@ -2,20 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './searchOverlay.css';
 
-function SearchOverlay({ searchQuery, setSearchQuery, onClose }) {
+function SearchOverlay({ searchQuery, setSearchQuery, onClose, user }) {
     const navigate = useNavigate();
 
+    const userId = user?.username || user?.userId || user?._id || user?.id || 'guest';
+    const storageKey = `recent_searches_${userId}`;
     
     const [recentSearches, setRecentSearches] = useState([]);
     const [liveResults, setLiveResults] = useState({ restaurants: [], items: [] });
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        const savedSearches = localStorage.getItem('recent_searches');
+        if (!user) {
+            setRecentSearches([]);
+            return;
+        }
+        const savedSearches = localStorage.getItem(storageKey);
         if (savedSearches) {
             setRecentSearches(JSON.parse(savedSearches));
+        } else {
+            setRecentSearches([]); 
         }
-    }, []);
+    }, [storageKey]);
 
     
     useEffect(() => {
@@ -69,7 +77,7 @@ const mappedItems = rawItems.map(product => {
         if (!queryStr.trim()) return;
         const updated = [queryStr, ...recentSearches.filter(s => s !== queryStr)].slice(0, 5);
         setRecentSearches(updated);
-        localStorage.setItem('recent_searches', JSON.stringify(updated));
+        localStorage.setItem(storageKey, JSON.stringify(updated));
     };
 
     const handleImageError = (e) => {
@@ -132,7 +140,7 @@ useEffect(() => {
 
                 <div className="wolt-overlay-body">
                     
-                    {isQueryEmpty && (
+                    {isQueryEmpty && user && (
                         <div className="wolt-recent-section">
                             <h2>Recent Searches</h2>
                             {recentSearches.length > 0 ? (

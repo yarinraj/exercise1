@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import './navbar.css';
-import { useCart } from '../context/cart';
 import SearchOverlay from './SearchOverlay';
 
 function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
-    const { clearCart } = useCart();
     const [isDarkMode, setIsDarkMode] = useState(() => {
         const savedTheme = localStorage.getItem('theme');
         return savedTheme === 'dark';
@@ -16,6 +14,23 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     const navigate = useNavigate();
     const location = useLocation();
     const searchInputRef = useRef(null);
+
+    const searchContainerRef = useRef(null); 
+
+    //listening to presses outside the searching area
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (isSearchActive && searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+                setIsSearchActive(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isSearchActive]);
+
+
 
     useEffect(() => {
         const searchParams = new URLSearchParams(location.search);
@@ -55,6 +70,8 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
     };
 
     const handleLogout = () => {
+        setIsSearchActive(false); 
+        setSearchQuery('');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         document.body.classList.remove('dark-theme');
@@ -132,6 +149,16 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
                     <span className="brand-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer', textDecoration: 'none', color: '#00c2e8' }}>
                         bites
                     </span>
+                    {user && (
+                            <button
+                                type="button"
+                                className="past-orders-button"
+                                onClick={() => navigate('/past-orders')}
+                                title="Past Orders"
+                            >
+                                🛒
+                            </button>
+                        )}
                 </div>
                 <div className={`navbar-center ${isSearchActive ? 'search-focused' : ''}`}>
                     <div className="search-wrapper" onClick={() => setIsSearchActive(true)}>
@@ -154,17 +181,6 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
                 </div>
                 {user ? (
                     <div className="navbar-right">
-                        {user && (
-                            <button
-                                type="button"
-                                className="past-orders-button"
-                                onClick={() => navigate('/past-orders')}
-                                title="Past Orders"
-                            >
-                                🛒
-                            </button>
-                        )}
-
                         <button className="theme-toggle" onClick={toggleTheme}>
                             <span className="knob"></span>
                             <span className={`icon sun ${isDarkMode ? 'hidden' : ''}`}>☀️</span>
@@ -205,6 +221,7 @@ function Navbar({ user, setUser, searchQuery, setSearchQuery }) {
                         setIsSearchActive(false);
                         setSearchQuery('');
                     }}
+                    user={user}
                 />
             )}
         </>

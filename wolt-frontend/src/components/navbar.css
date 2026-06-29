@@ -25,6 +25,11 @@
     cursor: pointer;
 }
 
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
 .navbar-right {
     display: flex;
     align-items: center;
@@ -334,14 +339,11 @@ body.dark-theme .clear-search-btn {
     height: 42px;
     border-radius: 50%;
     border: none;
-    background-color: #00c2e8;
-    color: white;
+    background-color: white;
     font-size: 1.25rem;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 194, 232, 0.25);
     transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
@@ -349,19 +351,9 @@ body.dark-theme .clear-search-btn {
 
 .past-orders-button:hover {
     transform: scale(1.06);
-    background-color: #00abd0;
     box-shadow: 0 6px 16px rgba(0, 194, 232, 0.35);
 }
 
 .past-orders-button:active {
     transform: scale(0.96);
-}
-
-body.dark-theme .past-orders-button {
-    background-color: #00c2e8;
-    color: #ffffff;
-}
-
-body.dark-theme .past-orders-button:hover {
-    background-color: #00abd0;
 }
