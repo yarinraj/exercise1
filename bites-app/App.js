@@ -160,11 +160,12 @@ export default function App() {
         >
           {(props) => <OrderHistoryScreen {...props} user={user} />}
         </Drawer.Screen>
-        {user?.role === 'owner' && (
+      )}
+      {user?.role === 'owner' && (
            <Drawer.Screen name="Owner Dashboard"> 
             {(props) => <OwnerDashboard {...props} user={user} />}
           </Drawer.Screen>
-        )}
+      )}
        
       </Drawer.Navigator>
     );
