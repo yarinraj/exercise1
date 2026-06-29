@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useLayoutEffect } from 'react';
 import {
     View, Text, Image, TouchableOpacity, StyleSheet,
     Alert, FlatList, ActivityIndicator
@@ -6,9 +6,20 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { API_BASE_URL } from '../config/api';
+import { useTheme } from '../context/ThemeContext';
+import { Colors } from '../config/Colors';
 
 const RestaurantMenuManagerScreen = ({ route, navigation }) => {
     const { restaurantId } = route.params || {};
+    const { isDark } = useTheme();
+    const theme = isDark ? Colors.dark : Colors.light;
+
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerStyle: { backgroundColor: theme.card },
+            headerTintColor: theme.text,
+        });
+    }, [navigation, theme]);
 
     const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -91,8 +102,9 @@ const RestaurantMenuManagerScreen = ({ route, navigation }) => {
                     style={styles.itemImage}
                 />
                 <View>
-                    <Text style={styles.itemName}>{item.name}</Text>
-                    <Text style={styles.itemPrice}>{item.price} ₪</Text>
+                    <Text style={[styles.itemName, { color: theme.text }]}>{item.name}</Text>
+                    
+                    <Text style={[styles.itemPrice, { color: theme.textMuted }]}>{item.price} ₪</Text>
                 </View>
             </View>
 
@@ -115,15 +127,15 @@ const RestaurantMenuManagerScreen = ({ route, navigation }) => {
     );
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
             <View style={styles.header}>
-                <Text style={styles.title}>Menu Management</Text>
-                <Text style={styles.subtitle}>Manage the dishes available at your restaurant.</Text>
+                <Text style={[styles.title, { color: theme.text }]}>Menu Management</Text>
+                <Text style={[styles.subtitle, { color: theme.textMuted }]}>Manage the dishes available at your restaurant.</Text>
             </View>
 
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: theme.card }]}>
                 <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle}>Dishes</Text>
+                    <Text style={[styles.cardTitle, { color: theme.text }]}>Dishes</Text>
                     <TouchableOpacity
                         style={styles.addButton}
                         onPress={() => navigation.navigate('AddDishScreen', { restaurantId })}
@@ -143,7 +155,7 @@ const RestaurantMenuManagerScreen = ({ route, navigation }) => {
                         showsVerticalScrollIndicator={false}
                     />
                 ) : (
-                    <Text style={styles.emptyText}>No dishes found. Click "+ Add New Dish" to get started.</Text>
+                    <Text style={[styles.emptyText, { color: theme.textMuted }]}>No dishes found. Click "+ Add New Dish" to get started.</Text>
                 )}
             </View>
         </View>

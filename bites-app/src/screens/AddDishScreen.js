@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, StyleSheet,
     Alert, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config/api';
+import { useTheme } from '../context/ThemeContext';
+import { Colors } from '../config/Colors';
 
 const AddDishScreen = ({ route, navigation }) => {
     const { restaurantId } = route.params || {};
+    const { isDark } = useTheme();
+    const theme = isDark ? Colors.dark : Colors.light;
+
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerStyle: { backgroundColor: theme.card },
+            headerTintColor: theme.text,
+        });
+    }, [navigation, theme]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -78,49 +89,53 @@ const AddDishScreen = ({ route, navigation }) => {
 
     return (
         <KeyboardAvoidingView 
-            style={styles.container} 
+            style={[styles.container, { backgroundColor: theme.background }]}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
-                    <Text style={styles.title}>Add New Dish</Text>
-                    <Text style={styles.subtitle}>Fields marked with * are required.</Text>
+                    <Text style={[styles.title, { color: theme.text }]}>Add New Dish</Text>
+                    <Text style={[styles.subtitle, { color: theme.textMuted }]}>Fields marked with * are required.</Text>
                 </View>
 
-                <View style={styles.card}>
-                    {errorMsg ? <Text style={styles.errorText}>❌ {errorMsg}</Text> : null}
+                <View style={[styles.card, { backgroundColor: theme.card }]}>
+                    {errorMsg ? <Text style={[styles.errorText, { color: theme.danger }]}>❌ {errorMsg}</Text> : null}
 
-                    <Text style={styles.label}>Dish Name *</Text>
+                    <Text style={[styles.label, { color: theme.text }]}>Dish Name *</Text>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
                         value={formData.name}
+                        placeholderTextColor={theme.textMuted}
                         onChangeText={(text) => handleChange('name', text)}
                         placeholder="Enter dish name"
                     />
 
-                    <Text style={styles.label}>Price (₪) *</Text>
+                    <Text style={[styles.label, { color: theme.text }]}>Price (₪) *</Text>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
                         value={formData.price}
+                        placeholderTextColor={theme.textMuted}
                         onChangeText={(text) => handleChange('price', text)}
                         placeholder="0"
                         keyboardType="numeric"
                     />
 
-                    <Text style={styles.label}>Description (Optional)</Text>
+                    <Text style={[styles.label, { color: theme.text }]}>Description (Optional)</Text>
                     <TextInput
-                        style={[styles.input, styles.textArea]}
+                        style={[styles.input, styles.textArea , { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
                         value={formData.description}
+                        placeholderTextColor={theme.textMuted}
                         onChangeText={(text) => handleChange('description', text)}
                         placeholder="Enter description"
                         multiline
                         numberOfLines={3}
                     />
 
-                    <Text style={styles.label}>Image URL (Optional)</Text>
+                    <Text style={[styles.label, { color: theme.text }]}>Image URL (Optional)</Text>
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
                         value={formData.image}
+                        placeholderTextColor={theme.textMuted}
                         onChangeText={(text) => handleChange('image', text)}
                         placeholder="https://example.com/image.jpg"
                         keyboardType="url"
