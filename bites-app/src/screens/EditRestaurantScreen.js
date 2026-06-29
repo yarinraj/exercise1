@@ -58,6 +58,16 @@ export default function EditRestaurantScreen({ route, navigation }) {
     }, [id]);
 
     const handleSave = async () => {
+        if (
+            !restaurant.name.trim() ||
+            !restaurant.address.trim() ||
+            !restaurant.cuisine.trim() ||
+            !restaurant.lat.trim() ||
+            !restaurant.lng.trim()
+        ) {
+            Alert.alert('Error', 'Please fill in all required fields (*).');
+            return; 
+        }
         try {
             setIsSaving(true);
             const token = await AsyncStorage.getItem('token');
