@@ -17,14 +17,15 @@ import { Colors } from '../config/Colors';
 
 const CheckoutScreen = ({ navigation, user }) => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const { cartItems, totalPrice, totalItems, clearCart, activeRestaurantId, showToast } = useCart();
+    const [showEmptyCartModal, setShowEmptyCartModal] = useState(false);
+    const { cartItems, totalPrice, totalItems, clearCart, activeRestaurantId, showToast, addToCart, updateQuantity, setCartTrigger } = useCart();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { isDark } = useTheme();
     const theme = isDark ? Colors.dark : Colors.light;
 
     const DELIVERY_FEE = 12;
-    const finalAmount = totalPrice + DELIVERY_FEE;
+    const finalAmount = totalPrice > 0 ? totalPrice + DELIVERY_FEE : 0;
 
     const formatImageUrl = (url) => {
         if (!url) return null;
@@ -41,7 +42,7 @@ const CheckoutScreen = ({ navigation, user }) => {
 
     const handlePlaceOrder = async () => {
         if (cartItems.length === 0) {
-            showToast('Your cart is empty', 'error');
+            setShowEmptyCartModal(true);
             return;
         }
 
@@ -136,14 +137,35 @@ const CheckoutScreen = ({ navigation, user }) => {
                         {item.name}
                     </Text>
 
-                    <Text
-                        style={[
-                            styles.itemMeta,
-                            { color: theme.textMuted || theme.mutedText || '#7b8490' }
-                        ]}
-                    >
-                        ×{item.quantity}
-                    </Text>
+                    <View style={styles.quantityContainer}>
+                        <TouchableOpacity 
+                            style={[styles.qtyButton, { backgroundColor: isDark ? theme.border : '#f1f3f5' }]}
+                            onPress={() => addToCart(item, activeRestaurantId)}
+                        >
+                            <Text style={[styles.qtyButtonText, { color: theme.text }]}>+</Text>
+                        </TouchableOpacity>
+
+                        <Text style={[styles.qtyText, { color: theme.text }]}>
+                            {item.quantity}
+                        </Text>
+
+                        <TouchableOpacity 
+                            style={[styles.qtyButton, { backgroundColor: isDark ? theme.border : '#f1f3f5' }]}
+                            onPress={() => {
+                                const targetId = item._id || item.id;
+                                const currentQty = item.quantity || 1;
+
+                                updateQuantity(targetId, currentQty - 1);
+                                if (setCartTrigger) setCartTrigger((prev) => prev + 1);
+                                if (showToast) {
+                                    showToast('Dish removed from cart.', 'info');
+                                }
+                            }}
+                        >
+                            <Text style={[styles.qtyButtonText, { color: theme.text }]}>-</Text>
+                        </TouchableOpacity>
+                        
+                    </View>
 
                     <Text style={styles.brandPrice}>₪{item.price}</Text>
                 </View>
@@ -266,7 +288,7 @@ const CheckoutScreen = ({ navigation, user }) => {
                         isSubmitting && styles.disabledButton
                     ]}
                     onPress={handlePlaceOrder}
-                    disabled={isSubmitting || cartItems.length === 0}
+                    disabled={isSubmitting}
                 >
                     {isSubmitting ? (
                         <ActivityIndicator color="#ffffff" />
@@ -316,6 +338,43 @@ const CheckoutScreen = ({ navigation, user }) => {
                                 Back to restaurants feed
                             </Text>
                         </TouchableOpacity>
+                    </View>
+                </View>
+            )}
+            {showEmptyCartModal && (
+                <View style={styles.modalOverlay}>
+                    <View
+                        style={[
+                            styles.successBox,
+                            {
+                                backgroundColor: theme.card,
+                                borderColor: theme.border,
+                                borderWidth: isDark ? 1 : 0,
+                                position: 'relative' 
+                            }
+                        ]}
+                    >
+                        <TouchableOpacity
+                            style={styles.closeXButton}
+                            onPress={() => setShowEmptyCartModal(false)}
+                        >
+                            <Text style={[styles.closeXText, { color: theme.text }]}>✕</Text>
+                        </TouchableOpacity>
+
+                        <Text style={styles.successIcon}>🛒</Text>
+
+                        <Text style={[styles.successTitle, { color: theme.text }]}>
+                            Your cart is empty
+                        </Text>
+
+                        <Text
+                            style={[
+                                styles.successMessage,
+                                { color: theme.textMuted || theme.mutedText || '#6c757d' }
+                            ]}
+                        >
+                            Please add products
+                        </Text>
                     </View>
                 </View>
             )}
@@ -504,7 +563,41 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold'
-    }
+    },
+    closeXButton: {
+        position: 'absolute',
+        top: 15,
+        right: 15,
+        padding: 5,
+        zIndex: 1,
+    },
+    closeXText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
+    quantityContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 6,
+        marginBottom: 6,
+    },
+    qtyButton: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    qtyButtonText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        lineHeight: 20,
+    },
+    qtyText: {
+        fontSize: 16,
+        fontWeight: '700',
+        marginHorizontal: 12,
+    },
 });
 
 export default CheckoutScreen;
