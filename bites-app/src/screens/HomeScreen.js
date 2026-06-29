@@ -65,9 +65,9 @@ const HomeScreen = ({ user }) => {
     }, []);
 
     // Fetch restaurants from backend
-    useEffect(() => {
         const fetchRestaurants = async () => {
             try {
+                setLoading(true);
                 const response = await fetch(`${API_BASE_URL}/api/restaurants`);
                 const data = await response.json();
 
@@ -83,8 +83,8 @@ const HomeScreen = ({ user }) => {
                 setLoading(false);
             }
         };
-
-        // Fetch data on initial mount
+        
+        useEffect(() => {
         fetchRestaurants();
     }, []);
 
@@ -144,22 +144,6 @@ const HomeScreen = ({ user }) => {
 
     // Helper function to format image URLs properly for the mobile emulator
     const formatImageUrl = (url) => {
-        if (!url) return null;
-        if (url.startsWith('http://localhost') || url.startsWith('https://localhost')) {
-            return url.replace('localhost', '10.0.2.2');
-        }
-        if (url.startsWith('http')) return url;
-
-        // Add navigation listener to re-fetch data every time the screen comes into focus
-        const unsubscribe = navigation.addListener('focus', () => {
-            fetchRestaurants();
-        });
-
-        // Clean up the listener when component unmounts
-        return unsubscribe;
-    }, [navigation];
-
-    const formatImageUrl = (url) => {
         if (!url) {
             return null;
         }
@@ -175,6 +159,16 @@ const HomeScreen = ({ user }) => {
         const cleanPath = url.startsWith('/') ? url : `/${url}`;
         return `${API_BASE_URL}${cleanPath}`;
     };
+
+    useEffect(() => {
+        // Add navigation listener to re-fetch data every time the screen comes into focus
+        const unsubscribe = navigation.addListener('focus', () => {
+            fetchRestaurants();
+        });
+
+        // Clean up the listener when component unmounts
+        return unsubscribe;
+    }, [navigation]);
 
     const getRestaurantRatingText = (restaurant) => {
         const rating = Number(restaurant.averageRating || 0);
