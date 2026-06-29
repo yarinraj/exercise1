@@ -215,7 +215,6 @@ export default function App() {
             </Stack.Screen>
 
           </Stack.Navigator>
-
           <FloatingCartIcon />
         </NavigationContainer>
       </CartProvider>

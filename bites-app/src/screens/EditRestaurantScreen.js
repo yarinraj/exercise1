@@ -4,10 +4,14 @@ import {
     ScrollView, ActivityIndicator, Alert, Switch, SafeAreaView 
 } from 'react-native';
 import { API_BASE_URL } from '../config/api';
+import { useTheme } from '../context/ThemeContext';
+import { Colors } from '../config/Colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function EditRestaurantScreen({ route, navigation }) {
     const { id } = route.params;
+        const { isDark } = useTheme();
+        const theme = isDark ? Colors.dark : Colors.light;
 
     const [restaurant, setRestaurant] = useState({
         name: '',
@@ -58,6 +62,16 @@ export default function EditRestaurantScreen({ route, navigation }) {
     }, [id]);
 
     const handleSave = async () => {
+        if (
+            !restaurant.name.trim() ||
+            !restaurant.address.trim() ||
+            !restaurant.cuisine.trim() ||
+            !restaurant.lat.trim() ||
+            !restaurant.lng.trim()
+        ) {
+            Alert.alert('Error', 'Please fill in all required fields (*).');
+            return; 
+        }
         try {
             setIsSaving(true);
             const token = await AsyncStorage.getItem('token');
@@ -96,83 +110,90 @@ export default function EditRestaurantScreen({ route, navigation }) {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-             <View style={styles.header}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+             <View style={[styles.header, { backgroundColor: theme.card }]}>
                             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                                 <Text style={styles.backButtonText}>← Back</Text>
                             </TouchableOpacity>
-                            <Text style={styles.headerTitle}>Edit Restaurant</Text>
+                            <Text style={[styles.headerTitle, { color: theme.text }]}>Edit Restaurant</Text>
                             <View style={{ width: 60 }} />
                         </View>
         
         <ScrollView contentContainerStyle={styles.scrollContent}>
-            <View style={styles.formCard}>
-                
-                <Text style={styles.subtitle}>Fields marked with * are required.</Text>
+            <View style={[styles.formCard, { backgroundColor: theme.card }]}>
+                <Text style={[styles.subtitle, { color: theme.textMuted }]}>Fields marked with * are required.</Text>
 
-                <Text style={styles.label}>Restaurant Name *</Text>
+                <Text style={[styles.label, { color: theme.text }]}>Restaurant Name *</Text>
                 <TextInput 
-                    style={styles.input} 
+                    style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
                     value={restaurant.name} 
+                    placeholderTextColor={theme.textMuted}
                     onChangeText={(text) => setRestaurant({...restaurant, name: text})}
                 />
 
-                <Text style={styles.label}>Address *</Text>
+                <Text style={[styles.label, { color: theme.text }]}>Address *</Text>
                 <TextInput 
-                    style={styles.input} 
+                    style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
                     value={restaurant.address} 
+                    placeholderTextColor={theme.textMuted}
                     onChangeText={(text) => setRestaurant({...restaurant, address: text})}
                 />
 
-                <Text style={styles.label}>Cuisine Type *</Text>
+                <Text style={[styles.label, { color: theme.text }]}>Cuisine Type *</Text>
                 <TextInput 
-                    style={styles.input} 
+                    style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
                     value={restaurant.cuisine} 
+                    placeholderTextColor={theme.textMuted}
                     onChangeText={(text) => setRestaurant({...restaurant, cuisine: text})}
                 />
 
                 <View style={styles.row}>
                     <View style={styles.halfWidth}>
-                        <Text style={styles.label}>Latitude *</Text>
+                        <Text style={[styles.label, { color: theme.text }]}>Latitude *</Text>
                         <TextInput 
-                            style={styles.input} 
+                            style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
                             value={restaurant.lat} 
+                            placeholderTextColor={theme.textMuted}
                             keyboardType="numeric"
                             onChangeText={(text) => setRestaurant({...restaurant, lat: text})}
                         />
                     </View>
                     <View style={styles.halfWidth}>
-                        <Text style={styles.label}>Longitude *</Text>
+                        <Text style={[styles.label, { color: theme.text }]}>Longitude *</Text>
                         <TextInput 
-                            style={styles.input} 
+                            style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
                             value={restaurant.lng} 
+                            placeholderTextColor={theme.textMuted}
                             keyboardType="numeric"
                             onChangeText={(text) => setRestaurant({...restaurant, lng: text})}
                         />
                     </View>
                 </View>
 
-                <Text style={styles.label}>Description (Optional)</Text>
+                <Text style={[styles.label, { color: theme.text }]}>Description (Optional)</Text>
                 <TextInput 
-                    style={[styles.input, styles.textArea]} 
+                    style={[styles.input, styles.textArea, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
                     value={restaurant.description} 
+                    placeholderTextColor={theme.textMuted}
                     multiline
                     numberOfLines={4}
                     onChangeText={(text) => setRestaurant({...restaurant, description: text})}
                 />
 
-                <Text style={styles.label}>Phone Number (Optional)</Text>
+                <Text style={[styles.label, { color: theme.text }]}>Phone Number (Optional)</Text>
                 <TextInput 
-                    style={styles.input} 
+                    style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
                     value={restaurant.phone} 
+                    placeholderTextColor={theme.textMuted}
                     keyboardType="phone-pad"
                     onChangeText={(text) => setRestaurant({...restaurant, phone: text})}
                 />
 
-                <Text style={styles.label}>Cover Image URL (Optional)</Text>
+                <Text style={[styles.label, { color: theme.text }]}>Cover Image URL (Optional)</Text>
                 <TextInput 
-                    style={styles.input} 
+                    style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder, color: theme.text }]}
                     value={restaurant.coverImage} 
+                    placeholderTextColor={theme.textMuted}
                     onChangeText={(text) => setRestaurant({...restaurant, coverImage: text})}
                 />
 
@@ -183,6 +204,7 @@ export default function EditRestaurantScreen({ route, navigation }) {
                     </View>
                     <Switch
                         value={restaurant.isPromoted}
+                        placeholderTextColor={theme.textMuted}
                         onValueChange={(val) => setRestaurant({...restaurant, isPromoted: val})}
                         trackColor={{ false: "#d3d3d3", true: "#ffc107" }}
                         thumbColor={restaurant.isPromoted ? "#ffffff" : "#f4f3f4"}
