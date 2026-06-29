@@ -24,6 +24,9 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen'; 
 import HomeScreen from './src/screens/HomeScreen';       
 import RestaurantMenu from './src/screens/RestaurantMenu';
+import OwnerDashboard from './src/screens/OwnerDashboard';
+import RestaurantSetupScreen from './src/screens/RestaurantSetupScreen';
+import EditRestaurantScreen from './src/screens/EditRestaurantScreen';
 import CheckoutScreen from './src/screens/CheckoutScreen';
 
 import { createNavigationContainerRef } from '@react-navigation/native';
@@ -149,6 +152,12 @@ export default function App() {
         >
           {(props) => <HomeScreen {...props} user={user} />}
         </Drawer.Screen>
+        {user?.role === 'owner' && (
+           <Drawer.Screen name="Owner Dashboard"> 
+            {(props) => <OwnerDashboard {...props} user={user} />}
+          </Drawer.Screen>
+        )}
+       
       </Drawer.Navigator>
     );
   };
@@ -178,11 +187,19 @@ export default function App() {
               {(props) => <RestaurantMenu {...props} />}
             </Stack.Screen>
 
+        <Stack.Screen name="RestaurantSetupScreen" >
+          {(props) => <RestaurantSetupScreen {...props} />}
+        </Stack.Screen>
+
+        <Stack.Screen name="EditRestaurantScreen" >
+          {(props) => <EditRestaurantScreen {...props} />}
+        </Stack.Screen>
+
             <Stack.Screen name="Checkout">
               {(props) => <CheckoutScreen {...props} />}
             </Stack.Screen>
+            
           </Stack.Navigator>
-
           <FloatingCartIcon />
         </NavigationContainer>
       </CartProvider>

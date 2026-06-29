@@ -52,9 +52,10 @@ const createToken = async (req, res) => {
         return res.status(200).json({
             token,
             user: {
+                _id: user._id,
                 username: user.username,
                 displayName: user.displayName,
-                profileImage: user.profileImage,
+                // profileImage: user.profileImage,
                 role: user.role
             }
         });
