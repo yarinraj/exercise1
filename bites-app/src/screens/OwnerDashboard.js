@@ -188,7 +188,7 @@ export default function OwnerDashboard({ user }) {
                                         
                                         <TouchableOpacity 
                                             style={[styles.actionBtn, styles.menuBtn]}
-                                            onPress={() => navigation.navigate('MenuManagementScreen', { id: res._id })}
+                                            onPress={() => navigation.navigate('RestaurantMenuManagerScreen', { id: res._id })}
                                         >
                                             <Text style={styles.menuBtnText}>Menu</Text>
                                         </TouchableOpacity>

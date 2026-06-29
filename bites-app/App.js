@@ -194,11 +194,12 @@ export default function App() {
         <Stack.Screen name="EditRestaurantScreen" >
           {(props) => <EditRestaurantScreen {...props} />}
         </Stack.Screen>
+
             <Stack.Screen name="Checkout">
               {(props) => <CheckoutScreen {...props} />}
             </Stack.Screen>
+            
           </Stack.Navigator>
-
           <FloatingCartIcon />
         </NavigationContainer>
       </CartProvider>
