@@ -236,12 +236,9 @@ const HomeScreen = ({ user }) => {
 
                 <View style={styles.cardInfo}>
                     <View style={styles.cardHeaderRow}>
-                        <Text style={styles.restaurantName}>{item.name}</Text>
-                        {item.averageRating ? (
-                            <View style={styles.ratingBadge}>
-                                <Text style={styles.ratingText}>⭐ {item.averageRating}</Text>
-                            </View>
-                        ) : null}
+                        <Text style={[styles.restaurantName, { color: theme.text }]}>
+                                {item.name}
+                        </Text>
                     </View>
 
                     {item.address ? (
@@ -249,10 +246,6 @@ const HomeScreen = ({ user }) => {
                     ) : null}
                     <View style={styles.cardTopRow}>
                         <View style={styles.restaurantTextArea}>
-                            <Text style={[styles.restaurantName, { color: theme.text }]}>
-                                {item.name}
-                            </Text>
-
                             <Text
                                 style={[
                                     styles.restaurantDescription,
