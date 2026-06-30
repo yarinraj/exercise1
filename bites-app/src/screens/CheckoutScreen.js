@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -17,15 +17,73 @@ import { Colors } from '../config/Colors';
 
 const CheckoutScreen = ({ navigation, user }) => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [showEmptyCartModal, setShowEmptyCartModal] = useState(false);
-    const { cartItems, totalPrice, totalItems, clearCart, activeRestaurantId, showToast, addToCart, updateQuantity, setCartTrigger } = useCart();
+    const { cartItems, totalPrice, totalItems, clearCart, activeRestaurantId, showToast, addToCart } = useCart();
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // State for the recommendation engine
+    const [recommendations, setRecommendations] = useState([]);
+    const [loadingRecs, setLoadingRecs] = useState(false);
 
     const { isDark } = useTheme();
     const theme = isDark ? Colors.dark : Colors.light;
 
     const DELIVERY_FEE = 12;
-    const finalAmount = totalPrice > 0 ? totalPrice + DELIVERY_FEE : 0;
+    const finalAmount = totalPrice + DELIVERY_FEE;
+
+    // Fetch recommendations with fallback and filtering logic
+    useEffect(() => {
+        if (!activeRestaurantId || cartItems.length === 0) {
+            setRecommendations([]);
+            return;
+        }
+
+        const fetchRecommendations = async () => {
+            try {
+                setLoadingRecs(true);
+
+                const token = await AsyncStorage.getItem('token');
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+                // 1. Primary endpoint check (C++ server gateway)
+                const targetUrl = `${API_BASE_URL}/api/recommendations?restaurantId=${activeRestaurantId}`;
+                const recsResponse = await fetch(targetUrl, { headers });
+                let recData = [];
+
+                if (recsResponse.ok) {
+                    recData = await recsResponse.json();
+                }
+
+                // 2. Fallback check (Node products endpoint)
+                if (!recData || recData.length === 0) {
+                    const fallbackUrl = `${API_BASE_URL}/api/restaurants/${activeRestaurantId}/products`;
+                    const fallbackResponse = await fetch(fallbackUrl, { headers });
+                    
+                    if (fallbackResponse.ok) {
+                        const allProducts = await fallbackResponse.json();
+                        // Get 3 random products as fallback recommendations
+                        recData = allProducts.sort(() => 0.5 - Math.random()).slice(0, 3);
+                    }
+                }
+
+                // 3. Filtering check (Exclude items already in cart)
+                const cartIds = new Set(cartItems.map(item => item._id || item.id));
+                const enrichedFilteredRecs = recData
+                    .filter(item => !cartIds.has(item._id || item.id))
+                    .map(item => ({
+                        ...item,
+                        restaurantId: activeRestaurantId
+                    }));
+
+                setRecommendations(enrichedFilteredRecs);
+            } catch (error) {
+                console.error('Network error inside fetchRecommendations:', error);
+            } finally {
+                setLoadingRecs(false);
+            }
+        };
+
+        fetchRecommendations();
+    }, [activeRestaurantId, cartItems.length]);
 
     const formatImageUrl = (url) => {
         if (!url) return null;
@@ -42,7 +100,7 @@ const CheckoutScreen = ({ navigation, user }) => {
 
     const handlePlaceOrder = async () => {
         if (cartItems.length === 0) {
-            setShowEmptyCartModal(true);
+            showToast('Your cart is empty', 'error');
             return;
         }
 
@@ -59,19 +117,18 @@ const CheckoutScreen = ({ navigation, user }) => {
                 parsedUser?.id ||
                 user?.userId ||
                 user?._id ||
+                user?.id ||
                 'guest_user';
 
             const orderPayload = {
                 userId: finalUserId,
                 restaurantId: activeRestaurantId,
-
                 products: cartItems.map((item) => ({
                     productId: item._id || item.id,
                     name: item.name,
                     quantity: item.quantity,
                     price: item.price
                 })),
-
                 totalPrice: finalAmount,
                 status: 'pending'
             };
@@ -90,7 +147,6 @@ const CheckoutScreen = ({ navigation, user }) => {
                 setShowSuccessModal(true);
             } else {
                 const errorData = await response.json().catch(() => null);
-                console.log('Server Error Data:', errorData);
                 showToast(
                     errorData?.error ||
                     errorData?.message ||
@@ -137,35 +193,14 @@ const CheckoutScreen = ({ navigation, user }) => {
                         {item.name}
                     </Text>
 
-                    <View style={styles.quantityContainer}>
-                        <TouchableOpacity 
-                            style={[styles.qtyButton, { backgroundColor: isDark ? theme.border : '#f1f3f5' }]}
-                            onPress={() => addToCart(item, activeRestaurantId)}
-                        >
-                            <Text style={[styles.qtyButtonText, { color: theme.text }]}>+</Text>
-                        </TouchableOpacity>
-
-                        <Text style={[styles.qtyText, { color: theme.text }]}>
-                            {item.quantity}
-                        </Text>
-
-                        <TouchableOpacity 
-                            style={[styles.qtyButton, { backgroundColor: isDark ? theme.border : '#f1f3f5' }]}
-                            onPress={() => {
-                                const targetId = item._id || item.id;
-                                const currentQty = item.quantity || 1;
-
-                                updateQuantity(targetId, currentQty - 1);
-                                if (setCartTrigger) setCartTrigger((prev) => prev + 1);
-                                if (showToast) {
-                                    showToast('Dish removed from cart.', 'info');
-                                }
-                            }}
-                        >
-                            <Text style={[styles.qtyButtonText, { color: theme.text }]}>-</Text>
-                        </TouchableOpacity>
-                        
-                    </View>
+                    <Text
+                        style={[
+                            styles.itemMeta,
+                            { color: theme.textMuted || theme.mutedText || '#7b8490' }
+                        ]}
+                    >
+                        ×{item.quantity}
+                    </Text>
 
                     <Text style={styles.brandPrice}>₪{item.price}</Text>
                 </View>
@@ -173,26 +208,64 @@ const CheckoutScreen = ({ navigation, user }) => {
         );
     };
 
+    const renderRecommendationsSection = () => {
+        if (loadingRecs) {
+            return (
+                <View style={styles.recsLoadingContainer}>
+                    <ActivityIndicator color="#00c2e8" size="small" />
+                </View>
+            );
+        }
+
+        if (recommendations.length === 0) return null;
+
+        return (
+            <View style={styles.recsContainer}>
+                <Text style={[styles.recsTitle, { color: theme.text }]}>
+                    Want to add a little something? 🍕
+                </Text>
+                <FlatList
+                    horizontal
+                    data={recommendations}
+                    keyExtractor={(item) => `rec-${item._id || item.id}`}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.recsHorizontalList}
+                    renderItem={({ item }) => {
+                        const formattedUrl = formatImageUrl(item.imageUrl || item.image);
+                        const imageSource = formattedUrl ? { uri: formattedUrl } : require('../../assets/icon.png');
+
+                        return (
+                            <View style={[styles.recCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                                <Image source={imageSource} style={styles.recImage} resizeMode="cover" />
+                                <View style={styles.recDetails}>
+                                    <Text style={[styles.recName, { color: theme.text }]} numberOfLines={1}>
+                                        {item.name}
+                                    </Text>
+                                    <Text style={styles.recPrice}>₪{item.price}</Text>
+                                    <TouchableOpacity
+                                        style={styles.recAddButton}
+                                        onPress={() => {
+                                            if (addToCart) {
+                                                addToCart(item, activeRestaurantId);
+                                                showToast(`${item.name} added to cart!`, 'success');
+                                            }
+                                        }}
+                                    >
+                                        <Text style={styles.recAddButtonText}>+ Add</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        );
+                    }}
+                />
+            </View>
+        );
+    };
+
     return (
-        <SafeAreaView
-            style={[
-                styles.container,
-                { backgroundColor: theme.background }
-            ]}
-        >
-            <View
-                style={[
-                    styles.header,
-                    {
-                        backgroundColor: theme.card,
-                        borderColor: theme.border
-                    }
-                ]}
-            >
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                >
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+            <View style={[styles.header, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                     <Text style={styles.backButtonText}>← Back</Text>
                 </TouchableOpacity>
 
@@ -213,82 +286,47 @@ const CheckoutScreen = ({ navigation, user }) => {
                     keyExtractor={(item) => item._id || item.id}
                     renderItem={renderCartItem}
                     contentContainerStyle={styles.listContainer}
+                    ListFooterComponent={renderRecommendationsSection}
                     ListEmptyComponent={
-                        <Text
-                            style={[
-                                styles.emptyText,
-                                { color: theme.textMuted || theme.mutedText || '#7b8490' }
-                            ]}
-                        >
+                        <Text style={[styles.emptyText, { color: theme.textMuted || theme.mutedText || '#7b8490' }]}>
                             No items in your cart.
                         </Text>
                     }
                 />
             </View>
 
-            <View
-                style={[
-                    styles.footerCard,
-                    {
-                        backgroundColor: theme.card,
-                        borderColor: theme.border,
-                        borderTopWidth: isDark ? 1 : 0
-                    }
-                ]}
-            >
+            <View style={[styles.footerCard, { backgroundColor: theme.card, borderColor: theme.border, borderTopWidth: isDark ? 1 : 0 }]}>
                 <View style={styles.priceRow}>
-                    <Text
-                        style={[
-                            styles.priceLabel,
-                            { color: theme.textMuted || theme.mutedText || '#7b8490' }
-                        ]}
-                    >
+                    <Text style={[styles.priceLabel, { color: theme.textMuted || theme.mutedText || '#7b8490' }]}>
                         Subtotal
                     </Text>
-
                     <Text style={[styles.priceValue, { color: theme.text }]}>
                         ₪{totalPrice}
                     </Text>
                 </View>
 
                 <View style={styles.priceRow}>
-                    <Text
-                        style={[
-                            styles.priceLabel,
-                            { color: theme.textMuted || theme.mutedText || '#7b8490' }
-                        ]}
-                    >
+                    <Text style={[styles.priceLabel, { color: theme.textMuted || theme.mutedText || '#7b8490' }]}>
                         Delivery Fee
                     </Text>
-
                     <Text style={[styles.priceValue, { color: theme.text }]}>
                         ₪{DELIVERY_FEE}
                     </Text>
                 </View>
 
-                <View
-                    style={[
-                        styles.priceRow,
-                        styles.totalRow,
-                        { borderColor: theme.border }
-                    ]}
-                >
+                <View style={[styles.priceRow, styles.totalRow, { borderColor: theme.border }]}>
                     <Text style={[styles.totalLabel, { color: theme.text }]}>
                         Total Amount
                     </Text>
-
                     <Text style={styles.totalValue}>
                         ₪{finalAmount}
                     </Text>
                 </View>
 
                 <TouchableOpacity
-                    style={[
-                        styles.submitButton,
-                        isSubmitting && styles.disabledButton
-                    ]}
+                    style={[styles.submitButton, isSubmitting && styles.disabledButton]}
                     onPress={handlePlaceOrder}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || cartItems.length === 0}
                 >
                     {isSubmitting ? (
                         <ActivityIndicator color="#ffffff" />
@@ -302,18 +340,8 @@ const CheckoutScreen = ({ navigation, user }) => {
 
             {showSuccessModal && (
                 <View style={styles.modalOverlay}>
-                    <View
-                        style={[
-                            styles.successBox,
-                            {
-                                backgroundColor: theme.card,
-                                borderColor: theme.border,
-                                borderWidth: isDark ? 1 : 0
-                            }
-                        ]}
-                    >
+                    <View style={[styles.successBox, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
                         <Text style={styles.successIcon}>🎉</Text>
-
                         <Text style={[styles.successTitle, { color: theme.text }]}>
                             order confirmed
                         </Text>
@@ -326,7 +354,6 @@ const CheckoutScreen = ({ navigation, user }) => {
                         >
                             The delivery is on its way to you
                         </Text>
-
                         <TouchableOpacity
                             style={styles.closeModalButton}
                             onPress={() => {
@@ -338,43 +365,6 @@ const CheckoutScreen = ({ navigation, user }) => {
                                 Back to restaurants feed
                             </Text>
                         </TouchableOpacity>
-                    </View>
-                </View>
-            )}
-            {showEmptyCartModal && (
-                <View style={styles.modalOverlay}>
-                    <View
-                        style={[
-                            styles.successBox,
-                            {
-                                backgroundColor: theme.card,
-                                borderColor: theme.border,
-                                borderWidth: isDark ? 1 : 0,
-                                position: 'relative' 
-                            }
-                        ]}
-                    >
-                        <TouchableOpacity
-                            style={styles.closeXButton}
-                            onPress={() => setShowEmptyCartModal(false)}
-                        >
-                            <Text style={[styles.closeXText, { color: theme.text }]}>✕</Text>
-                        </TouchableOpacity>
-
-                        <Text style={styles.successIcon}>🛒</Text>
-
-                        <Text style={[styles.successTitle, { color: theme.text }]}>
-                            Your cart is empty
-                        </Text>
-
-                        <Text
-                            style={[
-                                styles.successMessage,
-                                { color: theme.textMuted || theme.mutedText || '#6c757d' }
-                            ]}
-                        >
-                            Please add products
-                        </Text>
                     </View>
                 </View>
             )}
@@ -462,6 +452,68 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 40,
         fontSize: 16
+    },
+    recsContainer: {
+        marginTop: 25,
+        marginBottom: 10,
+    },
+    recsTitle: {
+        fontSize: 17,
+        fontWeight: '800',
+        marginBottom: 12,
+        textAlign: 'left',
+    },
+    recsLoadingContainer: {
+        paddingVertical: 20,
+        alignItems: 'center',
+    },
+    recsHorizontalList: {
+        paddingBottom: 10,
+    },
+    recCard: {
+        width: 130,
+        borderRadius: 14,
+        marginRight: 14,
+        borderWidth: 1,
+        overflow: 'hidden',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOpacity: 0.03,
+        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 2 },
+    },
+    recImage: {
+        width: '100%',
+        height: 80,
+        backgroundColor: '#eaeaea',
+    },
+    recDetails: {
+        padding: 8,
+        alignItems: 'flex-start',
+    },
+    recName: {
+        fontSize: 13,
+        fontWeight: '700',
+        marginBottom: 2,
+        width: '100%',
+    },
+    recPrice: {
+        fontSize: 13,
+        fontWeight: '800',
+        color: '#00c2e8',
+        marginBottom: 6,
+    },
+    recAddButton: {
+        backgroundColor: '#00c2e8',
+        paddingVertical: 5,
+        borderRadius: 8,
+        width: '100%',
+        alignItems: 'center',
+    },
+    recAddButtonText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
     },
     footerCard: {
         borderTopLeftRadius: 26,
@@ -563,41 +615,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold'
-    },
-    closeXButton: {
-        position: 'absolute',
-        top: 15,
-        right: 15,
-        padding: 5,
-        zIndex: 1,
-    },
-    closeXText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    quantityContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 6,
-        marginBottom: 6,
-    },
-    qtyButton: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    qtyButtonText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        lineHeight: 20,
-    },
-    qtyText: {
-        fontSize: 16,
-        fontWeight: '700',
-        marginHorizontal: 12,
-    },
+    }
 });
 
 export default CheckoutScreen;

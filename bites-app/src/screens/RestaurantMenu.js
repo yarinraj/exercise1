@@ -51,7 +51,6 @@ export default function RestaurantMenu() {
         const token = await AsyncStorage.getItem('token');
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         
-        // בדיקה האם המשתמש מחובר (קיים טוקן)
         setIsLoggedIn(!!token);
 
         const [restaurantRes, productsRes] = await Promise.all([
@@ -80,7 +79,7 @@ export default function RestaurantMenu() {
     fetchMenuData();
   }, [id, navigation]);
 
-  // --- Submit Rating Function ---
+  //  Submit Rating Function 
   const submitRating = async () => {
     if (userRating === 0) {
       Alert.alert('Hold on', 'Please select a star rating before submitting.');
@@ -110,7 +109,6 @@ export default function RestaurantMenu() {
       if (response.ok) {
         const result = await response.json();
         
-        // עדכון סטייט המערכת עם הממוצע החדש שחזר מהשרת
         setRestaurant(prev => ({
           ...prev,
           averageRating: result.averageRating,
@@ -183,7 +181,6 @@ export default function RestaurantMenu() {
             {restaurant.cuisine} • {restaurant.address}
           </Text>
           
-          {/* כפתור דירוג - מוצג אך ורק אם המשתמש מחובר */}
           {isLoggedIn && (
             <TouchableOpacity 
               style={styles.rateButton} 
@@ -352,7 +349,6 @@ export default function RestaurantMenu() {
         </TouchableOpacity>
       )}
 
-      {/* --- Rating Modal (רק כוכבים, בלי תיבת טקסט) --- */}
       <Modal
         animationType="slide"
         transparent={true}
