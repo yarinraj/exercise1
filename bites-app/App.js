@@ -33,6 +33,7 @@ import RestaurantMenuManagerScreen from './src/screens/RestaurantMenuManagerScre
 import CheckoutScreen from './src/screens/CheckoutScreen';
 
 import { createNavigationContainerRef } from '@react-navigation/native';
+import OrderHistoryScreen from './src/screens/OrderHistoryScreen';
 export const navigationRef = createNavigationContainerRef();
 
 // Initialize the stack navigator
@@ -115,51 +116,56 @@ export default function App() {
   };
 
   // --- Drawer Navigator Wrapper with Dynamic screenOptions ---
-  const DrawerNavigator = ({ navigation }) => {
-    // Access the current theme inside the navigator wrapper
-    const { isDark } = useTheme();
-    const theme = isDark ? Colors.dark : Colors.light;
+ const DrawerNavigator = ({ navigation }) => {
+  const { isDark } = useTheme();
+  const theme = isDark ? Colors.dark : Colors.light;
 
-    return (
-      <Drawer.Navigator
-        drawerContent={(props) => (
-          <CustomDrawerContent
-            {...props}
-            user={user}
-            onLogout={() => handleLogout(navigation)}
-          />
-        )}
-        screenOptions={{
-          // Dynamic Header configuration
-          headerStyle: { backgroundColor: theme.card },
-          headerTintColor: theme.text,
-          headerTitleStyle: { fontWeight: '900' },
-          
-          // Dynamic Drawer side panel navigation look
-          drawerStyle: { backgroundColor: theme.background, width: 240 },
-          drawerActiveTintColor: '#00c2e8',
-          drawerInactiveTintColor: theme.text,
-          drawerLabelStyle: { fontWeight: '700' }
-        }}
+  return (
+    <Drawer.Navigator
+      drawerContent={(props) => (
+        <CustomDrawerContent
+          {...props}
+          user={user}
+          onLogout={() => handleLogout(navigation)}
+        />
+      )}
+      screenOptions={{
+        headerStyle: { backgroundColor: theme.card },
+        headerTintColor: theme.text,
+        headerTitleStyle: { fontWeight: '900' },
+        drawerStyle: { backgroundColor: theme.background, width: 240 },
+        drawerActiveTintColor: '#00c2e8',
+        drawerInactiveTintColor: theme.text,
+        drawerLabelStyle: { fontWeight: '700' }
+      }}
+    >
+      <Drawer.Screen
+        name="Welcome"
+        options={{ title: 'Home', drawerLabel: 'Home' }}
       >
-        <Drawer.Screen
-          name="Welcome"
-          options={{ title: 'Home', drawerLabel: 'Home' }}
-        >
-          {(props) => <WelcomeScreen {...props} user={user} />}
-        </Drawer.Screen>
+        {(props) => <WelcomeScreen {...props} user={user} />}
+      </Drawer.Screen>
 
+      <Drawer.Screen
+        name="Home"
+        options={{ title: 'Restaurants', drawerLabel: 'Restaurants' }}
+      >
+        {(props) => <HomeScreen {...props} user={user} />}
+      </Drawer.Screen>
+
+      {user && (
         <Drawer.Screen
-          name="Home"
-          options={{ title: 'Restaurants', drawerLabel: 'Restaurants' }}
+          name="OrderHistory"
+          options={{ title: 'My Orders', drawerLabel: 'My Orders' }}
         >
-          {(props) => <HomeScreen {...props} user={user} />}
+          {(props) => <OrderHistoryScreen {...props} user={user} />}
         </Drawer.Screen>
-        {user?.role === 'owner' && (
+      )}
+      {user?.role === 'owner' && (
            <Drawer.Screen name="Owner Dashboard"> 
             {(props) => <OwnerDashboard {...props} user={user} />}
           </Drawer.Screen>
-        )}
+      )}
        
       </Drawer.Navigator>
     );
