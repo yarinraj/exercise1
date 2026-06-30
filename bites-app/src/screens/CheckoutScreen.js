@@ -324,7 +324,7 @@ const CheckoutScreen = ({ navigation, user }) => {
                                 { color: theme.textMuted || theme.mutedText || '#6c757d' }
                             ]}
                         >
-                            The shipment is on its way to you
+                            The delivery is on its way to you
                         </Text>
 
                         <TouchableOpacity
