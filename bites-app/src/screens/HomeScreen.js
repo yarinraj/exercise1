@@ -207,45 +207,54 @@ const renderRatingBadge = (restaurant) => {
 
 // --- RENDER PROMOTED CARD ---
 const renderPromotedCard = ({ item }) => {
-    const rawImage = item.imageUrl || item.image;
-    const formattedUrl = formatImageUrl(rawImage);
-    const imageSource = formattedUrl ? { uri: formattedUrl } : require('../../assets/icon.png');
+        const rawImage = item.imageUrl || item.image;
+        const formattedUrl = formatImageUrl(rawImage);
+        const imageSource = formattedUrl ? { uri: formattedUrl } : require('../../assets/icon.png');
 
-    return (
-        <TouchableOpacity
-            style={styles.promotedCard}
-            onPress={() => navigation.navigate('RestaurantMenu', { id: item._id || item.id })}
-            activeOpacity={0.85}
-        >
-            <View style={styles.imageContainer}>
-                <Image
-                    source={imageSource}
-                    style={[styles.promotedImage, !formattedUrl && { backgroundColor: '#f0f8fb' }]}
-                    resizeMode={formattedUrl ? 'cover' : 'contain'}
-                />
-                <View style={styles.promotedTag}>
-                    <Text style={styles.promotedTagText}>Promoted</Text>
+        return (
+            <TouchableOpacity
+                style={[
+                    styles.promotedCard,
+                    {
+                     
+                        backgroundColor: theme.card,
+                        borderColor: theme.border,
+                        borderWidth: isDark ? 1 : 0
+                    }
+                ]}
+                onPress={() => navigation.navigate('RestaurantMenu', { id: item._id || item.id })}
+                activeOpacity={0.85}
+            >
+                <View style={styles.imageContainer}>
+                    <Image
+                        source={imageSource}
+                        style={[styles.promotedImage, !formattedUrl && { backgroundColor: theme.inputBg }]}
+                        resizeMode={formattedUrl ? 'cover' : 'contain'}
+                    />
+                    <View style={styles.promotedTag}>
+                        <Text style={styles.promotedTagText}>Promoted</Text>
+                    </View>
                 </View>
-            </View>
 
-            <View style={styles.promotedInfo}>
-                <Text style={styles.promotedName} numberOfLines={1}>
-                    {item.name}
-                </Text>
-                <View style={styles.promotedBottomRow}>
-                    <Text style={styles.promotedCuisine} numberOfLines={1}>
-                        {item.cuisine || 'Restaurant'}
+                <View style={styles.promotedInfo}>
+                  
+                    <Text style={[styles.promotedName, { color: theme.text }]} numberOfLines={1}>
+                        {item.name}
                     </Text>
-                    {item.averageRating ? (
-                        <View style={[styles.ratingBadge, { paddingHorizontal: 6, paddingVertical: 2 }]}>
-                            <Text style={[styles.ratingText, { fontSize: 11 }]}>⭐ {item.averageRating}</Text>
-                        </View>
-                    ) : null}
+                    <View style={styles.promotedBottomRow}>
+                        <Text style={[styles.promotedCuisine, { color: theme.textMuted }]} numberOfLines={1}>
+                            {item.cuisine || 'Restaurant'}
+                        </Text>
+                        {item.averageRating ? (
+                            <View style={[styles.ratingBadge, { paddingHorizontal: 6, paddingVertical: 2, backgroundColor: isDark ? '#10243d' : '#e8f9fd' }]}>
+                                <Text style={styles.ratingBadgeText}>⭐ {item.averageRating}</Text>
+                            </View>
+                        ) : null}
+                    </View>
                 </View>
-            </View>
-        </TouchableOpacity>
-    );
-};
+            </TouchableOpacity>
+        );
+    };
 
 // --- RENDER REGULAR CARD ---
 const renderRestaurantCard = ({ item }) => {
@@ -471,7 +480,7 @@ const styles = StyleSheet.create({
     promotedCard: { width: 240, backgroundColor: '#ffffff', borderRadius: 20, marginRight: 16, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
     imageContainer: { position: 'relative', width: '100%', height: 130 },
     promotedImage: { width: '100%', height: '100%', backgroundColor: '#eaeaea' },
-    promotedTag: { position: 'absolute', top: 10, left: 10, backgroundColor: '#ff4a4a', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+    promotedTag: { position: 'absolute', top: 10, left: 10, backgroundColor: '#f1c40f', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
     promotedTagText: { color: '#ffffff', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase' },
     promotedInfo: { padding: 14 },
     promotedName: { fontSize: 16, fontWeight: '800', marginBottom: 4, color: '#202125' },
