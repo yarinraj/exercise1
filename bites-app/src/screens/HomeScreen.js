@@ -12,14 +12,18 @@ import {
     Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import * as Location from 'expo-location'; 
+import * as Location from 'expo-location';
 import { API_BASE_URL } from '../config/api';
 import SearchOverlay from './SearchOverlay';
+import { useTheme } from '../context/ThemeContext';
+import { Colors } from '../config/Colors';
 
 const HomeScreen = ({ user }) => {
     const navigation = useNavigation();
-    
-    // States for data
+
+    const { isDark } = useTheme();
+    const theme = isDark ? Colors.dark : Colors.light;
+
     const [restaurants, setRestaurants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -29,7 +33,7 @@ const HomeScreen = ({ user }) => {
     const [activeFilter, setActiveFilter] = useState('all');
     const [userLocation, setUserLocation] = useState(null);
     const [locationDenied, setLocationDenied] = useState(false);
-    const [maxDistance, setMaxDistance] = useState(10); 
+    const [maxDistance, setMaxDistance] = useState(10);
 
     // Fetch user location
     useEffect(() => {
@@ -44,7 +48,7 @@ const HomeScreen = ({ user }) => {
                 let location = await Location.getCurrentPositionAsync({
                     accuracy: Location.Accuracy.Balanced,
                 });
-                
+
                 setUserLocation({
                     lat: location.coords.latitude,
                     lng: location.coords.longitude
@@ -60,25 +64,26 @@ const HomeScreen = ({ user }) => {
     }, []);
 
     // Fetch restaurants from backend
-    useEffect(() => {
-        const fetchRestaurants = async () => {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/restaurants`);
-                const data = await response.json();
+    const fetchRestaurants = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_BASE_URL}/api/restaurants`);
+            const data = await response.json();
 
-                if (response.ok) {
-                    setRestaurants(data);
-                } else {
-                    setError('Failed to fetch restaurants.');
-                }
-            } catch (err) {
-                console.error('Network error fetching restaurants:', err);
-                setError('Could not connect to the server.');
-            } finally {
-                setLoading(false);
+            if (response.ok) {
+                setRestaurants(data);
+            } else {
+                setError('Failed to fetch restaurants.');
             }
-        };
-
+        } catch (err) {
+            console.error('Network error fetching restaurants:', err);
+            setError('Could not connect to the server.');
+        } finally {
+            setLoading(false);
+        }
+    };
+  useEffect(() => {
+        // Fetch data on initial mount
         fetchRestaurants();
 
         // Refresh data when returning to screen
@@ -89,241 +94,332 @@ const HomeScreen = ({ user }) => {
         return unsubscribe;
     }, [navigation]);
 
-    const getRealDistance = (lat1, lon1, lat2, lon2) => {
-        if (!lat1 || !lon1 || !lat2 || !lon2) return null;
-        const R = 6371; 
-        const dLat = (lat2 - lat1) * (Math.PI / 180);
-        const dLon = (lon2 - lon1) * (Math.PI / 180);
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return parseFloat((R * c).toFixed(1));
-    };
+const getRealDistance = (lat1, lon1, lat2, lon2) => {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+    const R = 6371;
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return parseFloat((R * c).toFixed(1));
+};
 
-    // Handle filter button press
-    const handleFilterClick = (filterType) => {
-        if (filterType === 'nearby' && locationDenied) {
-            Alert.alert(
-                "Location Required",
-                "Location access is required to view nearby restaurants. Please enable permissions in your phone settings."
-            );
-            return;
-        }
-        setActiveFilter(filterType);
-    };
-
-    // Filter and Map the restaurants
-    const filteredRestaurants = restaurants
-        .map(restaurant => {
-            const distance = userLocation && restaurant.lat && restaurant.lng
-                ? getRealDistance(userLocation.lat, userLocation.lng, restaurant.lat, restaurant.lng)
-                : null;
-
-            return {
-                ...restaurant,
-                calculatedDistance: distance
-            };
-        })
-        .filter(restaurant => {
-            if (activeFilter === 'nearby') {
-                if (locationDenied || restaurant.calculatedDistance === null) return false;
-                if (restaurant.calculatedDistance > maxDistance) return false;
-            }
-
-            if (activeFilter === 'promoted' && restaurant.isPromoted !== true) {
-                return false;
-            }
-
-            if (activeFilter === 'top') {
-                const rating = restaurant.averageRating ?? restaurant.rating ?? 0;
-                if (rating < 4.0) return false;
-            }
-            
-            return true;
-        });
-
-    // Helper function to format image URLs properly for the mobile emulator
-    const formatImageUrl = (url) => {
-        if (!url) return null;
-        if (url.startsWith('http://localhost') || url.startsWith('https://localhost')) {
-            return url.replace('localhost', '10.0.2.2');
-        }
-        if (url.startsWith('http')) return url;
-        const cleanPath = url.startsWith('/') ? url : `/${url}`;
-        return `${API_BASE_URL}${cleanPath}`;
-    };
-
-    // --- RENDER PROMOTED CARD ---
-    const renderPromotedCard = ({ item }) => {
-        const rawImage = item.imageUrl || item.image;
-        const formattedUrl = formatImageUrl(rawImage);
-        const imageSource = formattedUrl ? { uri: formattedUrl } : require('../../assets/icon.png');
-
-        return (
-            <TouchableOpacity
-                style={styles.promotedCard}
-                onPress={() => navigation.navigate('RestaurantMenu', { id: item._id || item.id })}
-                activeOpacity={0.85}
-            >
-                <View style={styles.imageContainer}>
-                    <Image
-                        source={imageSource}
-                        style={[styles.promotedImage, !formattedUrl && { backgroundColor: '#f0f8fb' }]}
-                        resizeMode={formattedUrl ? 'cover' : 'contain'}
-                    />
-                    <View style={styles.promotedTag}>
-                        <Text style={styles.promotedTagText}>Promoted</Text>
-                    </View>
-                </View>
-
-                <View style={styles.promotedInfo}>
-                    <Text style={styles.promotedName} numberOfLines={1}>
-                        {item.name}
-                    </Text>
-                    <View style={styles.promotedBottomRow}>
-                        <Text style={styles.promotedCuisine} numberOfLines={1}>
-                            {item.cuisine || 'Restaurant'}
-                        </Text>
-                        {item.averageRating ? (
-                            <View style={[styles.ratingBadge, { paddingHorizontal: 6, paddingVertical: 2 }]}>
-                                <Text style={[styles.ratingText, { fontSize: 11 }]}>⭐ {item.averageRating}</Text>
-                            </View>
-                        ) : null}
-                    </View>
-                </View>
-            </TouchableOpacity>
+// Handle filter button press
+const handleFilterClick = (filterType) => {
+    if (filterType === 'nearby' && locationDenied) {
+        Alert.alert(
+            "Location Required",
+            "Location access is required to view nearby restaurants. Please enable permissions in your phone settings."
         );
-    };
+        return;
+    }
+    setActiveFilter(filterType);
+};
 
-    // --- RENDER REGULAR CARD ---
-    const renderRestaurantCard = ({ item }) => {
-        const rawImage = item.imageUrl || item.image;
-        const formattedUrl = formatImageUrl(rawImage);
-        const imageSource = formattedUrl ? { uri: formattedUrl } : require('../../assets/icon.png');
+// Filter and Map the restaurants
+const filteredRestaurants = restaurants
+    .map(restaurant => {
+        const distance = userLocation && restaurant.lat && restaurant.lng
+            ? getRealDistance(userLocation.lat, userLocation.lng, restaurant.lat, restaurant.lng)
+            : null;
 
-        return (
-            <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('RestaurantMenu', { id: item._id || item.id })}>
-                <Image
-                    source={imageSource}
-                    style={[styles.cardImage, !formattedUrl && { backgroundColor: '#f0f8fb', padding: 15 }]}
-                    resizeMode={formattedUrl ? 'cover' : 'contain'}
-                />
-                <View style={styles.cardInfo}>
-                    <View style={styles.cardHeaderRow}>
-                        <Text style={styles.restaurantName}>{item.name}</Text>
-                        {item.averageRating ? (
-                            <View style={styles.ratingBadge}>
-                                <Text style={styles.ratingText}>⭐ {item.averageRating}</Text>
-                            </View>
-                        ) : null}
-                    </View>
+        return {
+            ...restaurant,
+            calculatedDistance: distance
+        };
+    })
+    .filter(restaurant => {
+        if (activeFilter === 'nearby') {
+            if (locationDenied || restaurant.calculatedDistance === null) return false;
+            if (restaurant.calculatedDistance > maxDistance) return false;
+        }
 
-                    {item.address ? (
-                        <Text style={styles.distanceText}>📍 {item.address}</Text>
-                    ) : null}
-                </View>
-            </TouchableOpacity>
-        );
-    };
+        if (activeFilter === 'promoted' && restaurant.isPromoted !== true) {
+            return false;
+        }
 
-    // Get strictly promoted restaurants for the top carousel
-    const promotedRestaurants = restaurants.filter(r => r.isPromoted);
+        if (activeFilter === 'top') {
+            const rating = restaurant.averageRating ?? restaurant.rating ?? 0;
+            if (rating < 4.0) return false;
+        }
 
-    // --- RENDER LIST HEADER (Carousel + Filters) ---
-    const renderListHeader = () => (
-        <View style={styles.headerContainer}>
-            {/* Promoted Carousel */}
-            {promotedRestaurants.length > 0 && (
-                <View style={styles.promotedSection}>
-                    <Text style={[styles.sectionTitle, { paddingHorizontal: 24, marginBottom: 15 }]}>
-                        Featured & Promoted ✨
-                    </Text>
-                    <FlatList
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        data={promotedRestaurants}
-                        keyExtractor={(item) => `promoted-${item._id || item.id}`}
-                        renderItem={renderPromotedCard}
-                        contentContainerStyle={styles.promotedListContainer}
-                    />
-                </View>
-            )}
+        return true;
+    });
 
-            {/* Title and Count */}
-            <View style={styles.sectionHeaderRow}>
-                <Text style={styles.sectionTitle}>Browsing</Text>
-                <Text style={styles.countBadge}>{filteredRestaurants.length} Places</Text>
-            </View>
+// Helper function to format image URLs properly for the mobile emulator
+const formatImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http://localhost') || url.startsWith('https://localhost')) {
+        return url.replace('localhost', '10.0.2.2');
+    }
+    if (url.startsWith('http')) return url;
+    const cleanPath = url.startsWith('/') ? url : `/${url}`;
+    return `${API_BASE_URL}${cleanPath}`;
+};
 
-            {/* Filter Buttons */}
-            <View style={styles.filterContainer}>
-                <TouchableOpacity 
-                    style={[styles.filterBtn, activeFilter === 'all' && styles.activeFilterBtn]}
-                    onPress={() => handleFilterClick('all')}
-                >
-                    <Text style={[styles.filterBtnText, activeFilter === 'all' && styles.activeFilterBtnText]}>All</Text>
-                </TouchableOpacity>
+// Refresh data when returning to screen
+useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+        fetchRestaurants();
+    });
 
-                <TouchableOpacity 
-                    style={[styles.filterBtn, activeFilter === 'nearby' && styles.activeFilterBtn]}
-                    onPress={() => handleFilterClick('nearby')}
-                >
-                    <Text style={[styles.filterBtnText, activeFilter === 'nearby' && styles.activeFilterBtnText]}>📍 Nearby</Text>
-                </TouchableOpacity>
+    // Clean up the listener when component unmounts
+    return unsubscribe;
+}, [navigation]);
 
-                <TouchableOpacity 
-                    style={[styles.filterBtn, activeFilter === 'promoted' && styles.activeFilterBtn]}
-                    onPress={() => handleFilterClick('promoted')}
-                >
-                    <Text style={[styles.filterBtnText, activeFilter === 'promoted' && styles.activeFilterBtnText]}>⭐ Promoted</Text>
-                </TouchableOpacity>
+const getRestaurantRatingText = (restaurant) => {
+    const rating = Number(restaurant.averageRating || 0);
 
-                <TouchableOpacity 
-                    style={[styles.filterBtn, activeFilter === 'top' && styles.activeFilterBtn]}
-                    onPress={() => handleFilterClick('top')}
-                >
-                    <Text style={[styles.filterBtnText, activeFilter === 'top' && styles.activeFilterBtnText]}>🏆 Top Rated</Text>
-                </TouchableOpacity>
-            </View>
+    if (!rating) {
+        return 'New';
+    }
 
-            {/* Distance Selector (Only shows when 'nearby' is active) */}
-            {activeFilter === 'nearby' && !locationDenied && (
-                <View style={styles.distanceSelectorContainer}>
-                    <Text style={styles.distanceSelectorText}>Within: </Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        {[5, 10, 20].map(dist => (
-                            <TouchableOpacity 
-                                key={dist} 
-                                style={[styles.distanceChip, maxDistance === dist && styles.activeDistanceChip]}
-                                onPress={() => setMaxDistance(dist)}
-                            >
-                                <Text style={[styles.distanceChipText, maxDistance === dist && styles.activeDistanceChipText]}>
-                                    {dist} km
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
+    return rating.toFixed(1);
+};
+
+const renderRatingBadge = (restaurant) => {
+    const ratingCount = restaurant.ratings?.length || 0;
+
+    return (
+        <View
+            style={[
+                styles.ratingBadge,
+                {
+                    backgroundColor: isDark ? '#10243d' : '#e8f9fd',
+                    borderColor: theme.border
+                }
+            ]}
+        >
+            <Text style={styles.ratingBadgeText}>
+                ⭐ {getRestaurantRatingText(restaurant)}
+            </Text>
+
+            {ratingCount > 0 && (
+                <Text style={[styles.ratingCountText, { color: theme.textMuted }]}>
+                    ({ratingCount})
+                </Text>
             )}
         </View>
     );
+};
+
+// --- RENDER PROMOTED CARD ---
+const renderPromotedCard = ({ item }) => {
+    const rawImage = item.imageUrl || item.image;
+    const formattedUrl = formatImageUrl(rawImage);
+    const imageSource = formattedUrl ? { uri: formattedUrl } : require('../../assets/icon.png');
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            {/* Top Header Section */}
-            <View style={styles.header}>
+        <TouchableOpacity
+            style={styles.promotedCard}
+            onPress={() => navigation.navigate('RestaurantMenu', { id: item._id || item.id })}
+            activeOpacity={0.85}
+        >
+            <View style={styles.imageContainer}>
+                <Image
+                    source={imageSource}
+                    style={[styles.promotedImage, !formattedUrl && { backgroundColor: '#f0f8fb' }]}
+                    resizeMode={formattedUrl ? 'cover' : 'contain'}
+                />
+                <View style={styles.promotedTag}>
+                    <Text style={styles.promotedTagText}>Promoted</Text>
+                </View>
+            </View>
+
+            <View style={styles.promotedInfo}>
+                <Text style={styles.promotedName} numberOfLines={1}>
+                    {item.name}
+                </Text>
+                <View style={styles.promotedBottomRow}>
+                    <Text style={styles.promotedCuisine} numberOfLines={1}>
+                        {item.cuisine || 'Restaurant'}
+                    </Text>
+                    {item.averageRating ? (
+                        <View style={[styles.ratingBadge, { paddingHorizontal: 6, paddingVertical: 2 }]}>
+                            <Text style={[styles.ratingText, { fontSize: 11 }]}>⭐ {item.averageRating}</Text>
+                        </View>
+                    ) : null}
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+};
+
+// --- RENDER REGULAR CARD ---
+const renderRestaurantCard = ({ item }) => {
+    const rawImage = item.imageUrl || item.image;
+    const formattedUrl = formatImageUrl(rawImage);
+    const restaurantId = item._id || item.id;
+
+    const imageSource = formattedUrl
+        ? { uri: formattedUrl }
+        : require('../../assets/icon.png');
+
+    return (
+        <TouchableOpacity
+            style={[
+                styles.card,
+                {
+                    backgroundColor: theme.card,
+                    borderColor: theme.border,
+                    borderWidth: isDark ? 1 : 0
+                }
+            ]}
+            onPress={() => navigation.navigate('RestaurantMenu', { id: restaurantId })}
+            activeOpacity={0.85}
+        >
+            <Image
+                source={imageSource}
+                style={[
+                    styles.cardImage,
+                    !formattedUrl && {
+                        backgroundColor: theme.inputBg,
+                        padding: 15
+                    }
+                ]}
+                resizeMode={formattedUrl ? 'cover' : 'contain'}
+            />
+
+            <View style={styles.cardInfo}>
+                <View style={styles.cardHeaderRow}>
+                    <Text style={[styles.restaurantName, { color: theme.text }]}>
+                        {item.name}
+                    </Text>
+                </View>
+
+                {item.address ? (
+                    <Text style={styles.distanceText}>📍 {item.address}</Text>
+                ) : null}
+                <View style={styles.cardTopRow}>
+                    <View style={styles.restaurantTextArea}>
+                        <Text
+                            style={[
+                                styles.restaurantDescription,
+                                { color: theme.textMuted }
+                            ]}
+                            numberOfLines={2}
+                        >
+                            {item.description}
+                        </Text>
+                    </View>
+
+                    {renderRatingBadge(item)}
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+};
+
+// Get strictly promoted restaurants for the top carousel
+const promotedRestaurants = restaurants.filter(r => r.isPromoted);
+
+// --- RENDER LIST HEADER (Carousel + Filters) ---
+const renderListHeader = () => (
+    <View style={styles.headerContainer}>
+        {/* Promoted Carousel */}
+        {promotedRestaurants.length > 0 && (
+            <View style={styles.promotedSection}>
+<Text style={[styles.sectionTitle, { paddingHorizontal: 24, marginBottom: 15, color: theme.text }]}>Featured & Promoted ✨
+                </Text>
+                <FlatList
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    data={promotedRestaurants}
+                    keyExtractor={(item) => `promoted-${item._id || item.id}`}
+                    renderItem={renderPromotedCard}
+                    contentContainerStyle={styles.promotedListContainer}
+                />
+            </View>
+        )}
+
+        {/* Title and Count */}
+        <View style={styles.sectionHeaderRow}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Browsing</Text>
+            <Text style={styles.countBadge}>{filteredRestaurants.length} Places</Text>
+        </View>
+
+        {/* Filter Buttons */}
+        <View style={styles.filterContainer}>
+            <TouchableOpacity
+                style={[styles.filterBtn, activeFilter === 'all' && styles.activeFilterBtn]}
+                onPress={() => handleFilterClick('all')}
+            >
+                <Text style={[styles.filterBtnText, activeFilter === 'all' && styles.activeFilterBtnText]}>All</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.filterBtn, activeFilter === 'nearby' && styles.activeFilterBtn]}
+                onPress={() => handleFilterClick('nearby')}
+            >
+                <Text style={[styles.filterBtnText, activeFilter === 'nearby' && styles.activeFilterBtnText]}>📍 Nearby</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.filterBtn, activeFilter === 'promoted' && styles.activeFilterBtn]}
+                onPress={() => handleFilterClick('promoted')}
+            >
+                <Text style={[styles.filterBtnText, activeFilter === 'promoted' && styles.activeFilterBtnText]}>⭐ Promoted</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.filterBtn, activeFilter === 'top' && styles.activeFilterBtn]}
+                onPress={() => handleFilterClick('top')}
+            >
+                <Text style={[styles.filterBtnText, activeFilter === 'top' && styles.activeFilterBtnText]}>🏆 Top Rated</Text>
+            </TouchableOpacity>
+        </View>
+
+        {/* Distance Selector (Only shows when 'nearby' is active) */}
+        {activeFilter === 'nearby' && !locationDenied && (
+            <View style={styles.distanceSelectorContainer}>
+                <Text style={styles.distanceSelectorText}>Within: </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {[5, 10, 20].map(dist => (
+                        <TouchableOpacity
+                            key={dist}
+                            style={[styles.distanceChip, maxDistance === dist && styles.activeDistanceChip]}
+                            onPress={() => setMaxDistance(dist)}
+                        >
+                            <Text style={[styles.distanceChipText, maxDistance === dist && styles.activeDistanceChipText]}>
+                                {dist} km
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
+        )}
+    </View>
+);
+
+return (
+        <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+            <View
+                style={[
+                    styles.header,
+                    {
+                        backgroundColor: theme.card,
+                        shadowOpacity: isDark ? 0 : 0.05
+                    }
+                ]}
+            >
                 <Text style={styles.logo}>bites</Text>
-                <Text style={styles.welcomeText}>
+
+                <Text style={[styles.welcomeText, { color: theme.textMuted }]}>
                     Welcome back, {user?.displayName || user?.username || 'Guest'}! 🍕
                 </Text>
+
                 <TouchableOpacity
-                    style={styles.searchButton}
+                    style={[styles.searchButton, { backgroundColor: theme.inputBg }]}
                     onPress={() => setSearchVisible(true)}
                     activeOpacity={0.8}
                 >
                     <Text style={styles.searchEmoji}>🔍</Text>
-                    <Text style={styles.placeholder}>Search restaurants or dishes...</Text>
+
+                    <Text style={[styles.placeholder, { color: theme.textMuted }]}>
+                        Search restaurants or dishes...
+                    </Text>
                 </TouchableOpacity>
             </View>
 
@@ -349,7 +445,6 @@ const HomeScreen = ({ user }) => {
                     />
                 )}
             </View>
-            
             <SearchOverlay
                 visible={searchVisible}
                 onClose={() => setSearchVisible(false)}
@@ -369,7 +464,7 @@ const styles = StyleSheet.create({
     placeholder: { color: '#7b8490', fontSize: 15, fontWeight: '500' },
     content: { flex: 1 },
     headerContainer: { paddingBottom: 5 },
-    
+
     // Carousel Styles
     promotedSection: { marginBottom: 10 },
     promotedListContainer: { paddingLeft: 24, paddingRight: 8, paddingBottom: 15 },
@@ -402,16 +497,49 @@ const styles = StyleSheet.create({
     emptyContainer: { padding: 40, alignItems: 'center' },
     emptyText: { color: '#7b8490', fontSize: 16, fontWeight: '600', textAlign: 'center' },
     listContainer: { paddingBottom: 30 },
-    
+
     // Regular Card Styles
     card: { backgroundColor: '#ffffff', borderRadius: 20, marginBottom: 20, marginHorizontal: 24, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 15, shadowOffset: { width: 0, height: 8 }, elevation: 4 },
     cardImage: { width: '100%', height: 160, backgroundColor: '#eaeaea' },
     cardInfo: { padding: 18 },
     cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 },
     restaurantName: { fontSize: 19, fontWeight: '800', color: '#202125', flex: 1 },
-    ratingBadge: { backgroundColor: '#fff3cd', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
     ratingText: { fontSize: 12, fontWeight: 'bold', color: '#856404' },
-    distanceText: { fontSize: 13, color: '#00c2e8', fontWeight: 'bold', marginTop: 4 }
+    distanceText: { fontSize: 13, color: '#00c2e8', fontWeight: 'bold', marginTop: 8 },
+    cardTopRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 12
+    },
+    restaurantTextArea: {
+        flex: 1
+    },
+    restaurantDescription: {
+        fontSize: 14,
+        color: '#7b8490',
+        lineHeight: 20
+    },
+    ratingBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        borderWidth: 1,
+        borderRadius: 999,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        minWidth: 76,
+        justifyContent: 'center'
+    },
+    ratingBadgeText: {
+        color: '#00a6c8',
+        fontSize: 13,
+        fontWeight: '900'
+    },
+    ratingCountText: {
+        fontSize: 11,
+        marginLeft: 4,
+        fontWeight: '700'
+    }
 });
 
 export default HomeScreen;

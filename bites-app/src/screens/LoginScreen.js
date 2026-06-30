@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config/api';
+import { useTheme } from '../context/ThemeContext';
 import { useCart } from '../context/CartContext';
-
 const base64UrlDecode = (base64Url) => {
     let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
 
@@ -61,7 +61,7 @@ const LoginScreen = ({ navigation, setUser }) => {
     const { refreshCartKey } = useCart();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-
+    const { resetTheme } = useTheme();
     const [wasSubmitted, setWasSubmitted] = useState(false);
     const [usernameTouched, setUsernameTouched] = useState(false);
     const [passwordTouched, setPasswordTouched] = useState(false);
@@ -81,14 +81,21 @@ const LoginScreen = ({ navigation, setUser }) => {
 
     const isFormValid = usernameTrimmed.length > 0 && password.length > 0;
     // Handle guest login - bypass authentication and navigate to the main app
-  const handleGuestLogin = async () => {
-    // Ensure user state is explicitly null for guest mode
-    await AsyncStorage.removeItem('user'); 
-    await refreshCartKey();
-    
-    // Navigate directly to the Drawer navigator wrapper
-    navigation.replace('MainApp');
-  };
+    const handleGuestLogin = async () => {
+        // Ensure user state is explicitly null for guest mode
+        if (typeof setUser === 'function') {
+            setUser(null);
+        }
+
+        await AsyncStorage.removeItem('token');
+        await AsyncStorage.removeItem('user');
+
+        resetTheme();
+        await refreshCartKey();
+
+        // Navigate directly to the Drawer navigator wrapper
+        navigation.replace('MainApp');
+    };
 
     const handleLogin = async () => {
         setWasSubmitted(true);
@@ -140,37 +147,13 @@ const LoginScreen = ({ navigation, setUser }) => {
 
             const token = tokenData.token;
 
-            let loggedInUser = {
-                username: usernameTrimmed
+            const loggedInUser = {
+                _id: tokenData.user._id,
+                username: tokenData.user.username,
+                displayName: tokenData.user.displayName,
+                role: tokenData.user.role || 'customer',
+                profileImage: '' 
             };
-
-            try {
-                const payload = decodeJwtPayload(token);
-                const userId = payload.userId || payload.id || payload._id;
-
-                if (userId) {
-                    const userResponse = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
-                        method: 'GET',
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    });
-
-                    const userData = await userResponse.json().catch(() => null);
-
-                    if (userResponse.ok && userData) {
-                        loggedInUser = {
-                            _id: userData._id || userId,
-                            username: userData.username,
-                            displayName: userData.displayName,
-                            profileImage: userData.profileImage,
-                            role: userData.role
-                        };
-                    }
-                }
-            } catch (decodeError) {
-                console.log('Could not decode token or fetch user details:', decodeError);
-            }
 
             await AsyncStorage.setItem('token', token);
             await AsyncStorage.setItem('user', JSON.stringify(loggedInUser));
@@ -186,7 +169,7 @@ const LoginScreen = ({ navigation, setUser }) => {
                     onPress: () => navigation.replace('MainApp')
                 }
             ]);
-        } catch (error) {
+            } catch (error) {
             console.error('Login error:', error);
             setServerError('Network error. Please check that the server is running.');
         } finally {
@@ -209,14 +192,14 @@ const LoginScreen = ({ navigation, setUser }) => {
                 </Text>
             </View>
             {/* Guest Login Button */}
-        <TouchableOpacity 
-          onPress={handleGuestLogin} 
-          style={{ marginTop: 20, alignItems: 'center', padding: 10 }}
-        >
-          <Text style={{ color: '#00c2e8', fontWeight: 'bold', fontSize: 16 }}>
-            Continue as Guest
-          </Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+                onPress={handleGuestLogin}
+                style={{ marginTop: 20, alignItems: 'center', padding: 10 }}
+            >
+                <Text style={{ color: '#00c2e8', fontWeight: 'bold', fontSize: 16 }}>
+                    Continue as Guest
+                </Text>
+            </TouchableOpacity>
 
             <View style={styles.card}>
                 {serverError ? (

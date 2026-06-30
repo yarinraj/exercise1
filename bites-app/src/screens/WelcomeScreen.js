@@ -88,7 +88,7 @@ const WelcomeScreen = ({ navigation, user }) => {
                     {user?.role === 'owner' && (
                         <TouchableOpacity 
                             style={styles.button} 
-                            onPress={() => console.log('Navigate to Owner Dashboard')}
+                            onPress={() => navigation.navigate('Owner Dashboard')}
                         >
                             <Text style={styles.buttonText}>My Restaurants</Text>
                         </TouchableOpacity>

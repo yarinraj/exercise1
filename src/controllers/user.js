@@ -73,6 +73,10 @@ const getUser = async (req, res) => {
         const userResponse = user.toObject();
         delete userResponse.password;
 
+        if (!userResponse.role) {
+            userResponse.role = 'customer';
+        }
+
         return res.status(200).json(userResponse);
 
     } catch (err) {
@@ -108,6 +112,10 @@ const login = async (req, res) => {
         // 5. Successful login: remove password from response object
         const userResponse = user.toObject();
         delete userResponse.password;
+
+        if (!userResponse.role) {
+            userResponse.role = 'customer';
+        }
 
         return res.status(200).json(userResponse);
 
