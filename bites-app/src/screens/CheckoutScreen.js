@@ -109,6 +109,7 @@ const CheckoutScreen = ({ navigation, user }) => {
 
             const savedUser = await AsyncStorage.getItem('user');
             const parsedUser = savedUser ? JSON.parse(savedUser) : null;
+            const token = await AsyncStorage.getItem('token');
 
             const finalUserId =
                 parsedUser?.userId ||
@@ -135,7 +136,8 @@ const CheckoutScreen = ({ navigation, user }) => {
             const response = await fetch(`${API_BASE_URL}/api/orders`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
                 },
                 body: JSON.stringify(orderPayload)
             });
@@ -343,8 +345,14 @@ const CheckoutScreen = ({ navigation, user }) => {
                         <Text style={[styles.successTitle, { color: theme.text }]}>
                             order confirmed
                         </Text>
-                        <Text style={[styles.successMessage, { color: theme.textMuted || theme.mutedText || '#6c757d' }]}>
-                            The shipment is on its way to you
+
+                        <Text
+                            style={[
+                                styles.successMessage,
+                                { color: theme.textMuted || theme.mutedText || '#6c757d' }
+                            ]}
+                        >
+                            The delivery is on its way to you
                         </Text>
                         <TouchableOpacity
                             style={styles.closeModalButton}
